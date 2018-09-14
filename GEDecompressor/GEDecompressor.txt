@@ -1,0 +1,28 @@
+Readme for GE Decompressor/Compressor + Source
+http://www.rarewitchproject.com/
+
+Reverse Engineering painstakingly done by MrHTTFord for Goldeneye (thanks!!!)
+C++ port and specific game options by SubDrag
+Compression done by gzip
+
+Compression Headers:
+Goldeneye 1172 data
+PD 1172[threebytesize] data
+BK 1172[fourbytesize] data terminated by AAs padded to 8
+DK64 gzip standard header (1F8B08..)
+BT [unknowntwobyte]data terminated by AAs padded to 8
+Conker [fourbytesize] data
+
+Permission is granted to use and modify freely, as long as original credit is given and visible.
+
+To use:
+
+	GECompression compressed;
+	compressed.SetGame(m_gameselection.GetCurSel());
+	compressed.SetPath(directory);
+	unsigned char* Buffer;
+	// ...
+	compressed.SetCompressedBuffer(Buffer, sizeBuffer);
+	unsigned char* outputDecompressed = compressed.OutputDecompressedBuffer(fileSizeReturnSize);
+
+	compressed.CompressGZipFile((CString)inputFile, (CString)outputFile, dobyteFlipCompressed);

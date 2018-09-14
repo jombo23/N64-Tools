@@ -1,0 +1,230 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\N64SoundbankTool.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""     // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\N64SoundbankTool.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 170, 62
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About N64SoundbankTool"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,14,14,20,20
+    LTEXT           "N64SoundbankTool, May 13, 2016",IDC_STATIC,42,14,114,8,SS_NOPREFIX
+    LTEXT           "Copyright (C) 2015",IDC_STATIC,42,26,114,8
+    DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
+END
+
+IDD_N64SOUNDBANKTOOL_DIALOG DIALOGEX 0, 0, 343, 169
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "N64 Soundbank Tool by SubDrag"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "Game",IDC_STATIC,7,20,20,8
+    COMBOBOX        IDC_COMBOGAME,43,17,282,89,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Write DLS Soundfont",IDC_BUTTONWRITEDLSSOUNDFONT,60,32,73,14
+    LTEXT           "Midi",IDC_STATIC,7,65,14,8
+    COMBOBOX        IDC_COMBOMIDI,39,62,203,177,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Preview (inaccurate)",IDC_BUTTONPREVIEWMIDI,246,61,76,14,WS_DISABLED
+    PUSHBUTTON      "Load ROM",IDC_BUTTONLOADROM,7,32,50,14
+    PUSHBUTTON      "Stop",IDC_BUTTONPREVIEWMIDI2,246,76,76,14
+    LTEXT           "Time Multiplier",IDC_STATIC,35,97,50,8
+    EDITTEXT        IDC_EDITTIMEMULTIPLIER,95,94,119,14,ES_AUTOHSCROLL
+    LTEXT           "Bank",IDC_STATIC,7,49,16,8
+    COMBOBOX        IDC_COMBOSOUND,39,47,203,177,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "1/2 Sampling Rate",IDC_CHECKHALFSAMPLINGRATE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,39,111,77,10
+    CONTROL         "Loop Playback",IDC_CHECKLOOP,"Button",BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP,219,95,62,10
+    EDITTEXT        IDC_EDITSAMPLINGRATE,175,110,40,14,ES_AUTOHSCROLL
+    LTEXT           "Sampling Rate",IDC_STATIC,119,112,48,8
+    PUSHBUTTON      "Write All DLS Soundfont Banks",IDC_BUTTONWRITEDLSSOUNDFONT2,229,32,106,14
+    PUSHBUTTON      "Export all Midis",IDC_BUTTONWRITEMIDISTOFOLDER,66,76,54,14
+    PUSHBUTTON      "Export Midi",IDC_BUTTONEXPORTMIDI,23,76,41,14
+    LTEXT           "Soundfont Status: ",IDC_LABELGAMEINFO,7,150,310,8
+    CONTROL         "Separate by instrument",IDC_CHECKSEPARATEBYISNTRUMENT,
+                    "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,219,108,91,10
+    CONTROL         "Output Loop",IDC_CHECKOUTPUTLOOP,"Button",BS_AUTOCHECKBOX | BS_NOTIFY | NOT WS_VISIBLE | WS_TABSTOP,219,135,56,10
+    EDITTEXT        IDC_EDITOUTPUTLOOPCOUNT,281,133,40,14,ES_AUTOHSCROLL | NOT WS_VISIBLE
+    PUSHBUTTON      "Write DLS Combined Banks",IDC_BUTTONWRITEDLSSOUNDFONT3,138,32,90,14,NOT WS_VISIBLE
+    CONTROL         "Merge Preview Banks",IDC_CHECKMERGEPREVIEWBANKS,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,247,49,77,10
+    CONTROL         "Extend Smaller Tracks to End",IDC_CHECKEXTENDLOOPSTOHIGHESTTRACK,
+                    "Button",BS_AUTOCHECKBOX | BS_NOTIFY | NOT WS_VISIBLE | WS_TABSTOP,219,121,109,10
+    CONTROL         "Use T1 Sampling Rates",IDC_CHECKUSET1,"Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,118,125,92,10
+    CONTROL         "Debug",IDC_CHECKDEBUG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,118,136,37,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "TODO: <Company name>"
+            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "N64SoundbankTool.exe"
+            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "OriginalFilename", "N64SoundbankTool.exe"
+            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 163
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_N64SOUNDBANKTOOL_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 336
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 162
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_ABOUTBOX            "&About N64SoundbankTool..."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "res\N64SoundbankTool.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"     // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

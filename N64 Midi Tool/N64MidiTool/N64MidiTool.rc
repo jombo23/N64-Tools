@@ -1,0 +1,287 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#include ""res\\N64MidiTool.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""     // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\N64MidiTool.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_N64MIDITOOL_DIALOG DIALOGEX 0, 0, 299, 202
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "N64 Midi Tool V2 by SubDrag"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_COMBOGAME,39,12,252,151,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Game",IDC_STATIC,12,12,19,8
+    PUSHBUTTON      "Load ROM",IDC_BUTTONLOADROM,8,28,81,14
+    GROUPBOX        "ROM",IDC_STATIC,4,4,291,58,0,WS_EX_TRANSPARENT
+    GROUPBOX        "Midi",IDC_STATIC,4,62,192,76,0,WS_EX_TRANSPARENT
+    COMBOBOX        IDC_COMBOMIDI,30,72,162,117,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Spot",IDC_STATIC,12,74,16,8
+    PUSHBUTTON      "Export Bin",IDC_BUTTONExportBin,70,103,60,14
+    PUSHBUTTON      "Export Midi",IDC_BUTTONExportMidi,70,119,60,14
+    PUSHBUTTON      "Import Midi",IDC_BUTTONImportMidi,8,119,60,14
+    PUSHBUTTON      "Import Bin",IDC_BUTTONImportBin,8,103,60,14
+    CONTROL         "Loop",IDC_CHECKLOOP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,205,70,53,14
+    PUSHBUTTON      "Write ROM",IDC_BUTTONWriteROM,91,28,81,14
+    PUSHBUTTON      "Export All to Midi",IDC_BUTTONEXPORTALLTOMIDI,132,119,60,14
+    PUSHBUTTON      "Export All to Bin",IDC_BUTTONEXPORTALLTORAWBIN,132,103,60,14
+    PUSHBUTTON      "Play Midi",IDC_BUTTONPLAYMIDI,104,87,88,14
+    PUSHBUTTON      "Scan Dir for Midis",IDC_BUTTONSCANDIRFORMIDIS,91,44,81,14
+    PUSHBUTTON      "Rip all ROMs",IDC_BUTTONRIPROMS,8,44,81,14
+    LTEXT           "Num Instruments:",IDC_STATIC,206,154,85,8
+    EDITTEXT        IDC_EDITNUMINSTRUMENTS,205,162,86,12,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_EDITLOOPPOINT,261,70,30,14,ES_AUTOHSCROLL
+    CONTROL         "No Repeaters",IDC_CHECKLOOP2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,205,102,86,10
+    PUSHBUTTON      "Add Loop Debug",IDC_BUTTONLOOPDEBUG,228,4,67,14,NOT WS_VISIBLE | WS_DISABLED
+    PUSHBUTTON      "Gen Test Midis",IDC_BUTTONGENMIDIS,228,20,67,14,NOT WS_VISIBLE
+    CONTROL         "Separate by instrument",IDC_CHECKSEPARATEBYISNTRUMENT,
+                    "Button",BS_AUTOCHECKBOX | BS_NOTIFY | NOT WS_VISIBLE | WS_TABSTOP,8,87,92,14
+    CONTROL         "Debug Text File",IDC_CHECKDEBUGTEXTFILE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,175,44,81,14
+    CONTROL         "Show Effects Games",IDC_CHECKSHOWBFX,"Button",BS_AUTOCHECKBOX | BS_NOTIFY | WS_TABSTOP,175,28,81,14
+    LTEXT           "Master Track Effect",IDC_MASTERTRACKEFFECTLABEL,8,147,64,12,NOT WS_VISIBLE
+    COMBOBOX        IDC_COMBOMASTERTRACKEFFECT,78,146,115,141,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Output Loop",IDC_CHECKOUTPUTLOOP,"Button",BS_AUTOCHECKBOX | BS_NOTIFY | NOT WS_VISIBLE | WS_TABSTOP,205,85,53,14
+    EDITTEXT        IDC_EDITOUTPUTLOOPCOUNT,261,85,30,14,ES_AUTOHSCROLL | NOT WS_VISIBLE
+    CONTROL         "Extend Short Tracks",IDC_CHECKEXTENDLOOPSTOHIGHESTTRACK,
+                    "Button",BS_AUTOCHECKBOX | BS_NOTIFY | NOT WS_VISIBLE | WS_TABSTOP,205,115,86,10
+    LTEXT           "Midi Type",IDC_MIDITYPE,206,146,85,8,NOT WS_VISIBLE
+    COMBOBOX        IDC_COMBOMASTERTRACKEFFECT2,78,161,115,141,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Effects",IDC_GROUPEFFECTS,4,137,192,53,NOT WS_VISIBLE,WS_EX_TRANSPARENT
+    GROUPBOX        "Looping",IDC_STATIC5,201,62,94,67,0,WS_EX_TRANSPARENT
+    GROUPBOX        "Status",IDC_STATIC,201,128,94,50,0,WS_EX_TRANSPARENT
+    LTEXT           "Master Track Effect 2",IDC_MASTERTRACKEFFECTLABEL2,8,161,69,12,NOT WS_VISIBLE
+    LTEXT           "Game name",IDC_GAMENAME,206,138,85,8,SS_WORDELLIPSIS | NOT WS_VISIBLE
+    LTEXT           "Pitch Bend Sensitivty",IDC_MASTERTRACKEFFECTLABEL3,8,177,68,8,NOT WS_VISIBLE
+    COMBOBOX        IDC_COMBOPITCHBENDSENSITIVITY,78,175,115,141,CBS_DROPDOWNLIST | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "TODO: <Company name>"
+            VALUE "FileDescription", "TODO: <File description>"
+            VALUE "FileVersion", "1.0.0.1"
+            VALUE "InternalName", "N64MidiTool.exe"
+            VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
+            VALUE "OriginalFilename", "N64MidiTool.exe"
+            VALUE "ProductName", "TODO: <Product name>"
+            VALUE "ProductVersion", "1.0.0.1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_N64MIDITOOL_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 295
+        VERTGUIDE, 8
+        VERTGUIDE, 291
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 198
+        HORZGUIDE, 12
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_N64MIDITOOL_DIALOG DLGINIT
+BEGIN
+    IDC_COMBOMASTERTRACKEFFECT2, 0x403, 10, 0
+0x3030, 0x3d20, 0x4e20, 0x6e6f, 0x0065, 
+    IDC_COMBOMASTERTRACKEFFECT2, 0x403, 16, 0
+0x3130, 0x3d20, 0x5320, 0x616d, 0x6c6c, 0x5220, 0x6f6f, 0x006d, 
+    IDC_COMBOMASTERTRACKEFFECT2, 0x403, 14, 0
+0x3230, 0x3d20, 0x4220, 0x6769, 0x5220, 0x6f6f, 0x006d, 
+    IDC_COMBOMASTERTRACKEFFECT2, 0x403, 12, 0
+0x3330, 0x3d20, 0x4320, 0x6f68, 0x7572, 0x0073, 
+    IDC_COMBOMASTERTRACKEFFECT2, 0x403, 12, 0
+0x3430, 0x3d20, 0x4620, 0x616c, 0x676e, 0x0065, 
+    IDC_COMBOMASTERTRACKEFFECT2, 0x403, 10, 0
+0x3530, 0x3d20, 0x4520, 0x6863, 0x006f, 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 2, 0
+0x0031, 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 2, 0
+0x0032, 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 2, 0
+0x0033, 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 2, 0
+0x0034, 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 2, 0
+0x0035, 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 2, 0
+0x0036, 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 2, 0
+0x0037, 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 2, 0
+0x0038, 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 2, 0
+0x0039, 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3031, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3131, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3231, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3331, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3431, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3531, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3631, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3731, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3831, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3931, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3032, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3132, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3232, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3332, "\000" 
+    IDC_COMBOPITCHBENDSENSITIVITY, 0x403, 3, 0
+0x3432, "\000" 
+    0
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#include "res\N64MidiTool.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"     // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- seq64 ROM Description File -->
+<RomDesc indextype="1">
+  <cmdlist>
+    <command cmd="255" name="End of Data" action="End of Data" validinseq="1"
+             validinchn="1" validintrk="1"/>
+    <command cmd="120" name="Relative Trk Ptr" action="Ptr Track Data" cmdend="123"
+             validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="Layer" meaning="Note Layer"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Relative Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="144" name="Absolute Trk Ptr" action="Ptr Track Data" cmdend="147"
+             validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="Note Layer" meaning="Note Layer"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="96" name="Unknown (Volume 2nd byte?)" action="No Action"
+             cmdend="111" validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="Value" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="193" name="Instrument" action="Chn Instrument" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Instrument" meaning="Value"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="194" name="Transposition" action="Chn Transpose" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="196" name="Channel Start" action="Chn Reset" validinchn="1"/>
+    <command cmd="211" name="Pitch Bend" action="Chn Pitch Bend" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Bend" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="212" name="Effect Level" action="Chn Effects" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="216" name="Vibrato (Chn)" action="Chn Vibrato" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Vibrato" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="218" name="Unknown" action="No Action" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Unnamed" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="220" name="Drumset?" action="No Action" validinchn="1" validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="221" name="Chan Pan" action="Chn Pan" validinchn="1" validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Pan" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="223" name="Chan Volume (Chn)" action="Chn Volume" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Volume" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="224" name="Unknown" action="No Action" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="233" name="Channel Priority" action="No Action" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Priority" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="0" name="Note w/ T, V, G" action="Track Note" cmdend="63"
+             validintrk="1">
+      <parameter datasrc="offset" datalen="0" name="Note" meaning="Note" add="0"
+                 multiply="1"/>
+      <parameter datasrc="variable" datalen="2" name="Timestamp" meaning="Delay"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Velocity" meaning="Velocity"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Gate" meaning="Gate Time" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="64" name="Note w/ T, V" action="Track Note" validintrk="1"
+             cmdend="127">
+      <parameter datasrc="offset" datalen="0" name="Note" meaning="Note" add="0"
+                 multiply="1"/>
+      <parameter datasrc="variable" datalen="2" name="Timestamp" meaning="Delay"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Velocity" meaning="Velocity"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="128" name="Note w/ V, G" action="Track Note" validintrk="1"
+             cmdend="191">
+      <parameter datasrc="offset" datalen="0" name="Note" meaning="Note" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Velocity" meaning="Velocity"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Gate Time" meaning="Gate Time"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="192" name="Trk Timestamp" action="Timestamp" validintrk="1">
+      <parameter datasrc="variable" datalen="2" name="Timestamp" meaning="Delay"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="194" name="Ly Transpose" action="Layer Transpose" validintrk="1">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="0" name="Load Chn Bit to Q" action="No Action" cmdend="15"
+             validinseq="1">
+      <parameter datasrc="offset" datalen="0" name="Channel" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="16" name="Ignored Seq Cmd" action="No Action" cmdend="63"
+             validinseq="1"/>
+    <command cmd="64" name="Chn C Unknown (init?)" action="No Action" cmdend="79"
+             validinseq="1" validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="Channel" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="80" name="Q -= var[C]" action="No Action" cmdend="95" validinseq="1"
+             validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="C" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="96" name="Load ??? DMA from var[C]" action="No Action" cmdend="111"
+             validinseq="1" validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="C" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Unknown 1" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Unknown 2" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="112" name="var[C] = Q" action="No Action" cmdend="127" validinseq="1"
+             validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="C" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="128" name="Q = var[C]; if(C&lt;2) var[C] = -1;" action="No Action"
+             cmdend="143" validinseq="1" validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="Unnamed" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="144" name="Absolute Chn Ptr" action="Ptr Channel Header"
+             cmdend="159" validinseq="1">
+      <parameter datasrc="offset" datalen="0" name="Channel" meaning="Channel"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="160" name="Relative Chn Ptr" action="Ptr Channel Header"
+             cmdend="175" validinseq="1">
+      <parameter datasrc="offset" datalen="0" name="Channel" meaning="Channel"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Relative Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="176" name="Set Up New Seq from var[C]" action="No Action"
+             cmdend="191" validinseq="1" validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="C" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="New seq index" meaning="None"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="196" name="WIP possibly return from parsing?" action="No Action"
+             validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Unknown 1" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Unknown 2" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="197" name="WIP Store to SeqParams[E0]" action="No Action"
+             validinseq="1">
+      <parameter datasrc="fixed" datalen="2" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="198" name="Return from Sequence" action="End of Data" validinseq="1"/>
+    <command cmd="199" name="WIP" action="No Action" validinseq="1" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Unnamed" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Unnamed" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="200" name="Q -= val" action="No Action" validinseq="1" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="201" name="Q &amp;= val" action="No Action" validinseq="1"
+             validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="202" name="Ignored" action="No Action" validinseq="1"/>
+    <command cmd="203" name="Ignored" action="No Action" validinseq="1"/>
+    <command cmd="204" name="Q = val" action="No Action" validinseq="1" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="211" name="Sequence Format" action="Sequence Format" validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Format" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="213" name="Sequence Type" action="Sequence Type" validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Type" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="214" name="Channel Disable" action="Channel Disable" validinseq="1">
+      <parameter datasrc="fixed" datalen="2" name="Channels" meaning="Bitfield"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="215" name="Channel Enable" action="Channel Enable" validinseq="1">
+      <parameter datasrc="fixed" datalen="2" name="Channels" meaning="Bitfield"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="219" name="Master Volume" action="Master Volume" validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Volume" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="221" name="Tempo" action="Tempo" validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Tempo" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="223" name="Unknown" action="No Action" validinseq="1" validinchn="0">
+      <parameter datasrc="fixed" datalen="1" name="Unnamed" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="239" name="Ignore 3 Bytes" action="No Action" validinseq="1">
+      <parameter datasrc="fixed" datalen="2" name="Ignored" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Ignored" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="251" name="Branch Abs Always" action="Jump Same Level" validinseq="1"
+             validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="242" name="Branch Rel if Q&lt;0" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="1" name="Address (Relative)" meaning="Relative Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="243" name="Branch Rel if Q==0" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="1" name="Address (Relative)" meaning="Relative Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="244" name="Branch Rel Always" action="Jump Same Level" validinseq="1"
+             validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="1" name="Address (Relative)" meaning="Relative Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="245" name="Branch Abs if Q&gt;=0" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="246" name="Branch Abs to Seq Start" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="0" name="No Data, is 0" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="247" name="Loop End" action="Loop End" validinseq="1" validinchn="1"
+             validintrk="1"/>
+    <command cmd="248" name="Loop Start" action="Loop Start" validinseq="1"
+             validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="1" name="Loop Count" meaning="Loop Count"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="249" name="Branch Abs if Q&lt;0" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="250" name="Branch Abs if Q==0" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="252" name="Call Absolute" action="Call Same Level" validinseq="1"
+             validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="253" name="Timestamp" action="Timestamp" validinseq="1"
+             validinchn="1" validintrk="1">
+      <parameter datasrc="variable" datalen="2" name="Delta Time" meaning="Delay"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="254" name="(Return 1?)" action="No Action" validinseq="1"
+             validinchn="1" validintrk="1"/>
+  </cmdlist>
+  <filelist/>
+  <knownfilelist>
+    <knownfile type="Audioseq Index" from_ft="0" address="8063072" length="0"/>
+    <knownfile type="Audioseq" from_ft="0" address="8063072" length="0"/>
+    <knownfile type="Audiobank Index" from_ft="0" address="5748512" length="0"/>
+    <knownfile type="Audiobank" from_ft="0" address="5748512" length="0"/>
+    <knownfile type="Instrument Set Index" from_ft="0" address="8177184" length="0"/>
+  </knownfilelist>
+  <audioseqidx>
+    <indexentry index="1" name="Star Fanfare"/>
+    <indexentry index="2" name="Game Over, Title Theme"/>
+    <indexentry index="3" name="Bob-omb Battlefield (Main Theme)"/>
+    <indexentry index="4" name="Inside the Castle"/>
+    <indexentry index="5" name="Water Theme (all parts)"/>
+    <indexentry index="6" name="Lava/Sand Levels"/>
+    <indexentry index="0" name="Master Sequence"/>
+    <indexentry index="7" name="Bowser's Theme"/>
+    <indexentry index="8" name="Snow Levels"/>
+    <indexentry index="9" name="Slider Theme"/>
+    <indexentry index="10" name="Big Boo's Haunt"/>
+    <indexentry index="11" name="Piranha Plant's Lullaby"/>
+    <indexentry index="12" name="Hazy Maze Cave"/>
+    <indexentry index="13" name="Course Start"/>
+    <indexentry index="14" name="Powerful Mario (Caps)"/>
+    <indexentry index="15" name="Metal Cap"/>
+    <indexentry index="16" name="Bowser's Message"/>
+    <indexentry index="17" name="Bowser's Road of Devestation"/>
+    <indexentry index="18" name="High Score Fanfare"/>
+    <indexentry index="19" name="Merry-Go-Round"/>
+    <indexentry index="20" name="Koopa-the-Quick"/>
+    <indexentry index="21" name="Star Appears"/>
+    <indexentry index="22" name="Level Boss Theme"/>
+    <indexentry index="23" name="Collect Key Fanfare"/>
+    <indexentry index="24" name="Endless Stairs"/>
+    <indexentry index="25" name="Ultimate Bowser"/>
+    <indexentry index="27" name="Puzzle Solved"/>
+    <indexentry index="28" name="Toad's Theme"/>
+    <indexentry index="29" name="Peach's Letter"/>
+    <indexentry index="30" name="Opening Cutscene"/>
+    <indexentry index="31" name="Ultimate Bowser Clear"/>
+    <indexentry index="32" name="Ending Cutscene"/>
+    <indexentry index="26" name="Staff Credits"/>
+    <indexentry index="33" name="File Select Screen"/>
+    <indexentry index="34" name="Latiku's Theme"/>
+  </audioseqidx>
+  <midiopts ppqnmultiplier="10" mtrvol="SysEx MstrVol" chnvol="CC7 (Volume)"
+            chnpriority="CC25 (None)" bendrange="6" q_other_time="1" q_vol_time="3"
+            q_vol_amp="2" q_other_amp="1" stacksize="4" formatbytedefault="32"
+            typebytedefault="50" delta_vel="5" delta_gate="3" delta_cc="3"
+            writeseqformat="1" writeseqtype="1" writechanbits="1" writeloopall="1"
+            writeheader="1" writechanreset="1" ptrtype="shortest" usecalls="1"
+            useloops="1" q_pitch_time="1" q_pitch_amp="1" q_pan_time="3"
+            q_pan_amp="2" addmstrvol="1" addmstrvolval="88"/>
+  <audiobankidx>
+    <indexentry index="34" name="Main Theme"/>
+    <indexentry index="17" name="Title Theme"/>
+    <indexentry index="14" name="Peach's Strings"/>
+    <indexentry index="19" name="The Eel's DX7"/>
+    <indexentry index="15" name="Middle Eastern"/>
+    <indexentry index="18" name="Bowser's Band"/>
+    <indexentry index="11" name="Snowman's Accordion"/>
+    <indexentry index="13" name="Bluegrass Ensemble"/>
+    <indexentry index="16" name="Big Boo's Haunt Ambience"/>
+    <indexentry index="33" name="Merry-Go-Round"/>
+    <indexentry index="20" name="Piranha's Music Box"/>
+    <indexentry index="21" name="Mazy Haze Cave"/>
+    <indexentry index="37" name="Credits Band"/>
+    <indexentry index="36" name="File Select Theme"/>
+    <indexentry index="35" name="Ending Ensemble"/>
+    <indexentry index="27" name="Opening Band"/>
+    <indexentry index="31" name="Brass Ensemble"/>
+    <indexentry index="29" name="Bowser's Organ of Doom"/>
+    <indexentry index="25" name="Koopa's Road"/>
+    <indexentry index="22" name="Course Start"/>
+    <indexentry index="23" name="Wings Theme"/>
+    <indexentry index="24" name="Metal Theme"/>
+    <indexentry index="26" name="Koopa-the-Quick"/>
+    <indexentry index="28" name="Endless Stairs"/>
+    <indexentry index="32" name="Toad's Theme"/>
+    <indexentry index="30" name="Peach's Letter"/>
+    <indexentry index="0" name="Master 0"/>
+    <indexentry index="1" name="Master 1"/>
+    <indexentry index="2" name="Master 2"/>
+    <indexentry index="3" name="Master 3"/>
+    <indexentry index="4" name="Master 4"/>
+    <indexentry index="5" name="Master 5"/>
+    <indexentry index="6" name="Master 6"/>
+    <indexentry index="7" name="Master 7"/>
+    <indexentry index="8" name="Master 8"/>
+    <indexentry index="9" name="Master 9"/>
+    <indexentry index="10" name="Master 10"/>
+    <indexentry index="12" name="Unused- Acoustic Guitar"/>
+  </audiobankidx>
+  <abfstructs align="16">
+    <struct name="ABIndex">
+      <field name="NUM_BANK" datatype="uint16" ispointer="0" isarray="0" meaning="NUM_BANK"/>
+      <field name="zeros" datatype="uint16" ispointer="0" isarray="1" meaning="None"
+             arraylenfixed="7" defaultval="0"/>
+      <field name="unnamed" datatype="ABIndexEntry" ispointer="0" isarray="1"
+             meaning="List of Banks" arraylenvar="NUM_BANK"/>
+    </struct>
+    <struct name="ABIndexEntry">
+      <field name="addr" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr Bank (in Audiobank)"
+             ptrto="ABHeader"/>
+      <field name="len" datatype="uint32" ispointer="0" isarray="0" meaning="Bank Length"/>
+    </struct>
+    <struct name="ABHeader">
+      <field name="NUM_INST" datatype="uint32" ispointer="0" isarray="0" meaning="NUM_INST"/>
+      <field name="NUM_DRUM" datatype="uint32" ispointer="0" isarray="0" meaning="NUM_DRUM"/>
+      <field name="SSIindex" datatype="uint32" ispointer="0" isarray="0" meaning="Sample Set Index number"/>
+      <field name="unk_compile_year1" datatype="uint8" ispointer="0" isarray="0"
+             meaning="None" defaultval="25"/>
+      <field name="unk_compile_year2" datatype="uint8" ispointer="0" isarray="0"
+             meaning="None" defaultval="150"/>
+      <field name="unk_compile_month" datatype="uint8" ispointer="0" isarray="0"
+             meaning="None" defaultval="2"/>
+      <field name="unk_compile_day" datatype="uint8" ispointer="0" isarray="0"
+             meaning="None" defaultval="20"/>
+    </struct>
+    <struct name="ABBank">
+      <field name="drumlist" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr Drum List"
+             ptrto="ABDrumList"/>
+      <field name="instlist" datatype="uint32" ispointer="1" isarray="1" meaning="List of Ptrs to Insts"
+             ptrto="ABInstrument" arraylenvar="NUM_INST"/>
+    </struct>
+    <struct name="ABDrumList">
+      <field name="drumlist" datatype="uint32" ispointer="1" isarray="1" meaning="None"
+             ptrto="ABDrum" arraylenvar="NUM_DRUM"/>
+    </struct>
+    <struct name="ABSFXList"/>
+    <struct name="ABInstrument">
+      <field name="unknown1" datatype="uint8" ispointer="0" isarray="0" meaning="None"/>
+      <field name="splitpoint1" datatype="uint8" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="splitpoint2" datatype="uint8" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="releaserate" datatype="uint8" ispointer="0" isarray="0" meaning="None"/>
+      <field name="envelope" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr Envelope"
+             ptrto="ABEnvelope"/>
+      <field name="splits" datatype="ABSound" ispointer="0" isarray="1" meaning="List of 3 Sounds for Splits"
+             arraylenfixed="3"/>
+    </struct>
+    <struct name="ABDrum">
+      <field name="unknown1" datatype="uint8" ispointer="0" isarray="0" meaning="None"
+             defaultval="10"/>
+      <field name="unknown2" datatype="uint8" ispointer="0" isarray="0" meaning="None"/>
+      <field name="unknown3" datatype="uint8" ispointer="0" isarray="0" meaning="None"
+             defaultval="0"/>
+      <field name="unknown4" datatype="uint8" ispointer="0" isarray="0" meaning="None"
+             defaultval="0"/>
+      <field name="drumsound" datatype="ABSound" ispointer="0" isarray="0"
+             meaning="Drum Sound"/>
+      <field name="envelope" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr Envelope"
+             ptrto="ABEnvelope"/>
+    </struct>
+    <struct name="ABSound">
+      <field name="sample" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr Sample"
+             ptrto="ABSample"/>
+      <field name="tuning" datatype="float32" ispointer="0" isarray="0" meaning="None"/>
+    </struct>
+    <struct name="ABEnvelope">
+      <field name="attackRate" datatype="int16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="attackLevel" datatype="uint16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="decay1Rate" datatype="int16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="decay1Level" datatype="uint16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="decay2Rate" datatype="int16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="decay2Level" datatype="uint16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="AllFs" datatype="int16" ispointer="0" isarray="0" meaning="None"/>
+      <field name="AllZeros" datatype="uint16" ispointer="0" isarray="0" meaning="None"/>
+    </struct>
+    <struct name="ABSample">
+      <field name="unknown1" datatype="uint32" ispointer="0" isarray="0" meaning="None"
+             defaultval="0"/>
+      <field name="sampleaddr" datatype="uint32" ispointer="0" isarray="0"
+             meaning="Sample Address (in Sample Set)" ptrto="ATSample"/>
+      <field name="loop" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr ALADPCMLoop"
+             ptrto="ALADPCMLoop"/>
+      <field name="book" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr ALADPCMBook"
+             ptrto="ALADPCMBook"/>
+      <field name="samplesize" datatype="uint32" ispointer="0" isarray="0"
+             meaning="Sample Length"/>
+      <field name="zeros" datatype="uint32" ispointer="0" isarray="1" meaning="None"
+             arraylenfixed="3" defaultval="0"/>
+    </struct>
+    <struct name="ALADPCMBook" NUM_PRED="-1">
+      <field name="order" datatype="int32" ispointer="0" isarray="0" meaning="None"/>
+      <field name="npredictors" datatype="int32" ispointer="0" isarray="0"
+             meaning="NUM_PRED"/>
+      <field name="book" datatype="ALADPCMPredictor" ispointer="0" isarray="1"
+             meaning="Array of Predictors" arraylenvar="NUM_PRED"/>
+    </struct>
+    <struct name="ALADPCMPredictor">
+      <field name="data" datatype="int16" ispointer="0" isarray="1" meaning="None"
+             arraylenfixed="16"/>
+    </struct>
+    <struct name="ALADPCMLoop" HAS_TAIL="-1">
+      <field name="start" datatype="uint32" ispointer="0" isarray="0" meaning="Loop Start"/>
+      <field name="end" datatype="uint32" ispointer="0" isarray="0" meaning="Loop End"/>
+      <field name="count" datatype="uint32" ispointer="0" isarray="0" meaning="Loop Count"
+             defaultval="-1"/>
+      <field name="adpcm_state" datatype="uint32" ispointer="0" isarray="0"
+             meaning="None" defaultval="0"/>
+      <field name="tail" datatype="ALADPCMTail" ispointer="0" isarray="1"
+             meaning="Tail Data (if Loop Start != 0)" arraylenvar="HAS_TAIL"/>
+    </struct>
+    <struct name="ALADPCMTail">
+      <field name="some_adpcm_data" datatype="int16" ispointer="0" isarray="1"
+             meaning="None" arraylenfixed="16"/>
+    </struct>
+  </abfstructs>
+</RomDesc>

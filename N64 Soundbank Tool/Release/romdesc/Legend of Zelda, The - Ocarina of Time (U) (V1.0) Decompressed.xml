@@ -1,0 +1,989 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- seq64 ROM Description File -->
+<RomDesc ftaddr="29744" abfindex="3" asfindex="4" atfindex="5" indextype="2">
+  <cmdlist>
+    <command cmd="255" name="End of Data" action="End of Data" validinseq="1"
+             validinchn="1" validintrk="1"/>
+    <command cmd="0" name="Chn Timestamp" action="Timestamp" cmdend="15" validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="Time" meaning="Delay" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="120" name="Relative Trk Ptr" action="Ptr Track Data" cmdend="123"
+             validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="Layer" meaning="Note Layer"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Relative Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="136" name="Absolute Trk Ptr" action="Ptr Track Data" cmdend="139"
+             validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="Note Layer" meaning="Note Layer"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="176" name="TEST Call Absolute" action="No Action" validinchn="1">
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="179" name="Unknown" action="No Action" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="187" name="Unknown CC (Vibrato speed?)" action="No Action"
+             validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="CC number?" meaning="None"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="CC value?" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="193" name="Instrument" action="Chn Instrument" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Instrument" meaning="Value"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="194" name="Transposition" action="Chn Transpose" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="196" name="Channel Start" action="Chn Reset" validinchn="1"/>
+    <command cmd="198" name="Unknown" action="No Action" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="202" name="Unknown" action="No Action" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="208" name="Unknown" action="No Action" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="211" name="Pitch Bend" action="Chn Pitch Bend" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Bend" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="212" name="Effect Level" action="Chn Effects" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="216" name="Vibrato (Chn)" action="Chn Vibrato" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Vibrato" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="218" name="Unknown" action="No Action" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Unnamed" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="220" name="Drumset?" action="No Action" validinchn="1" validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="221" name="Chan Pan" action="Chn Pan" validinchn="1" validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Pan" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="223" name="Chan Volume (Chn)" action="Chn Volume" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Volume" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="224" name="Unknown" action="No Action" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="229" name="Unknown" action="No Action" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="233" name="Channel Priority" action="No Action" validinchn="1"
+             validintrk="0">
+      <parameter datasrc="fixed" datalen="1" name="Priority" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="0" name="Note w/ T, V, G" action="Track Note" cmdend="63"
+             validintrk="1">
+      <parameter datasrc="offset" datalen="0" name="Note" meaning="Note" add="0"
+                 multiply="1"/>
+      <parameter datasrc="variable" datalen="2" name="Timestamp" meaning="Delay"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Velocity" meaning="Velocity"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Gate" meaning="Gate Time" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="64" name="Note w/ T, V" action="Track Note" validintrk="1"
+             cmdend="127">
+      <parameter datasrc="offset" datalen="0" name="Note" meaning="Note" add="0"
+                 multiply="1"/>
+      <parameter datasrc="variable" datalen="2" name="Timestamp" meaning="Delay"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Velocity" meaning="Velocity"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="128" name="Note w/ V, G" action="Track Note" validintrk="1"
+             cmdend="191">
+      <parameter datasrc="offset" datalen="0" name="Note" meaning="Note" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Velocity" meaning="Velocity"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Gate Time" meaning="Gate Time"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="192" name="Trk Timestamp" action="Timestamp" validintrk="1">
+      <parameter datasrc="variable" datalen="2" name="Timestamp" meaning="Delay"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="194" name="Ly Transpose" action="Layer Transpose" validintrk="1">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="0" name="Load Chn Bit to Q" action="No Action" cmdend="15"
+             validinseq="1">
+      <parameter datasrc="offset" datalen="0" name="Channel" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="16" name="Ignored Seq Cmd" action="No Action" cmdend="63"
+             validinseq="1"/>
+    <command cmd="64" name="Chn C Unknown (init?)" action="No Action" cmdend="79"
+             validinseq="1" validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="Channel" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="80" name="Q -= var[C]" action="No Action" cmdend="95" validinseq="1"
+             validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="C" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="96" name="Load ??? DMA from var[C]" action="No Action" cmdend="111"
+             validinseq="1" validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="C" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Unknown 1" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Unknown 2" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="112" name="var[C] = Q" action="No Action" cmdend="127" validinseq="1"
+             validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="C" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="128" name="Q = var[C]; if(C&lt;2) var[C] = -1;" action="No Action"
+             cmdend="143" validinseq="1" validinchn="1">
+      <parameter datasrc="offset" datalen="0" name="Unnamed" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="144" name="Absolute Chn Ptr" action="Ptr Channel Header"
+             cmdend="159" validinseq="1">
+      <parameter datasrc="offset" datalen="0" name="Channel" meaning="Channel"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="160" name="Relative Chn Ptr" action="Ptr Channel Header"
+             cmdend="175" validinseq="1">
+      <parameter datasrc="offset" datalen="0" name="Channel" meaning="Channel"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Relative Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="176" name="Set Up New Seq from var[C]" action="No Action"
+             cmdend="191" validinseq="1" validinchn="0">
+      <parameter datasrc="offset" datalen="0" name="C" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="New seq index" meaning="None"
+                 add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="192" name="Unknown (Seq Execute?)" action="No Action" validinseq="1"/>
+    <command cmd="196" name="WIP possibly return from parsing?" action="No Action"
+             validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Unknown 1" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Unknown 2" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="197" name="WIP Store to SeqParams[E0]" action="No Action"
+             validinseq="1">
+      <parameter datasrc="fixed" datalen="2" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="198" name="Return from Sequence" action="End of Data" validinseq="1"/>
+    <command cmd="199" name="Memory Write" action="No Action" validinseq="1"
+             validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Value (this plus Q gets written)"
+                 meaning="None" add="0" multiply="1"/>
+      <parameter datasrc="fixed" datalen="2" name="Address (into table starting at S2+18)"
+                 meaning="None" add="0" multiply="1"/>
+    </command>
+    <command cmd="200" name="Q -= val" action="No Action" validinseq="1" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="201" name="Q &amp;= val" action="No Action" validinseq="1"
+             validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="202" name="Ignored" action="No Action" validinseq="1"/>
+    <command cmd="203" name="Ignored" action="No Action" validinseq="1"/>
+    <command cmd="204" name="Q = val" action="No Action" validinseq="1" validinchn="1">
+      <parameter datasrc="fixed" datalen="1" name="Value" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="205" name="Unknown (Pre-Seq-Load)" action="No Action" validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Zero (Unknown)" meaning="None"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="206" name="Unknown" action="No Action" validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Unknown" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="211" name="Sequence Format" action="Sequence Format" validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Format" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="213" name="Sequence Type" action="Sequence Type" validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Type" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="214" name="Channel Disable" action="Channel Disable" validinseq="1">
+      <parameter datasrc="fixed" datalen="2" name="Channels" meaning="Bitfield"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="215" name="Channel Enable" action="Channel Enable" validinseq="1">
+      <parameter datasrc="fixed" datalen="2" name="Channels" meaning="Bitfield"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="219" name="Master Volume" action="Master Volume" validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Volume" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="221" name="Tempo" action="Tempo" validinseq="1">
+      <parameter datasrc="fixed" datalen="1" name="Tempo" meaning="Value" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="223" name="Unknown" action="No Action" validinseq="1" validinchn="0">
+      <parameter datasrc="fixed" datalen="1" name="Unnamed" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="239" name="Ignore 3 Bytes" action="No Action" validinseq="1">
+      <parameter datasrc="fixed" datalen="2" name="Ignored" meaning="None" add="0"
+                 multiply="1"/>
+      <parameter datasrc="fixed" datalen="1" name="Ignored" meaning="None" add="0"
+                 multiply="1"/>
+    </command>
+    <command cmd="251" name="Branch Abs Always" action="Jump Same Level" validinseq="1"
+             validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="242" name="Branch Rel if Q&lt;0" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="1" name="Address (Relative)" meaning="Relative Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="243" name="Branch Rel if Q==0" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="1" name="Address (Relative)" meaning="Relative Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="244" name="Branch Rel Always" action="Jump Same Level" validinseq="1"
+             validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="1" name="Address (Relative)" meaning="Relative Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="245" name="Branch Abs if Q&gt;=0" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="246" name="Branch Abs to Seq Start" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="0" name="No Data, is 0" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="247" name="Loop End" action="Loop End" validinseq="1" validinchn="1"
+             validintrk="1"/>
+    <command cmd="248" name="Loop Start" action="Loop Start" validinseq="1"
+             validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="1" name="Loop Count" meaning="Loop Count"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="249" name="Branch Abs if Q&lt;0" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="250" name="Branch Abs if Q==0" action="Jump Same Level"
+             validinseq="1" validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="252" name="Call Absolute" action="Call Same Level" validinseq="1"
+             validinchn="1" validintrk="1">
+      <parameter datasrc="fixed" datalen="2" name="Address" meaning="Absolute Address"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="253" name="Timestamp" action="Timestamp" validinseq="1"
+             validinchn="1" validintrk="1">
+      <parameter datasrc="variable" datalen="2" name="Delta Time" meaning="Delay"
+                 add="0" multiply="1"/>
+    </command>
+    <command cmd="254" name="(Return 1?)" action="No Action" validinseq="1"
+             validinchn="1" validintrk="1"/>
+  </cmdlist>
+  <filelist>
+    <file index="0" name="Header" type="ROM Header"/>
+    <file index="1" name="Boot Code" type="Boot Code"/>
+    <file index="2" name="File Table" type="Master File Table"/>
+    <file index="3" type="Audiobank" name="Audiobank"/>
+    <file index="4" type="Audioseq" name="Audioseq"/>
+    <file index="5" name="Audiotable" type="Audiotable"/>
+    <file index="6" name="" type="Unknown"/>
+    <file index="12" name="" type="Unknown"/>
+    <file index="7" type="Unknown"/>
+    <file index="11" type="Unknown"/>
+  </filelist>
+  <knownfilelist>
+    <knownfile type="Audiobank Index" from_ft="0" address="12097184" length="0"/>
+    <knownfile type="Audioseq Index" from_ft="0" address="12098256" length="0"/>
+    <knownfile type="Sample Set Index" from_ft="0" address="12100032" length="0"/>
+    <knownfile type="Audiobank" from_ft="1" ftindex="3" address="54160" length="117328"/>
+    <knownfile type="Audiotable" from_ft="1" ftindex="5" address="496752" length="4590288"/>
+    <knownfile type="Audioseq" from_ft="1" ftindex="4" address="171488" length="325264"/>
+    <knownfile type="Instrument Set Index" from_ft="0" address="12097808" length="0"/>
+  </knownfilelist>
+  <audiobankidx>
+    <indexentry index="0" name="Unknown (Master?)"/>
+    <indexentry index="1" name="Actor Sounds"/>
+    <indexentry index="2" name="Nature Sounds"/>
+    <indexentry index="3" name="Main Orchestra">
+      <instruments>
+        <item index="0" name="Flute" map="program" program="72" transpose="12"/>
+        <item index="1" name="Oboe" map="program" program="68" transpose="0"/>
+        <item index="2" name="Clarinet" map="program" program="71"/>
+        <item index="3" name="Bassoon" map="program" program="70"/>
+        <item index="4" name="Horn" map="program" program="60"/>
+        <item index="5" name="Trumpet" map="program" program="56"/>
+        <item index="6" name="Trombone" map="program" program="57"/>
+        <item index="7" name="Tuba" map="program" program="58"/>
+        <item index="8" name="Glockenspiel" map="program" program="9" transpose="12"/>
+        <item index="9" name="Strings 1" map="program" program="48" transpose="0"/>
+        <item index="10" name="Strings 2" map="program" program="48"/>
+        <item index="11" name="Pizzicato" map="program" program="45" transpose="0"/>
+        <item index="12" name="Piano" map="program" program="1" transpose="0"/>
+        <item index="13" name="Harp" map="program" program="46"/>
+        <item index="14" name="Marimba" map="program" program="12"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="4" name="Deku Tree">
+      <instruments>
+        <item index="0" name="Pad 1" map="program" program="89" transpose="0"/>
+        <item index="1" name="Pad 2" map="program" program="89"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="5" name="Hylian Troupe">
+      <instruments>
+        <item index="0" name="Koto" map="program" program="107" transpose="0"/>
+        <item index="1" name="Ocarina" map="program" program="79" transpose="12"/>
+        <item index="2" name="Bassoon" map="program" program="70" transpose="0"/>
+        <item index="3" name="Oboe" map="program" program="68"/>
+        <item index="4" name="Pizz Strings" map="program" program="45"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="6" name="Title Screen">
+      <instruments>
+        <item index="0" name="Ocarina" map="program" program="79" transpose="12"/>
+        <item index="1" name="Strings 1" map="program" program="48" transpose="0"/>
+        <item index="2" name="Strings 2" map="program" program="48"/>
+        <item index="3" name="Piano 1" map="program" program="1"/>
+        <item index="4" name="Piano 2" map="program" program="1"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="7" name="Jabu-Jabu's Belly">
+      <instruments>
+        <item index="0" name="Wind" map="program" program="122" transpose="0"/>
+        <item index="1" name="Synth Strings" map="program" program="50"/>
+        <item index="2" name="&quot;Creeking&quot; 1" map="program" program="117"/>
+        <item index="3" name="&quot;Creeking&quot; 2" map="program" program="116"/>
+      </instruments>
+      <drums>
+        <item index="56" name="Light Snare" map="drum" note="38"/>
+      </drums>
+    </indexentry>
+    <indexentry index="8" name="Kakariko (Guitar)">
+      <instruments>
+        <item index="0" name="Harmonica" map="program" program="22" transpose="0"/>
+        <item index="1" name="Guitar 1" map="program" program="24"/>
+        <item index="2" name="Guitar 2" map="program" program="24"/>
+        <item index="3" name="Ocarina" map="program" program="79" transpose="12"/>
+        <item index="4" name="Glockenspiel" map="program" program="9" transpose="12"/>
+        <item index="5" name="Accordion" map="program" program="21" transpose="0"/>
+        <item index="6" name="Accordion" map="program" program="21"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="9" name="Harp, Strings">
+      <instruments>
+        <item index="0" name="Harp 1" map="program" program="46" transpose="0"/>
+        <item index="1" name="Harp 2" map="program" program="46"/>
+        <item index="2" name="Harp 3" map="program" program="46"/>
+        <item index="3" name="Harp 4" map="program" program="46" transpose="0"/>
+        <item index="4" name="Strings" map="program" program="48" transpose="0"/>
+        <item index="5" name="Ocarina" map="program" program="79" transpose="12"/>
+        <item index="6" name="Choir" map="program" program="52" transpose="0"/>
+        <item index="7" name="Choir" map="program" program="52" transpose="0"/>
+        <item index="8" name="Glockenspiel" map="program" program="9" transpose="12"/>
+        <item index="9" name="Strings 1" map="program" program="48" transpose="0"/>
+        <item index="10" name="Strings 2" map="program" program="48"/>
+        <item index="11" name="Pizz Strings" map="program" program="45"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="10" name="Fire Temple">
+      <instruments>
+        <item index="0" name="Chant 1 &amp; 2" map="program" program="0" transpose="0"/>
+        <item index="1" name="Chant 3" map="program"/>
+        <item index="2" name="Chant 3" map="program"/>
+        <item index="3" name="Kilimba" map="program"/>
+        <item index="4" name="Wind" map="program"/>
+        <item index="5" name="Bell" map="program"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="11" name="Dodongo's Cavern">
+      <instruments>
+        <item index="0" name="Wind/Roar" map="program" program="122" transpose="0"/>
+        <item index="1" name="Wood Chime, Shine" map="program" program="12"/>
+        <item index="2" name="Noise" map="program" program="121"/>
+        <item index="3" name="Famous Dodongo's Sound" map="program" program="125"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="12" name="Forest Temple">
+      <instruments>
+        <item index="0" name="Voice Pad" map="program" program="91" transpose="0"/>
+        <item index="1" name="Multipitch Flute" map="program" program="74"
+              transpose="24"/>
+        <item index="2" name="Famous Wood Chime" map="program" program="96"
+              transpose="0"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="13" name="Lon Lon Ranch">
+      <instruments>
+        <item index="0" name="Malon" map="program" program="85" transpose="0"/>
+        <item index="1" name="Malon" map="program" program="85"/>
+        <item index="2" name="Jazz Guitar" map="program" program="26" transpose="0"/>
+        <item index="3" name="Jazz Guitar (high only)" map="program" program="26"
+              transpose="12"/>
+        <item index="4" name="Jazz Guitar (high only)" map="program" program="26"
+              transpose="12"/>
+        <item index="5" name="Strings" map="program" program="48" transpose="0"/>
+        <item index="6" name="Strings" map="program" program="48"/>
+        <item index="7" name="Fiddle" map="program" program="110"/>
+        <item index="8" name="Fiddle" map="program" program="110"/>
+        <item index="9" name="Clocktown Bell" map="program" program="14"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="14" name="Goron City">
+      <instruments>
+        <item index="0" name="Bent Drum" map="program" program="117" transpose="0"/>
+        <item index="1" name="Conga Hit/Slap" map="program" program="116" transpose="0"/>
+        <item index="2" name="Cuica Push/Pull" map="program" program="114"/>
+        <item index="3" name="Kilimba" map="program" program="108"/>
+        <item index="4" name="Kilimba" map="program" program="108"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="15" name="Kokiri Forest">
+      <instruments>
+        <item index="0" name="Pan Flute" map="program" program="72" transpose="12"/>
+        <item index="1" name="Oboe" map="program" program="68" transpose="0"/>
+        <item index="2" name="Clarinet" map="program" program="71" transpose="0"/>
+        <item index="3" name="Bassoon" map="program" program="70"/>
+        <item index="4" name="Horn" map="program" program="60"/>
+        <item index="5" name="Glockenspiel" map="program" program="9" transpose="12"/>
+        <item index="6" name="Strings" map="program" program="48" transpose="0"/>
+        <item index="7" name="Strings" map="program" program="48"/>
+        <item index="8" name="Pizz Strings" map="program" program="45"/>
+        <item index="9" name="Harpsichord" map="program" program="6" transpose="12"/>
+        <item index="10" name="Harp" map="program" program="46" transpose="0"/>
+        <item index="11" name="Marimba" map="program" program="12"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="16" name="Spirit Temple">
+      <instruments>
+        <item index="0" name="Voice Pad" map="program" program="54" transpose="0"/>
+        <item index="1" name="Synth Strings" map="program" program="50"/>
+        <item index="2" name="Ethnic Flute" map="program" program="111"/>
+        <item index="3" name="Conga Hit/Slap" map="program" program="117"/>
+        <item index="4" name="Synth Strings" map="program" program="50"/>
+        <item index="5" name="Ethnic Flute" map="program" program="111"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="17" name="Horse Race">
+      <instruments>
+        <item index="0" name="Banjo" map="program" program="105" transpose="0"/>
+        <item index="1" name="Banjo-Tooie" map="program" program="105"/>
+        <item index="2" name="Acoustic Bass" map="program" program="32"/>
+        <item index="3" name="Harmonica" map="program" program="22"/>
+        <item index="4" name="Acoustic Guitar" map="program" program="24"/>
+        <item index="5" name="Fiddle" map="program" program="110"/>
+        <item index="6" name="Fiddle 2" map="program" program="110"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="18" name="Warp Songs">
+      <instruments>
+        <item index="0" name="Harp" map="program" program="46" transpose="0"/>
+        <item index="1" name="Harp 2" map="program" program="46"/>
+        <item index="2" name="Strings" map="program" program="48" transpose="0"/>
+        <item index="3" name="Ocarina" map="program" program="79" transpose="12"/>
+        <item index="4" name="Glockenspiel" map="program" program="9" transpose="0"/>
+        <item index="5" name="Strings" map="program" program="48" transpose="0"/>
+        <item index="6" name="Strings 2" map="program" program="48"/>
+        <item index="7" name="Pizz Strings" map="program" program="45"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="19" name="Legend of Hyrule">
+      <instruments>
+        <item index="0" name="Choir" map="program" program="52" transpose="0"/>
+        <item index="1" name="Choir 2" map="program" program="52" transpose="0"/>
+        <item index="2" name="Harp" map="program" program="46"/>
+        <item index="3" name="Glockenspiel" map="program" program="9" transpose="12"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="20" name="Minigame Shop">
+      <instruments>
+        <item index="0" name="Pan Flute" map="program" program="72" transpose="12"/>
+        <item index="1" name="Clarinet" map="program" program="71" transpose="0"/>
+        <item index="2" name="Clarinet 2" map="program" program="71"/>
+        <item index="3" name="Accordion" map="program" program="21" transpose="12"/>
+        <item index="4" name="Glockenspiel" map="program" program="9" transpose="12"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="21" name="Zora's Domain">
+      <instruments>
+        <item index="0" name="Steel Drum" map="program" program="114" transpose="0"/>
+        <item index="1" name="Voice Pad" map="program" program="91" transpose="0"/>
+        <item index="2" name="Guitar" map="program" program="24"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="22" name="Shop Theme">
+      <instruments>
+        <item index="0" name="Guitar" map="program" program="24" transpose="0"/>
+        <item index="1" name="Accordion" map="program" program="21" transpose="12"/>
+        <item index="2" name="Acoustic Bass" map="program" program="32" transpose="-12"/>
+        <item index="3" name="Trombone" map="program" program="57"/>
+        <item index="4" name="Trumpet" map="program" program="56"/>
+        <item index="5" name="Drum" map="program" program="117"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="23" name="Ice Cavern">
+      <instruments>
+        <item index="0" name="Bell Pad 1" map="program" program="98" transpose="0"/>
+        <item index="1" name="Bell Pad 2" map="program" program="98"/>
+        <item index="2" name="Wind" map="program" program="121" transpose="0"/>
+        <item index="3" name="Bell Pad 3" map="program" program="98"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="24" name="Shadow Temple">
+      <instruments>
+        <item index="0" name="Drum" map="program" program="116" transpose="0"/>
+        <item index="1" name="Wind" map="program" program="122"/>
+        <item index="2" name="SFX" map="program" program="121"/>
+        <item index="3" name="Male Choir" map="program" program="52"/>
+        <item index="4" name="Female Choir" map="program" program="52"/>
+        <item index="5" name="Muslim Chant" map="program" program="85"/>
+        <item index="6" name="SFX 2" map="program" program="120"/>
+        <item index="7" name="Harpsichord" map="program" program="6"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="25" name="Water Temple">
+      <instruments>
+        <item index="0" name="Flute" map="program" program="72" transpose="0"/>
+        <item index="1" name="Wind Chimes" map="program" program="112"/>
+        <item index="2" name="Bell Pad" map="program" program="93"/>
+        <item index="3" name="Wood Chime" map="program" program="99"/>
+        <item index="4" name="Voice Pad" map="program" program="91"/>
+        <item index="5" name="Koto" map="program" program="107"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="26" name="Piano (Unused)">
+      <instruments>
+        <item index="0" name="Piano" map="program" program="1" transpose="0"/>
+        <item index="1" name="Piano 2" map="program" program="1"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="27" name="Gerudo Valley">
+      <instruments>
+        <item index="0" name="Trombone 1" map="program" program="57" transpose="0"/>
+        <item index="1" name="Trombone 2" map="program" program="57"/>
+        <item index="2" name="Guitar" map="program" program="24"/>
+        <item index="3" name="Guitar 2" map="program" program="24"/>
+        <item index="4" name="Acoustic Bass" map="program" program="32" transpose="-12"/>
+        <item index="5" name="Guitar 3" map="program" program="24" transpose="0"/>
+        <item index="6" name="Clap" map="program" program="115"/>
+        <item index="7" name="Clap 2" map="program" program="115"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="28" name="Potion Shop">
+      <instruments>
+        <item index="0" name="Koto" map="program" program="107" transpose="0"/>
+        <item index="1" name="Drum" map="program" program="117"/>
+        <item index="2" name="Drum 2" map="program" program="116"/>
+        <item index="3" name="Gong+WindChimes" map="program" program="112"
+              transpose="0"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="29" name="Konami &amp; Kotaku's Theme">
+      <instruments>
+        <item index="0" name="Koto" map="program" program="107" transpose="0"/>
+        <item index="1" name="Drum" map="program" program="117"/>
+        <item index="2" name="Flute" map="program" program="72" transpose="12"/>
+        <item index="3" name="Flute 2" map="program" program="72" transpose="12"/>
+        <item index="4" name="Strings" map="program" program="48" transpose="0"/>
+        <item index="5" name="Strings 2" map="program" program="48"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="30" name="Organ">
+      <instruments>
+        <item index="0" name="Organ Upper" map="program" program="19" transpose="0"/>
+        <item index="1" name="Organ Lower" map="program" program="19"/>
+        <item index="2" name="Organ Pedals" map="program" program="19"/>
+        <item index="3" name="Horn" map="program" program="60"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="31" name="Inside Ganon's Castle">
+      <instruments>
+        <item index="0" name="Wind" map="program" program="122" transpose="0"/>
+        <item index="1" name="SFX 1" map="program" program="125"/>
+        <item index="2" name="Choir" map="program" program="52"/>
+        <item index="3" name="Piano" map="program" program="1"/>
+        <item index="4" name="Piano 2" map="program" program="1"/>
+        <item index="5" name="SFX 2" map="program" program="127"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="32" name="Battle 2">
+      <instruments>
+        <item index="0" name="Flute" map="program" program="72" transpose="12"/>
+        <item index="1" name="Choir" map="program" program="52" transpose="0"/>
+        <item index="2" name="Choir 2" map="program" program="52"/>
+        <item index="3" name="Horn" map="program" program="60"/>
+        <item index="4" name="Trumpet" map="program" program="56"/>
+        <item index="5" name="Trombone" map="program" program="57"/>
+        <item index="6" name="Tuba" map="program" program="58"/>
+        <item index="7" name="Strings 1" map="program" program="48"/>
+        <item index="8" name="Strings 2" map="program" program="48"/>
+        <item index="9" name="Piano" map="program" program="1"/>
+        <item index="10" name="Marimba" map="program" program="12"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="33" name="Ending Orchestra 1">
+      <instruments>
+        <item index="0" name="Malon 1" map="program" program="85" transpose="0"/>
+        <item index="1" name="Malon 2" map="program" program="54"/>
+        <item index="2" name="Clarinet" map="program" program="71"/>
+        <item index="3" name="Horn" map="program" program="60"/>
+        <item index="4" name="Oboe" map="program" program="68"/>
+        <item index="5" name="Harp" map="program" program="46"/>
+        <item index="6" name="Violin" map="program" program="40"/>
+        <item index="7" name="Glockenspiel" map="program" program="9" transpose="12"/>
+        <item index="8" name="Strings 1" map="program" program="48" transpose="0"/>
+        <item index="9" name="Strings 2" map="program" program="48"/>
+        <item index="10" name="Bell" map="program" program="14" transpose="0"/>
+        <item index="11" name="Harp" map="program" program="46"/>
+        <item index="12" name="Choir" map="program" program="52" transpose="0"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="34" name="Ending Orchestra 2">
+      <instruments>
+        <item index="0" name="Koto" map="program" program="107" transpose="0"/>
+        <item index="1" name="Ocarina" map="program" program="79" transpose="12"/>
+        <item index="2" name="Bassoon" map="program" program="70"/>
+        <item index="3" name="Oboe" map="program" program="68" transpose="0"/>
+        <item index="4" name="Choir 1" map="program" program="52"/>
+        <item index="5" name="Tambourine" map="program" program="115"/>
+        <item index="6" name="Harp" map="program" program="46" transpose="0"/>
+        <item index="7" name="Glockenspiel" map="program" program="9" transpose="12"/>
+        <item index="8" name="Malon" map="program" program="85"/>
+        <item index="9" name="Strings 1" map="program" program="48"/>
+        <item index="10" name="Strings 2" map="program" program="48"/>
+        <item index="11" name="Pizz Strings" map="program" program="45"/>
+        <item index="12" name="Horn" map="program" program="60"/>
+        <item index="13" name="Choir 2" map="program" program="52"/>
+        <item index="14" name="Cuica" map="program" program="118" transpose="0"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="35" name="Fanfare Orchestra">
+      <instruments>
+        <item index="0" name="Trumpet" map="program" program="56" transpose="0"/>
+        <item index="1" name="Trombone" map="program" program="57"/>
+        <item index="2" name="Tuba" map="program" program="58"/>
+        <item index="3" name="Glockenspiel" map="program" program="9" transpose="12"/>
+        <item index="4" name="Strings 1" map="program" program="48" transpose="0"/>
+        <item index="5" name="Strings 2" map="program" program="48"/>
+        <item index="6" name="Harp" map="program" program="46"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="36" name="Did you get all that?   -&gt;No   Yes">
+      <instruments>
+        <item index="0" name="Oboe" map="program" program="68" transpose="0"/>
+        <item index="1" name="Bassoon" map="program" program="70"/>
+        <item index="2" name="Strings 1" map="program" program="48"/>
+        <item index="3" name="Strings 2" map="program" program="48"/>
+        <item index="4" name="Pizz Strings" map="program" program="45"/>
+        <item index="5" name="Harp" map="program" program="46"/>
+      </instruments>
+    </indexentry>
+    <indexentry index="37" name="??? (Last)"/>
+  </audiobankidx>
+  <audioseqidx>
+    <indexentry index="104" name="End Credits II"/>
+    <indexentry index="103" name="End Credits I"/>
+    <indexentry index="105" name="End Credits III"/>
+    <indexentry index="106" name="End Credits IV"/>
+    <indexentry index="30" name="Opening"/>
+    <indexentry index="39" name="Kakariko Village (Guitar)"/>
+    <indexentry index="44" name="Forest Temple"/>
+    <indexentry index="46" name="Ganon's Organ"/>
+    <indexentry index="56" name="Miniboss Battle"/>
+    <indexentry index="47" name="Lon Lon Ranch"/>
+    <indexentry index="25" name="Kakariko Village (Strings)"/>
+    <indexentry index="24" name="Dodongo's Cavern"/>
+    <indexentry index="92" name="Water Temple"/>
+    <indexentry index="95" name="Gerudo Valley"/>
+    <indexentry index="2" name="Hyrule Field (Master Sequence)"/>
+    <indexentry index="49" name="Hyrule Field (Morning, Day 1)"/>
+    <indexentry index="58" name="Temple of Time"/>
+    <indexentry index="63" name="Spirit Temple"/>
+    <indexentry index="64" name="Horse Race"/>
+    <indexentry index="65" name="Horse Race Goal"/>
+    <indexentry index="66" name="Ingo Loses"/>
+    <indexentry index="76" name="Windmill Hut"/>
+    <indexentry index="80" name="Zora's Domain"/>
+    <indexentry index="85" name="Shop Theme"/>
+    <indexentry index="26" name="Battle Theme"/>
+    <indexentry index="60" name="Kokiri Forest"/>
+    <indexentry index="102" name="Ending ~Ocarina of Time~"/>
+    <indexentry index="27" name="Boss Battle"/>
+    <indexentry index="28" name="Inside the Deku Tree, Grottos"/>
+    <indexentry index="29" name="Castletown Market"/>
+    <indexentry index="31" name="Inside a House"/>
+    <indexentry index="32" name="Game Over"/>
+    <indexentry index="33" name="Boss Clear"/>
+    <indexentry index="34" name="Item Get"/>
+    <indexentry index="35" name="Ganondorf Appears"/>
+    <indexentry index="36" name="Get Heart Container"/>
+    <indexentry index="37" name="Prelude of Light"/>
+    <indexentry index="38" name="Jabu-Jabu's Belly"/>
+    <indexentry index="40" name="Fairy Fountain"/>
+    <indexentry index="41" name="Zelda's Theme"/>
+    <indexentry index="42" name="Fire Temple"/>
+    <indexentry index="43" name="Open Treasure Chest"/>
+    <indexentry index="48" name="Goron City"/>
+    <indexentry index="62" name="Lost Woods"/>
+    <indexentry index="61" name="Learn New Song"/>
+    <indexentry index="59" name="Escape the Ranch"/>
+    <indexentry index="45" name="Castle Courtyard"/>
+    <indexentry index="57" name="Heart Piece Get"/>
+    <indexentry index="75" name="Great Deku Tree's Theme"/>
+    <indexentry index="79" name="Sheik's Theme"/>
+    <indexentry index="88" name="Ice Cavern"/>
+    <indexentry index="90" name="Kaepora Gaebora"/>
+    <indexentry index="91" name="Shadow Temple"/>
+    <indexentry index="96" name="Potion Shop"/>
+    <indexentry index="97" name="Koume &amp; Kotake's Theme"/>
+    <indexentry index="98" name="Castle Collapsing"/>
+    <indexentry index="99" name="Inside Ganon's Castle"/>
+    <indexentry index="100" name="Ganondorf Battle"/>
+    <indexentry index="101" name="Ganon's Last Stand"/>
+    <indexentry index="107" name="Boss Battle 2"/>
+    <indexentry index="108" name="Timed Minigame"/>
+    <indexentry index="50" name="Spiritual Stone Get"/>
+    <indexentry index="1" name="Nature Ambiance"/>
+    <indexentry index="51" name="Bolero of Fire"/>
+    <indexentry index="52" name="Minuet of Forest"/>
+    <indexentry index="53" name="Serenade of Water"/>
+    <indexentry index="54" name="Requiem of Spirit"/>
+    <indexentry index="55" name="Nocturne of Shadow"/>
+    <indexentry index="89" name="Door of Time"/>
+    <indexentry index="94" name="Seal of the Six Sages"/>
+    <indexentry index="93" name="Ganon's Rainbow Bridge"/>
+    <indexentry index="87" name="Ptr to Fairy Fountain (Title Screen)"/>
+    <indexentry index="86" name="Legend of Hyrule (Short Version)"/>
+    <indexentry index="77" name="Legend of Hyrule (Long Version)"/>
+    <indexentry index="67" name="Get Medallion"/>
+    <indexentry index="68" name="Ocarina Saria's Song"/>
+    <indexentry index="69" name="Ocarina Epona's Song"/>
+    <indexentry index="70" name="Ocarina Zelda's Lullaby"/>
+    <indexentry index="71" name="Ocarina Sun's Song"/>
+    <indexentry index="72" name="Ocarina Song of Time"/>
+    <indexentry index="73" name="Ocarina Song of Storms"/>
+    <indexentry index="74" name="Flying Theme"/>
+    <indexentry index="78" name="Minigame Shop"/>
+    <indexentry index="81" name="Zelda Turns Around"/>
+    <indexentry index="82" name="Zelda's Theme (Orchestra)"/>
+    <indexentry index="83" name="Master Sword"/>
+    <indexentry index="84" name="Ganondorf's Theme"/>
+    <indexentry index="3" name="Hyrule Field (Day 1 - GG - Opening)"/>
+    <indexentry index="4" name="Hyrule Field (Day 2 - GF - Trumpets 1)"/>
+    <indexentry index="5" name="Hyrule Field (Day 3 - GF - Trumpets 2)"/>
+    <indexentry index="6" name="Hyrule Field (Day 4 - GFEb - Clarinets)"/>
+    <indexentry index="7" name="Hyrule Field (Day 5 - GCB - Strings, Pizz)"/>
+    <indexentry index="8" name="Hyrule Field (Day 6 - GFEm - OoT Theme)"/>
+    <indexentry index="9" name="Hyrule Field (Day 7 - CD - Horns)"/>
+    <indexentry index="10" name="Hyrule Field (Day 8 - CD - Strings)"/>
+    <indexentry index="11" name="Hyrule Field (Day 9 - GG - Horns)"/>
+    <indexentry index="12" name="Hyrule Field (Day 10 - GBbDb - Horns)"/>
+    <indexentry index="13" name="Hyrule Field (Day 11 - AbCF - Horns"/>
+    <indexentry index="14" name="Hyrule Field (Day 12 - GG - Neutral Opening)"/>
+    <indexentry index="15" name="Hyrule Field (Battle 1 - OoT Theme Deconstruction)"/>
+    <indexentry index="16" name="Hyrule Field (Battle 2 - Brass)"/>
+    <indexentry index="17" name="Hyrule Field (Battle 3 - Brass, Marimba)"/>
+    <indexentry index="18" name="Hyrule Field (Battle 4 - Stabs, OoT Theme)"/>
+    <indexentry index="19" name="Hyrule Field (Battle 5 - Stabs, Chords)"/>
+    <indexentry index="20" name="Hyrule Field (Sunset 1 - Oboe)"/>
+    <indexentry index="21" name="Hyrule Field (Sunset 2 - Pan Flute)"/>
+    <indexentry index="22" name="Hyrule Field (Sunset 3 - Strings)"/>
+    <indexentry index="23" name="Hyrule Field (Sunset 4 - OoT Theme)"/>
+  </audioseqidx>
+  <samplesetidx/>
+  <midiopts ppqnmultiplier="10" mtrvol="SysEx MstrVol" chnvol="CC7 (Volume)"
+            chnpriority="CC25 (None)" bendrange="6" q_other_time="1" q_vol_time="3"
+            q_vol_amp="2" q_other_amp="1" stacksize="4" formatbytedefault="32"
+            typebytedefault="50" delta_vel="5" delta_gate="3" delta_cc="3"
+            writeseqformat="1" writeseqtype="1" writechanbits="1" writeloopall="1"
+            writeheader="1" writechanreset="1" ptrtype="shortest" usecalls="1"
+            useloops="1" q_pitch_time="1" q_pitch_amp="1" q_pan_time="3"
+            q_pan_amp="2"/>
+  <abfstructs align="16">
+    <struct name="ABIndex">
+      <field name="NUM_BANK" datatype="uint16" ispointer="0" isarray="0" meaning="NUM_BANK"/>
+      <field name="zeros" datatype="uint16" ispointer="0" isarray="1" meaning="None"
+             arraylenfixed="7" defaultval="0"/>
+      <field name="unnamed" datatype="ABIndexEntry" ispointer="0" isarray="1"
+             meaning="List of Banks" arraylenvar="NUM_BANK"/>
+    </struct>
+    <struct name="ABIndexEntry">
+      <field name="addr" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr Bank (in Audiobank)"
+             ptrto="ABHeader"/>
+      <field name="len" datatype="uint32" ispointer="0" isarray="0" meaning="Bank Length"/>
+      <field name="unknownA" datatype="uint8" ispointer="0" isarray="0" meaning="None"
+             defaultval="2"/>
+      <field name="unknownB" datatype="uint8" ispointer="0" isarray="0" meaning="None"
+             defaultval="2"/>
+      <field name="samplesetidx" datatype="uint8" ispointer="0" isarray="0"
+             meaning="Sample Set Index number"/>
+      <field name="unknownD" datatype="uint8" ispointer="0" isarray="0" meaning="None"
+             defaultval="255"/>
+      <field name="NUM_INST" datatype="uint8" ispointer="0" isarray="0" meaning="NUM_INST"/>
+      <field name="NUM_DRUM" datatype="uint8" ispointer="0" isarray="0" meaning="NUM_DRUM"/>
+      <field name="unknownG" datatype="uint8" ispointer="0" isarray="0" meaning="None"
+             defaultval="0"/>
+      <field name="NUM_SFX" datatype="uint8" ispointer="0" isarray="0" meaning="NUM_SFX"/>
+    </struct>
+    <struct name="ABHeader"/>
+    <struct name="ABBank">
+      <field name="drumptr" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr Drum List"
+             ptrto="ABDrumList"/>
+      <field name="sfxptr" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr SFX List"
+             ptrto="ABSFXList"/>
+      <field name="instlist" datatype="uint32" ispointer="1" isarray="1" meaning="List of Ptrs to Insts"
+             ptrto="ABInstrument" arraylenvar="NUM_INST"/>
+    </struct>
+    <struct name="ABDrumList">
+      <field name="drumlist" datatype="uint32" ispointer="1" isarray="1" meaning="List of Ptrs to Drums"
+             ptrto="ABDrum" arraylenvar="NUM_DRUM"/>
+    </struct>
+    <struct name="ABSFXList">
+      <field name="sfxlist" datatype="ABSound" ispointer="0" isarray="1" meaning="List of Sounds"
+             arraylenvar="NUM_SFX"/>
+    </struct>
+    <struct name="ABInstrument">
+      <field name="unknown1" datatype="uint8" ispointer="0" isarray="0" meaning="None"/>
+      <field name="splitpoint1" datatype="uint8" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="splitpoint2" datatype="uint8" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="releaserate" datatype="uint8" ispointer="0" isarray="0" meaning="None"/>
+      <field name="envelope" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr Envelope"
+             ptrto="ABEnvelope"/>
+      <field name="splits" datatype="ABSound" ispointer="0" isarray="1" meaning="List of 3 Sounds for Splits"
+             arraylenfixed="3"/>
+    </struct>
+    <struct name="ABDrum">
+      <field name="unknown1" datatype="uint8" ispointer="0" isarray="0" meaning="None"/>
+      <field name="unknown2" datatype="uint8" ispointer="0" isarray="0" meaning="None"/>
+      <field name="unknown3" datatype="uint8" ispointer="0" isarray="0" meaning="None"
+             defaultval="0"/>
+      <field name="unknown4" datatype="uint8" ispointer="0" isarray="0" meaning="None"
+             defaultval="0"/>
+      <field name="drumsound" datatype="ABSound" ispointer="0" isarray="0"
+             meaning="Drum Sound"/>
+      <field name="envelope" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr Envelope"
+             ptrto="ABEnvelope"/>
+    </struct>
+    <struct name="ABSound">
+      <field name="sample" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr Sample"
+             ptrto="ABSample"/>
+      <field name="tuning" datatype="float32" ispointer="0" isarray="0" meaning="None"/>
+    </struct>
+    <struct name="ABEnvelope">
+      <field name="attackRate" datatype="int16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="attackLevel" datatype="uint16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="decay1Rate" datatype="int16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="decay1Level" datatype="uint16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="decay2Rate" datatype="int16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="decay2Level" datatype="uint16" ispointer="0" isarray="0"
+             meaning="None"/>
+      <field name="AllFs" datatype="int16" ispointer="0" isarray="0" meaning="None"/>
+      <field name="AllZeros" datatype="uint16" ispointer="0" isarray="0" meaning="None"/>
+    </struct>
+    <struct name="ABSample">
+      <field name="unknown1" datatype="uint8" ispointer="0" isarray="0" meaning="None"/>
+      <field name="unknown2" datatype="uint8" ispointer="0" isarray="0" meaning="None"/>
+      <field name="samplesize" datatype="uint16" ispointer="0" isarray="0"
+             meaning="Sample Length"/>
+      <field name="sampleaddr" datatype="uint32" ispointer="0" isarray="0"
+             meaning="Sample Address (in Sample Set)" ptrto="ATSample"/>
+      <field name="loop" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr ALADPCMLoop"
+             ptrto="ALADPCMLoop"/>
+      <field name="book" datatype="uint32" ispointer="1" isarray="0" meaning="Ptr ALADPCMBook"
+             ptrto="ALADPCMBook"/>
+    </struct>
+    <struct name="ALADPCMBook" NUM_PRED="-1">
+      <field name="order" datatype="int32" ispointer="0" isarray="0" meaning="None"/>
+      <field name="npredictors" datatype="int32" ispointer="0" isarray="0"
+             meaning="NUM_PRED"/>
+      <field name="book" datatype="ALADPCMPredictor" ispointer="0" isarray="1"
+             meaning="Array of Predictors" arraylenvar="NUM_PRED"/>
+    </struct>
+    <struct name="ALADPCMPredictor">
+      <field name="data" datatype="int16" ispointer="0" isarray="1" meaning="None"
+             arraylenfixed="16"/>
+    </struct>
+    <struct name="ALADPCMLoop" HAS_TAIL="-1">
+      <field name="start" datatype="uint32" ispointer="0" isarray="0" meaning="Loop Start"/>
+      <field name="end" datatype="uint32" ispointer="0" isarray="0" meaning="Loop End"/>
+      <field name="count" datatype="uint32" ispointer="0" isarray="0" meaning="Loop Count"
+             defaultval="-1"/>
+      <field name="adpcm_state" datatype="uint32" ispointer="0" isarray="0"
+             meaning="None" defaultval="0"/>
+      <field name="tail" datatype="ALADPCMTail" ispointer="0" isarray="1"
+             meaning="Tail Data (if Loop Start != 0)" arraylenvar="HAS_TAIL"/>
+    </struct>
+    <struct name="ALADPCMTail">
+      <field name="some_adpcm_data" datatype="int16" ispointer="0" isarray="1"
+             meaning="None" arraylenfixed="16"/>
+    </struct>
+  </abfstructs>
+</RomDesc>

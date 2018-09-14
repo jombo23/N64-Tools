@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<disassembler>
+  <tabs>
+    <tab name="MIPS">
+      <processor name="MIPS4300" class="MIPSDisassembler.MIPS4300" DLL="MIPS4300"/>
+    </tab>
+  </tabs>
+</disassembler>

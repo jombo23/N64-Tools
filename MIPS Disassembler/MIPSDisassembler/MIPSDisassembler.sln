@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MIPSDisassembler", "MIPSDisassembler.vcproj", "{459EEE0B-9A3F-4F50-A65E-41C13D21AB6F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{05F92C44-2635-49B7-BDD3-883553135BB9} = {05F92C44-2635-49B7-BDD3-883553135BB9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MIPS4300", "..\MIPS4300\MIPS4300.vcproj", "{05F92C44-2635-49B7-BDD3-883553135BB9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MIPSDisassemblerShared", "..\MIPSDisassemblerShared\MIPSDisassemblerShared.vcproj", "{2BDD1A68-9AAC-42AF-A639-FB11E325E9FB}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MIPSDisassemblerControls", "..\MIPSDisassemblerControls\MIPSDisassemblerControls.vcproj", "{4B68C099-DDB5-402F-8EE7-535FD085E94C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MIPSDisassemblerInterfaces", "..\MIPSDisassemblerInterfaces\MIPSDisassemblerInterfaces.vcproj", "{FB2B55BB-8AAB-4B15-A077-7552EDD975F3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{459EEE0B-9A3F-4F50-A65E-41C13D21AB6F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{459EEE0B-9A3F-4F50-A65E-41C13D21AB6F}.Debug|Win32.Build.0 = Debug|Win32
+		{459EEE0B-9A3F-4F50-A65E-41C13D21AB6F}.Release|Win32.ActiveCfg = Release|Win32
+		{459EEE0B-9A3F-4F50-A65E-41C13D21AB6F}.Release|Win32.Build.0 = Release|Win32
+		{05F92C44-2635-49B7-BDD3-883553135BB9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{05F92C44-2635-49B7-BDD3-883553135BB9}.Debug|Win32.Build.0 = Debug|Win32
+		{05F92C44-2635-49B7-BDD3-883553135BB9}.Release|Win32.ActiveCfg = Release|Win32
+		{05F92C44-2635-49B7-BDD3-883553135BB9}.Release|Win32.Build.0 = Release|Win32
+		{2BDD1A68-9AAC-42AF-A639-FB11E325E9FB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2BDD1A68-9AAC-42AF-A639-FB11E325E9FB}.Debug|Win32.Build.0 = Debug|Win32
+		{2BDD1A68-9AAC-42AF-A639-FB11E325E9FB}.Release|Win32.ActiveCfg = Release|Win32
+		{2BDD1A68-9AAC-42AF-A639-FB11E325E9FB}.Release|Win32.Build.0 = Release|Win32
+		{4B68C099-DDB5-402F-8EE7-535FD085E94C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4B68C099-DDB5-402F-8EE7-535FD085E94C}.Debug|Win32.Build.0 = Debug|Win32
+		{4B68C099-DDB5-402F-8EE7-535FD085E94C}.Release|Win32.ActiveCfg = Release|Win32
+		{4B68C099-DDB5-402F-8EE7-535FD085E94C}.Release|Win32.Build.0 = Release|Win32
+		{FB2B55BB-8AAB-4B15-A077-7552EDD975F3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FB2B55BB-8AAB-4B15-A077-7552EDD975F3}.Debug|Win32.Build.0 = Debug|Win32
+		{FB2B55BB-8AAB-4B15-A077-7552EDD975F3}.Release|Win32.ActiveCfg = Release|Win32
+		{FB2B55BB-8AAB-4B15-A077-7552EDD975F3}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
