@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ObjToAn8", "ObjToAn8.vcproj", "{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+		ReleaseNoFBX|Win32 = ReleaseNoFBX|Win32
+		ReleaseNoFBX|x64 = ReleaseNoFBX|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.Debug|Win32.Build.0 = Debug|Win32
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.Debug|x64.ActiveCfg = Debug|x64
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.Debug|x64.Build.0 = Debug|x64
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.Release|Win32.ActiveCfg = Release|Win32
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.Release|Win32.Build.0 = Release|Win32
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.Release|x64.ActiveCfg = Release|x64
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.Release|x64.Build.0 = Release|x64
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.ReleaseNoFBX|Win32.ActiveCfg = ReleaseNoFBX|Win32
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.ReleaseNoFBX|Win32.Build.0 = ReleaseNoFBX|Win32
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.ReleaseNoFBX|x64.ActiveCfg = ReleaseNoFBX|x64
+		{08DB6E0F-56FE-47DB-B5E0-C46F96C022CA}.ReleaseNoFBX|x64.Build.0 = ReleaseNoFBX|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
