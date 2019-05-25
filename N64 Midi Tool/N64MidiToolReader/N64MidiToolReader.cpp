@@ -648,7 +648,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 			startSpot = (CharArrayToLong(&buffer[currentSpot]) + (start - 4));
 			
 			int currentBinaryNumber = 0;
-			while (currentBinaryNumber <  0x3F)
+			while (currentBinaryNumber <  0x77)
 			{
 				unsigned long musicOffset = (CharArrayToLong(&buffer[currentSpot]) + gameConfig[gameNumber].midiBanks[0].end);
 				unsigned long compressedSize = CharArrayToShort(&buffer[currentSpot+6]);
