@@ -18,8 +18,11 @@ public:
 	std::vector<CAnimationPart*> animationParts;
 
 	float3 rotation;
+	bool rotationIsInterpolated[3];
 	float3 translation;
+	bool translationIsInterpolated[3];
 	float3 scale;
+	bool scaleIsInterpolated[3];
 
 	CNullableFloat fieldOfView;
 	CColorQuadruplet envColor;

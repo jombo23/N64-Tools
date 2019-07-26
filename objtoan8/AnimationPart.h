@@ -12,6 +12,9 @@ public:
 
 	CString name;
 	float3 rotation;
-	float3 scale;
+	bool rotationIsInterpolated[3];
 	float3 translation;
+	bool translationIsInterpolated[3];
+	float3 scale;
+	bool scaleIsInterpolated[3];
 };

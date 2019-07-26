@@ -77,7 +77,7 @@ IDR_MAINFRAME           ICON                    "res\\ObjToAn8.ico"
 // Dialog
 //
 
-IDD_OBJTOAN8_DIALOG DIALOGEX 0, 0, 387, 379
+IDD_OBJTOAN8_DIALOG DIALOGEX 0, 0, 387, 405
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_ACCEPTFILES | WS_EX_APPWINDOW
 CAPTION "ObjToAn8"
@@ -150,7 +150,7 @@ BEGIN
     CONTROL         "Regex Group Filter",IDC_CHECKREGEXGROUPFILTER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,306,77,10
     CONTROL         "Round Vertices to .01",IDC_CHECKROUNDVERTICESHUNDREDTHS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,244,86,10
-    GROUPBOX        "FBX Exporter",IDC_GROUPFBXEXPORTER,194,302,173,70,NOT WS_VISIBLE
+    GROUPBOX        "FBX Exporter",IDC_GROUPFBXEXPORTER,193,302,172,96,NOT WS_VISIBLE
     COMBOBOX        IDC_COMBOFBXEXPORTER,243,310,118,82,CBS_DROPDOWNLIST | CBS_SORT | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Export Type",IDC_LABELFBXEXPORTTYPE,200,311,40,8,NOT WS_VISIBLE
     CONTROL         "Override Skeleton (Fbx Read)",IDC_CHECKOVERRIDESKELETON,
@@ -159,6 +159,10 @@ BEGIN
     PUSHBUTTON      "Choose...",IDC_BUTTONCHOOSEOVERRIDESKELETON,311,323,50,14,NOT WS_VISIBLE
     CONTROL         "Correct Spaces in Filenames",IDC_CHECKFIXSPACESINFBXIMAGEPATHS,
                     "Button",BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,201,356,109,10
+    COMBOBOX        IDC_COMBOJOINTSRT,239,366,125,55,CBS_DROPDOWNLIST | CBS_SORT | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Joint Type",IDC_JOINTMODELABEL,200,368,34,8,NOT WS_VISIBLE
+    LTEXT           "FPS",IDC_LABELFBXEXPORTTYPE2,201,381,14,8,NOT WS_VISIBLE
+    EDITTEXT        IDC_EDIT3,239,380,125,14,ES_AUTOHSCROLL | NOT WS_VISIBLE
 END
 
 
@@ -168,8 +172,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,3
- PRODUCTVERSION 1,0,0,3
+ FILEVERSION 1,0,0,4
+ PRODUCTVERSION 1,0,0,4
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -186,12 +190,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "GoldenEyeVault.com"
             VALUE "FileDescription", "Obj2An8 Convertor"
-            VALUE "FileVersion", "1.0.0.3"
+            VALUE "FileVersion", "1.0.0.4"
             VALUE "InternalName", "ObjToAn8.exe"
             VALUE "LegalCopyright", "(c) GoldenEyeVault.com  All rights reserved."
             VALUE "OriginalFilename", "ObjToAn8.exe"
             VALUE "ProductName", "ObjToAn8"
-            VALUE "ProductVersion", "1.0.0.3"
+            VALUE "ProductVersion", "1.0.0.4"
         END
     END
     BLOCK "VarFileInfo"
@@ -214,10 +218,25 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 380
         TOPMARGIN, 7
-        BOTTOMMARGIN, 372
+        BOTTOMMARGIN, 398
     END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_OBJTOAN8_DIALOG DLGINIT
+BEGIN
+    IDC_COMBOJOINTSRT, 0x403, 9, 0
+0x6241, 0x6f73, 0x756c, 0x6574, "\000" 
+    IDC_COMBOJOINTSRT, 0x403, 9, 0
+0x6552, 0x616c, 0x6974, 0x6576, "\000" 
+    0
+END
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////

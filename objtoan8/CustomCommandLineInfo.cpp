@@ -404,4 +404,20 @@ void CCustomCommandLineInfo::ParseParam(const char* pszParam, BOOL bFlag, BOOL b
 	{
 		startupParameters.overrideSkeletonFile = paramString.Mid(21);
 	}
+
+	if (paramString.Find("jointMode=") == 0)
+	{
+		startupParameters.jointMode = paramString.Mid(10);
+
+		startupParameters.jointMode.MakeLower();
+		if (startupParameters.jointMode != "relative")
+			startupParameters.jointMode = "absolute";
+	}
+
+	if (paramString.Find("fps=") == 0)
+	{
+		startupParameters.fps = atof(paramString.Mid(4));
+		if (startupParameters.fps < 0)
+			startupParameters.fps = 30;
+	}
 }

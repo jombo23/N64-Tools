@@ -94,7 +94,8 @@ public:
 		float scaleDiffuseFactor, float scaleAmbientFactor, float scaleSpecularFactor, float xMove, float yMove, float zMove, 
 		float scaleVerticesFactor, float texelSizeU, float texelSizeV, float scaleUVsFactor, 
 		float scaleAmbientFactorAn8Value, float scaleDiffuseFactorAn8Value, bool regexFilterCheck, CString regexFilter, 
-		CString inputFile, CString outputFile, CString replaceFile, CString fbxExportType, bool overrideSkeleton, CString overrideSkeletonFile, bool doMessageBoxes);
+		CString inputFile, CString outputFile, CString replaceFile, CString fbxExportType, bool overrideSkeleton, CString overrideSkeletonFile, bool doMessageBoxes, CString jointMode,
+		float fps);
 
 	CStartupParameters startupParameters;
 
@@ -192,21 +193,22 @@ public:
 	#ifdef FBXSDK_NEW_API
 	bool ReadFbxFile(CString inputFile, std::vector<CVerticeColor*>& verticeColors, std::vector<CNormal*>& normals, std::vector<CUVCoordinate*>& uvCoordinates, std::vector<CVertice*>& vertices, std::vector<CGroup*>& groups, std::vector<CMaterialFile*>& materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
 		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, 
-		bool noGroups, bool overrideSkeleton, CString overrideSkeletonFile);
+		bool noGroups, bool overrideSkeleton, CString overrideSkeletonFile, JointType jointType);
 	void ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, CString inputFile, std::vector<CVerticeColor*>& verticeColors, std::vector<CNormal*>& normals, std::vector<CUVCoordinate*>& uvCoordinates, std::vector<CVertice*>& vertices, std::vector<CGroup*>& groups, std::vector<CMaterialFile*>& materialFiles, std::vector<CJoint*>& joints,  std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool noGroups, CString& errorString);
+		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool noGroups, CString& errorString, JointType jointType);
 
 	void GetNumberKeyframesFbxCameraRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pNode, int& maxKeyframes, std::vector<CJoint*>& joints);
 	void GetNumberKeyframesFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pNode, int& maxKeyframes, std::vector<CJoint*>& joints);
+	std::vector<int> GetKeyframeIndexes(FbxAnimCurve* lAnimCurve);
 	void ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pNode, std::vector<CJoint*>& joints, CAnimation* animation, int numberKeyframes);
 	void ParseFbxCameraRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pNode, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations);
 	void ParseFbxBlendShapeRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pNode, std::vector<CVertice*>& vertices, std::vector<CGroup*>& groups, std::vector<CJoint*>& joints, CAnimation* animation, bool noGroups, int& verticesOffset);
 	void ContainsFbxBlendShapeRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pNode, bool& containsBlendShape);
 
-	void ParseFbxSkeletonRecursive(FbxNode* pNode, std::vector<CJoint*>& joints, float3 position, CJoint* parent, map<CString, float3> skeletalOverrides);
+	void ParseFbxSkeletonRecursive(FbxNode* pNode, std::vector<CJoint*>& joints, float3 position, CJoint* parent, map<CString, float3> skeletalOverrides, map<CString, float3> skeletalOverridesRelativeScale, map<CString, float3> skeletalOverridesRelativeRotation, map<CString, float3> skeletalOverridesRelativePosition, JointType jointType);
 	void WriteFbxSkeleton(std::map<CString, FbxCluster*>& jointCluster, std::map<CString, FbxNode*>& skeletonCluster, FbxScene* pScene, CJoint* joint, FbxNode* skeletonNode);
 	void WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, CString inputPath, bool regexFilterCheck, CString regexFilter, CString fbxExportType);
+		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, CString inputPath, bool regexFilterCheck, CString regexFilter, CString fbxExportType, float fps);
 
 	FbxDouble3 GetMaterialColor(const FbxSurfaceMaterial * pMaterial, const char * pPropertyName, const char * pFactorPropertyName);
 	const char* GetMaterialTextureName(const FbxSurfaceMaterial * pMaterial, const char * pPropertyName);
@@ -282,4 +284,8 @@ public:
 	CEdit mOverrideSkeletonFilename;
 	afx_msg void OnBnClickedButtonchooseoverrideskeleton();
 	static const float EPSILONVALUES;
+	CStatic mJointModeLabel;
+	CComboBox mJointMode;
+	CStatic mFBXFPSLabel;
+	CEdit mFBXFPS;
 };

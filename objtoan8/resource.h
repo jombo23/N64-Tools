@@ -62,6 +62,11 @@
 #define IDC_EDITOVERRIDESKELETON        1054
 #define IDC_CHECKFIXSPACESINFBXIMAGEPATHS 1055
 #define IDC_CHECKRECENTERUVS            1056
+#define IDC_COMBO1                      1056
+#define IDC_COMBOJOINTSRT               1056
+#define IDC_JOINTMODELABEL              1057
+#define IDC_LABELFBXEXPORTTYPE2         1058
+#define IDC_EDIT3                       1059
 
 // Next default values for new objects
 // 
@@ -69,7 +74,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1055
+#define _APS_NEXT_CONTROL_VALUE         1060
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

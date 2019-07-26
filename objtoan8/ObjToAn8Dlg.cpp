@@ -79,6 +79,10 @@ void CObjToAn8Dlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECKOVERRIDESKELETON, mOverrideSkeletonCheck);
 	DDX_Control(pDX, IDC_BUTTONCHOOSEOVERRIDESKELETON, mOverrideSkeletonChooser);
 	DDX_Control(pDX, IDC_EDITOVERRIDESKELETON, mOverrideSkeletonFilename);
+	DDX_Control(pDX, IDC_JOINTMODELABEL, mJointModeLabel);
+	DDX_Control(pDX, IDC_COMBOJOINTSRT, mJointMode);
+	DDX_Control(pDX, IDC_LABELFBXEXPORTTYPE2, mFBXFPSLabel);
+	DDX_Control(pDX, IDC_EDIT3, mFBXFPS);
 }
 
 BEGIN_MESSAGE_MAP(CObjToAn8Dlg, CDialog)
@@ -181,6 +185,9 @@ BOOL CObjToAn8Dlg::OnInitDialog()
 	mTileSizeV.SetWindowText(tempStr);
 
 	mRegexGroupFilter.SetWindowText(startupParameters.regexFilter);
+	mJointMode.SelectString(0, "Absolute");
+
+	mFBXFPS.SetWindowText("30");
 
 	char tempFolder[8000];
 	::GetCurrentDirectory(8000, tempFolder);
@@ -237,6 +244,10 @@ BOOL CObjToAn8Dlg::OnInitDialog()
 	mOverrideSkeletonCheck.ShowWindow(SW_SHOW);
 	mOverrideSkeletonChooser.ShowWindow(SW_SHOW);
 	mOverrideSkeletonFilename.ShowWindow(SW_SHOW);
+	mJointModeLabel.ShowWindow(SW_SHOW);
+	mJointMode.ShowWindow(SW_SHOW);
+	mFBXFPSLabel.ShowWindow(SW_SHOW);
+	mFBXFPS.ShowWindow(SW_SHOW);
 
 	mFbxExportType.ResetContent();
 
@@ -486,6 +497,8 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 	CKeyframe* lastKeyframe = NULL;
 	CAnimationPart* lastAnimationPart = NULL;
 
+	JointType jointType = Absolute;
+
 	// generate precounts
 	while (!feof(inFile))
 	{
@@ -505,7 +518,15 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 
 		lineString = lineString.Trim();
 
-		if ((lineString.Find("o ") == 0) || (lineString.Find("g ") == 0))
+		if (lineString.Find("#jointmode ") == 0)
+		{
+			CString jointModeRead = lineString.Mid(11).Trim().MakeLower();
+			if (jointModeRead == "relative")
+			{
+				jointType = Relative;							
+			}
+		}
+		else if ((lineString.Find("o ") == 0) || (lineString.Find("g ") == 0))
 		{
 			if (!noGroups)
 			{
@@ -915,20 +936,54 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 			{
 				lastJoint = new CJoint();
 				lastJoint->name = newJointName;
+				lastJoint->jointType = jointType;
 				joints.push_back(lastJoint);
 			}
 		}
 		else if (lineString.Find("#jointposition ") == 0)
 		{
-			if (lastJoint != NULL)
+			if (lastJoint->jointType == Absolute)
 			{
-				char* pch = strtok (currentLine," ");
-				pch = strtok (NULL, " ");
-				lastJoint->positionAbsolute.x = (((atof(pch))));
-				pch = strtok (NULL, " ");
-				lastJoint->positionAbsolute.y = (((atof(pch))));
-				pch = strtok (NULL, " ");
-				lastJoint->positionAbsolute.z = (((atof(pch))));
+				if (lastJoint != NULL)
+				{
+					char* pch = strtok (currentLine," ");
+					pch = strtok (NULL, " ");
+					lastJoint->positionAbsolute.x = (((atof(pch))));
+					pch = strtok (NULL, " ");
+					lastJoint->positionAbsolute.y = (((atof(pch))));
+					pch = strtok (NULL, " ");
+					lastJoint->positionAbsolute.z = (((atof(pch))));
+				}
+			}
+		}
+		else if (lineString.Find("#jointsrt ") == 0)
+		{
+			if (lastJoint->jointType == Relative)
+			{
+				if (lastJoint != NULL)
+				{
+					char* pch = strtok (currentLine," ");
+					pch = strtok (NULL, " ");
+					lastJoint->scaleRelative.x = (((atof(pch))));
+					pch = strtok (NULL, " ");
+					lastJoint->scaleRelative.y = (((atof(pch))));
+					pch = strtok (NULL, " ");
+					lastJoint->scaleRelative.z = (((atof(pch))));
+
+					pch = strtok (NULL, " ");
+					lastJoint->rotationRelative.x = (((atof(pch))));
+					pch = strtok (NULL, " ");
+					lastJoint->rotationRelative.y = (((atof(pch))));
+					pch = strtok (NULL, " ");
+					lastJoint->rotationRelative.z = (((atof(pch))));
+
+					pch = strtok (NULL, " ");
+					lastJoint->positionRelative.x = (((atof(pch))));
+					pch = strtok (NULL, " ");
+					lastJoint->positionRelative.y = (((atof(pch))));
+					pch = strtok (NULL, " ");
+					lastJoint->positionRelative.z = (((atof(pch))));
+				}
 			}
 		}
 		else if (lineString.Find("#connection ") == 0)
@@ -1110,6 +1165,19 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 				}
 			}
 		}
+		else if (lineString.Find("#keyframeisinterpolatedtranslation ") == 0)
+		{
+			if (lastKeyframe != NULL)
+			{
+				char* pch = strtok(currentLine, " ");
+				pch = strtok(NULL, " ");
+				lastKeyframe->translationIsInterpolated[0] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastKeyframe->translationIsInterpolated[1] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastKeyframe->translationIsInterpolated[2] = (bool)atoi(pch);
+			}
+		}
 		else if (lineString.Find("#keyframerotation ") == 0)
 		{
 			if (lastKeyframe != NULL)
@@ -1121,6 +1189,19 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 				lastKeyframe->rotation.y = (((atof(pch))));
 				pch = strtok (NULL, " ");
 				lastKeyframe->rotation.z = (((atof(pch))));
+			}
+		}
+		else if (lineString.Find("#keyframeisinterpolatedrotation ") == 0)
+		{
+			if (lastKeyframe != NULL)
+			{
+				char* pch = strtok(currentLine, " ");
+				pch = strtok(NULL, " ");
+				lastKeyframe->rotationIsInterpolated[0] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastKeyframe->rotationIsInterpolated[1] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastKeyframe->rotationIsInterpolated[2] = (bool)atoi(pch);
 			}
 		}
 		else if (lineString.Find("#keyframescale ") == 0)
@@ -1137,6 +1218,19 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 					pch = strtok (NULL, " ");
 					lastKeyframe->scale.z = (((atof(pch))));
 				}
+			}
+		}
+		else if (lineString.Find("#keyframeisinterpolatedscale ") == 0)
+		{
+			if (lastKeyframe != NULL)
+			{
+				char* pch = strtok(currentLine, " ");
+				pch = strtok(NULL, " ");
+				lastKeyframe->scaleIsInterpolated[0] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastKeyframe->scaleIsInterpolated[1] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastKeyframe->scaleIsInterpolated[2] = (bool)atoi(pch);
 			}
 		}
 		else if (lineString.Find("#keyframecolor ") == 0)
@@ -1200,6 +1294,19 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 				lastAnimationPart->rotation.z = (((atof(pch))));
 			}
 		}
+		else if (lineString.Find("#partisinterpolatedrotation ") == 0)
+		{
+			if (lastAnimationPart != NULL)
+			{
+				char* pch = strtok(currentLine, " ");
+				pch = strtok(NULL, " ");
+				lastAnimationPart->rotationIsInterpolated[0] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastAnimationPart->rotationIsInterpolated[1] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastAnimationPart->rotationIsInterpolated[2] = (bool)atoi(pch);
+			}
+		}
 		else if (lineString.Find("#partscale ") == 0)
 		{
 			if (lastAnimationPart != NULL)
@@ -1213,6 +1320,19 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 				lastAnimationPart->scale.z = (((atof(pch))));
 			}
 		}
+		else if (lineString.Find("#partisinterpolatedscale ") == 0)
+		{
+			if (lastAnimationPart != NULL)
+			{
+				char* pch = strtok(currentLine, " ");
+				pch = strtok(NULL, " ");
+				lastAnimationPart->scaleIsInterpolated[0] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastAnimationPart->scaleIsInterpolated[1] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastAnimationPart->scaleIsInterpolated[2] = (bool)atoi(pch);
+			}
+		}
 		else if (lineString.Find("#parttranslation ") == 0)
 		{
 			if (lastAnimationPart != NULL)
@@ -1224,6 +1344,19 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 				lastAnimationPart->translation.y = (((atof(pch))));
 				pch = strtok (NULL, " ");
 				lastAnimationPart->translation.z = (((atof(pch))));
+			}
+		}
+		else if (lineString.Find("#partisinterpolatedtranslation ") == 0)
+		{
+			if (lastAnimationPart != NULL)
+			{
+				char* pch = strtok(currentLine, " ");
+				pch = strtok(NULL, " ");
+				lastAnimationPart->translationIsInterpolated[0] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastAnimationPart->translationIsInterpolated[1] = (bool)atoi(pch);
+				pch = strtok(NULL, " ");
+				lastAnimationPart->translationIsInterpolated[2] = (bool)atoi(pch);
 			}
 		}
 		else if (lineString.Find("vn ") == 0)
@@ -1744,6 +1877,9 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 								sliceKeyframe->translation.x = previousKeyframe->translation.x + (deltaSlice.x * (y + 1));
 								sliceKeyframe->translation.y = previousKeyframe->translation.y + (deltaSlice.y * (y + 1));
 								sliceKeyframe->translation.z = previousKeyframe->translation.z + (deltaSlice.z * (y + 1));
+								sliceKeyframe->translationIsInterpolated[0] = true;
+								sliceKeyframe->translationIsInterpolated[1] = true;
+								sliceKeyframe->translationIsInterpolated[2] = true;
 							}
 
 							keyframe->translation.x = nodeAnim->mPositionKeys[lCount].mValue.x;
@@ -1877,6 +2013,9 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 								sliceKeyframe->rotation.x = previousKeyframe->rotation.x + (deltaSlice.x * (y + 1));
 								sliceKeyframe->rotation.y = previousKeyframe->rotation.y + (deltaSlice.y * (y + 1));
 								sliceKeyframe->rotation.z = previousKeyframe->rotation.z + (deltaSlice.z * (y + 1));
+								sliceKeyframe->rotationIsInterpolated[0] = true;
+								sliceKeyframe->rotationIsInterpolated[1] = true;
+								sliceKeyframe->rotationIsInterpolated[2] = true;
 							}
 
 							if (Sign(span.x) != Sign(keyValue.x))
@@ -1948,6 +2087,7 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 								sliceKeyframe->scale.x = previousKeyframe->scale.x + (deltaSlice * (y + 1));
+								sliceKeyframe->scaleIsInterpolated[0] = true;
 							}
 
 							deltaSlice = (nodeAnim->mScalingKeys[lCount].mValue.y - previousKeyframe->scale.y) / (slices + 1);
@@ -1956,6 +2096,7 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 								sliceKeyframe->scale.y = previousKeyframe->scale.y + (deltaSlice * (y + 1));
+								sliceKeyframe->scaleIsInterpolated[1] = true;
 							}
 
 							deltaSlice = (nodeAnim->mScalingKeys[lCount].mValue.z - previousKeyframe->scale.z) / (slices + 1);
@@ -1964,6 +2105,7 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 								sliceKeyframe->scale.z = previousKeyframe->scale.z + (deltaSlice * (y + 1));
+								sliceKeyframe->scaleIsInterpolated[2] = true;
 							}
 
 							keyframe->scale.x = nodeAnim->mScalingKeys[lCount].mValue.x;
@@ -2163,6 +2305,9 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 									sliceAnimationPart->rotation.x = previousAnimationPart->rotation.x + (deltaSlice.x * (y + 1));
 									sliceAnimationPart->rotation.y = previousAnimationPart->rotation.y + (deltaSlice.y * (y + 1));
 									sliceAnimationPart->rotation.z = previousAnimationPart->rotation.z + (deltaSlice.z * (y + 1));
+									sliceAnimationPart->rotationIsInterpolated[0] = true;
+									sliceAnimationPart->rotationIsInterpolated[1] = true;
+									sliceAnimationPart->rotationIsInterpolated[2] = true;
 								}
 
 								if (Sign(span.x) != Sign(keyValue.x))
@@ -2283,6 +2428,7 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 									CAnimationPart* sliceAnimationPart = GetAddPart(joint->name, sliceKeyframe);
 
 									sliceAnimationPart->translation.x = previousAnimationPart->translation.x + (deltaSlice * (y + 1));
+									sliceAnimationPart->translationIsInterpolated[0] = true;
 								}
 
 								deltaSlice = (keyframeAdjustedPosition.y - previousAnimationPart->translation.y) / (slices + 1);
@@ -2291,7 +2437,8 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 									CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 									CAnimationPart* sliceAnimationPart = GetAddPart(joint->name, sliceKeyframe);
 
-									sliceAnimationPart->translation.x = previousAnimationPart->translation.y + (deltaSlice * (y + 1));
+									sliceAnimationPart->translation.y = previousAnimationPart->translation.y + (deltaSlice * (y + 1));
+									sliceAnimationPart->translationIsInterpolated[1] = true;
 								}
 
 								deltaSlice = (keyframeAdjustedPosition.z - previousAnimationPart->translation.z) / (slices + 1);
@@ -2300,7 +2447,8 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 									CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 									CAnimationPart* sliceAnimationPart = GetAddPart(joint->name, sliceKeyframe);
 
-									sliceAnimationPart->translation.x = previousAnimationPart->translation.z + (deltaSlice * (y + 1));
+									sliceAnimationPart->translation.z = previousAnimationPart->translation.z + (deltaSlice * (y + 1));
+									sliceAnimationPart->translationIsInterpolated[2] = true;
 								}
 
 								animationPart->translation.x = keyframeAdjustedPosition.x;
@@ -2376,6 +2524,7 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 									CAnimationPart* sliceAnimationPart = GetAddPart(joint->name, sliceKeyframe);
 
 									sliceAnimationPart->scale.x = previousAnimationPart->scale.x + (deltaSlice * (y + 1));
+									sliceAnimationPart->scaleIsInterpolated[0] = true;
 								}
 
 								animationPart->scale.x = nodeAnim->mScalingKeys[lCount].mValue.x;
@@ -2387,6 +2536,7 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 									CAnimationPart* sliceAnimationPart = GetAddPart(joint->name, sliceKeyframe);
 
 									sliceAnimationPart->scale.y = previousAnimationPart->scale.y + (deltaSlice * (y + 1));
+									sliceAnimationPart->scaleIsInterpolated[1] = true;
 								}
 
 								animationPart->scale.y = nodeAnim->mScalingKeys[lCount].mValue.y;
@@ -2398,6 +2548,7 @@ bool CObjToAn8Dlg::ReadAssimpFile(CString extension, CString inputFile, std::vec
 									CAnimationPart* sliceAnimationPart = GetAddPart(joint->name, sliceKeyframe);
 
 									sliceAnimationPart->scale.z = previousAnimationPart->scale.z + (deltaSlice * (y + 1));
+									sliceAnimationPart->scaleIsInterpolated[2] = true;
 								}
 
 								animationPart->scale.z = nodeAnim->mScalingKeys[lCount].mValue.z;
@@ -2813,6 +2964,7 @@ bool CObjToAn8Dlg::ReadAn8File(CString inputFile, std::vector<CVerticeColor*>& v
 												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (rr + 1), animation);
 												
 												sliceKeyframe->rotation.x = previousKeyframe->rotation.x + (deltaSlice * (rr + 1));
+												sliceKeyframe->rotationIsInterpolated[0] = true;
 											}
 
 											if (Sign(span) != Sign(lKeyValue))
@@ -2862,6 +3014,7 @@ bool CObjToAn8Dlg::ReadAn8File(CString inputFile, std::vector<CVerticeColor*>& v
 												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (rr + 1), animation);
 												
 												sliceKeyframe->rotation.y = previousKeyframe->rotation.y + (deltaSlice * (rr + 1));
+												sliceKeyframe->rotationIsInterpolated[1] = true;
 											}
 
 											if (Sign(span) != Sign(lKeyValue))
@@ -2911,6 +3064,7 @@ bool CObjToAn8Dlg::ReadAn8File(CString inputFile, std::vector<CVerticeColor*>& v
 												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (rr + 1), animation);
 												
 												sliceKeyframe->rotation.z = previousKeyframe->rotation.z + (deltaSlice * (rr + 1));
+												sliceKeyframe->rotationIsInterpolated[2] = true;
 											}
 
 											if (Sign(span) != Sign(lKeyValue))
@@ -3012,6 +3166,7 @@ bool CObjToAn8Dlg::ReadAn8File(CString inputFile, std::vector<CVerticeColor*>& v
 														CAnimationPart* sliceAnimationPart = GetAddPart(joints[w]->name, sliceKeyframe);
 
 														sliceAnimationPart->rotation.x = previousAnimationPart->rotation.x + (deltaSlice * (rr + 1));
+														sliceAnimationPart->rotationIsInterpolated[0] = true;
 													}
 
 													if (Sign(span) != Sign(lKeyValue))
@@ -3063,6 +3218,7 @@ bool CObjToAn8Dlg::ReadAn8File(CString inputFile, std::vector<CVerticeColor*>& v
 														CAnimationPart* sliceAnimationPart = GetAddPart(joints[w]->name, sliceKeyframe);
 
 														sliceAnimationPart->rotation.y = previousAnimationPart->rotation.y + (deltaSlice * (rr + 1));
+														sliceAnimationPart->rotationIsInterpolated[1] = true;
 													}
 
 													if (Sign(span) != Sign(lKeyValue))
@@ -3114,6 +3270,7 @@ bool CObjToAn8Dlg::ReadAn8File(CString inputFile, std::vector<CVerticeColor*>& v
 														CAnimationPart* sliceAnimationPart = GetAddPart(joints[w]->name, sliceKeyframe);
 
 														sliceAnimationPart->rotation.z = previousAnimationPart->rotation.z + (deltaSlice * (rr + 1));
+														sliceAnimationPart->rotationIsInterpolated[2] = true;
 													}
 
 													if (Sign(span) != Sign(lKeyValue))
@@ -3282,6 +3439,9 @@ bool CObjToAn8Dlg::ReadAn8File(CString inputFile, std::vector<CVerticeColor*>& v
 											sliceKeyframe->translation.x = previousKeyframe->translation.x + (deltaSlice.x * (y + 1));
 											sliceKeyframe->translation.y = previousKeyframe->translation.y + (deltaSlice.y * (y + 1));
 											sliceKeyframe->translation.z = previousKeyframe->translation.z + (deltaSlice.z * (y + 1));
+											sliceKeyframe->translationIsInterpolated[0] = true;
+											sliceKeyframe->translationIsInterpolated[1] = true;
+											sliceKeyframe->translationIsInterpolated[2] = true;
 										}
 
 										keyframe->translation.x = figureElements[y]->vControllers[w].Track.vPointKeys[z].Value.x;
@@ -5661,10 +5821,24 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 
 		fprintf(outFile, "mtllib %s\n", PullOutImageName(outputFile) + ".mtl");
 
+		JointType jointType = Absolute;
+		for (int x = 0; x < joints.size(); x++)
+		{
+			if (joints[x]->jointType == Relative)
+			{
+				jointType = Relative;
+				fprintf(outFile, "#jointmode relative\n");
+				break;
+			}
+		}
+
 		for (int x = 0; x < joints.size(); x++)
 		{
 			fprintf(outFile, "#joint %s\n", joints[x]->name);
-			fprintf(outFile, "#jointposition %f %f %f\n", joints[x]->positionAbsolute.x, joints[x]->positionAbsolute.y, joints[x]->positionAbsolute.z);
+			if (jointType == Absolute)
+				fprintf(outFile, "#jointposition %f %f %f\n", joints[x]->positionAbsolute.x, joints[x]->positionAbsolute.y, joints[x]->positionAbsolute.z);
+			else if (jointType == Relative)
+				fprintf(outFile, "#jointsrt %f %f %f %f %f %f %f %f %f\n", joints[x]->scaleRelative.x, joints[x]->scaleRelative.y, joints[x]->scaleRelative.z, joints[x]->rotationRelative.x, joints[x]->rotationRelative.y, joints[x]->rotationRelative.z, joints[x]->positionRelative.x, joints[x]->positionRelative.y, joints[x]->positionRelative.z);
 		}
 
 		for (int x = 0; x < joints.size(); x++)
@@ -5937,8 +6111,14 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 					keyframe->rotation.z = 0;
 
 				fprintf(outFile, "#keyframetranslation %f %f %f\n", keyframe->translation.x, keyframe->translation.y, keyframe->translation.z);
+				if ((keyframe->translationIsInterpolated[0]) || (keyframe->translationIsInterpolated[1]) || (keyframe->translationIsInterpolated[2]))
+					fprintf(outFile, "#keyframeisinterpolatedtranslation %d %d %d\n", keyframe->translationIsInterpolated[0], keyframe->translationIsInterpolated[1], keyframe->translationIsInterpolated[2]);
 				fprintf(outFile, "#keyframerotation %f %f %f\n", keyframe->rotation.x, keyframe->rotation.y, keyframe->rotation.z);
+				if ((keyframe->rotationIsInterpolated[0]) || (keyframe->rotationIsInterpolated[1]) || (keyframe->rotationIsInterpolated[2]))
+					fprintf(outFile, "#keyframeisinterpolatedrotation %d %d %d\n", keyframe->rotationIsInterpolated[0], keyframe->rotationIsInterpolated[1], keyframe->rotationIsInterpolated[2]);
 				fprintf(outFile, "#keyframescale %f %f %f\n", keyframe->scale.x, keyframe->scale.y, keyframe->scale.z);
+				if ((keyframe->scaleIsInterpolated[0]) || (keyframe->scaleIsInterpolated[1]) || (keyframe->scaleIsInterpolated[2]))
+					fprintf(outFile, "#keyframeisinterpolatedscale %d %d %d\n", keyframe->scaleIsInterpolated[0], keyframe->scaleIsInterpolated[1], keyframe->scaleIsInterpolated[2]);
 
 				if (keyframe->fieldOfView.contains)
 				{
@@ -5957,6 +6137,8 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 					
 					//if ((fabs(animationPart->translation.x) > EPSILONVALUES) || (fabs(animationPart->translation.y) > EPSILONVALUES) || (fabs(animationPart->translation.z) > EPSILONVALUES))
 						fprintf(outFile, "#parttranslation %f %f %f\n", animationPart->translation.x, animationPart->translation.y, animationPart->translation.z);
+						if ((animationPart->translationIsInterpolated[0]) || (animationPart->translationIsInterpolated[1]) || (animationPart->translationIsInterpolated[2]))
+							fprintf(outFile, "#partisinterpolatedtranslation %d %d %d\n", animationPart->translationIsInterpolated[0], animationPart->translationIsInterpolated[1], animationPart->translationIsInterpolated[2]);
 
 					if ((fabs(animationPart->rotation.x) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.x) < EPSILONVALUES))
 						animationPart->rotation.x = 0;
@@ -5988,9 +6170,15 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 						animationPart->rotation.z = 0;
 
 					fprintf(outFile, "#partrotation %f %f %f\n", animationPart->rotation.x, animationPart->rotation.y, animationPart->rotation.z);
+					if ((animationPart->rotationIsInterpolated[0]) || (animationPart->rotationIsInterpolated[1]) || (animationPart->rotationIsInterpolated[2]))
+						fprintf(outFile, "#partisinterpolatedrotation %d %d %d\n", animationPart->rotationIsInterpolated[0], animationPart->rotationIsInterpolated[1], animationPart->rotationIsInterpolated[2]);
 
 					if ((animationPart->scale.x != 1) || (animationPart->scale.y != 1) || (animationPart->scale.z != 1))
+					{
 						fprintf(outFile, "#partscale %f %f %f\n", animationPart->scale.x, animationPart->scale.y, animationPart->scale.z);
+						if ((animationPart->scaleIsInterpolated[0]) || (animationPart->scaleIsInterpolated[1]) || (animationPart->scaleIsInterpolated[2]))
+							fprintf(outFile, "#partisinterpolatedscale %d %d %d\n", animationPart->scaleIsInterpolated[0], animationPart->scaleIsInterpolated[1], animationPart->scaleIsInterpolated[2]);
+					}
 				}
 			}
 		}
@@ -7751,8 +7939,16 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 		float scaleDiffuseFactor, float scaleAmbientFactor, float scaleSpecularFactor, float xMove, float yMove, float zMove, 
 		float scaleVerticesFactor, float texelSizeU, float texelSizeV, float scaleUVsFactor, 
 		float scaleAmbientFactorAn8Value, float scaleDiffuseFactorAn8Value, bool regexFilterCheck, CString regexFilter, 
-		CString inputFile, CString outputFile, CString replaceFile, CString fbxExportType, bool overrideSkeleton, CString overrideSkeletonFile, bool doMessageBoxes)
+		CString inputFile, CString outputFile, CString replaceFile, CString fbxExportType, bool overrideSkeleton, CString overrideSkeletonFile, bool doMessageBoxes, CString jointMode, float fps)
 {
+	JointType jointType = Absolute;
+	jointMode = jointMode.MakeLower();
+	if (jointMode == "relative")
+		jointType = Relative;
+
+	if (fps < 0)
+		fps = 30;
+
 	this->doMessageBoxes = doMessageBoxes;
 
 	if ((inputFile.GetLength() < 3) || (inputFile.Find(".") == -1))
@@ -7856,7 +8052,7 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 	{
 		if (!ReadFbxFile(inputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
 			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors,
-			noGroups, overrideSkeleton, overrideSkeletonFile))
+			noGroups, overrideSkeleton, overrideSkeletonFile, jointType))
 		{
 			DisposeStructures(verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, replacementMaterialOverrides, joints, animations);
 			return false;
@@ -7992,7 +8188,7 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 	else if (extensionWrite.MakeLower() == "fbx")
 	{
 		WriteFbxFile(outputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
-			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, inputPath, regexFilterCheck, regexFilter, fbxExportType);
+			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, inputPath, regexFilterCheck, regexFilter, fbxExportType, fps);
 	}
 	#endif
 
@@ -8111,6 +8307,16 @@ void CObjToAn8Dlg::OnBnClickedButton3()
 	CString regexFilter;
 	mRegexGroupFilter.GetWindowText(regexFilter);
 
+	CString jointMode;
+	mJointMode.GetWindowText(jointMode);
+	jointMode.MakeLower();
+
+	CString fpsString;
+	mFBXFPS.GetWindowText(fpsString);
+	float fps = atof(fpsString);
+	if (fps < 0)
+		fps = 30;
+
 	PerformConversion(specialKeywordMode, mergeLikeMaterials, renameMaterials, renameGroups, stripImagePaths, 
 		roundVertices, roundVerticesTenths, roundVerticesHundredths, ignoreShading, ignoreShadingPoint7, recenterObjects, 
 		scaleVertices, noGroups, primarySecondaryGroups, useReplacementFile, fixKsKaNs, 
@@ -8120,7 +8326,7 @@ void CObjToAn8Dlg::OnBnClickedButton3()
 		scaleDiffuseFactor, scaleAmbientFactor, scaleSpecularFactor, xMove, yMove, zMove, 
 		scaleVerticesFactor, texelSizeU, texelSizeV, scaleUVsFactor, 
 		scaleAmbientFactorAn8Value, scaleDiffuseFactorAn8Value, regexFilterCheck, regexFilter,
-		inputFile, outputFile, replaceFile, fbxExportType, overrideSkeleton, overrideSkeletonFile, true);
+		inputFile, outputFile, replaceFile, fbxExportType, overrideSkeleton, overrideSkeletonFile, true, jointMode, fps);
 }
 
 void CObjToAn8Dlg::ReadMaterialOverridesFile(std::vector<CMaterial*>& replacementMaterialOverrides, CString replaceFile)
@@ -8721,7 +8927,7 @@ FbxDouble3 CObjToAn8Dlg::GetMaterialColor(const FbxSurfaceMaterial * pMaterial,
 
 bool CObjToAn8Dlg::ReadFbxFile(CString inputFile, std::vector<CVerticeColor*>& verticeColors, std::vector<CNormal*>& normals, std::vector<CUVCoordinate*>& uvCoordinates, std::vector<CVertice*>& vertices, std::vector<CGroup*>& groups, std::vector<CMaterialFile*>& materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
 		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors,
-		bool noGroups, bool overrideSkeleton, CString overrideSkeletonFile)
+		bool noGroups, bool overrideSkeleton, CString overrideSkeletonFile, JointType jointType)
 {
 	CString currentFolder = inputFile.Mid(0, ((inputFile.ReverseFind('\\')+1)));
 
@@ -8778,9 +8984,13 @@ bool CObjToAn8Dlg::ReadFbxFile(CString inputFile, std::vector<CVerticeColor*>& v
 		std::string rootName = rootNode->GetName();
 
 		map<CString, float3> skeletalOverrides;
+		map<CString, float3> skeletalOverridesRelativeScale;
+		map<CString, float3> skeletalOverridesRelativeRotation;
+		map<CString, float3> skeletalOverridesRelativePosition;
 
 		if (overrideSkeleton)
 		{
+			JointType jointType = Absolute;
 			FILE* inSkeletonFile = fopen(overrideSkeletonFile, "r");
 			if (inSkeletonFile == NULL)
 			{
@@ -8809,7 +9019,15 @@ bool CObjToAn8Dlg::ReadFbxFile(CString inputFile, std::vector<CVerticeColor*>& v
 					lineString.Format("%s", currentLine);
 
 					lineString = lineString.Trim();
-					if (lineString.Find("#joint ") == 0)
+					if (lineString.Find("#jointmode ") == 0)
+					{
+						CString jointModeRead = lineString.Mid(11).Trim().MakeLower();
+						if (jointModeRead == "relative")
+						{
+							jointType = Relative;							
+						}
+					}
+					else if (lineString.Find("#joint ") == 0)
 					{
 						lastJointName = lineString.Mid(7);
 
@@ -8823,19 +9041,62 @@ bool CObjToAn8Dlg::ReadFbxFile(CString inputFile, std::vector<CVerticeColor*>& v
 					}
 					else if (lineString.Find("#jointposition ") == 0)
 					{
-						if (lastJointName != "")
+						if (jointType == Absolute)
 						{
-							float3 jointPositionOverride(0,0,0);
+							if (lastJointName != "")
+							{
+								float3 jointPositionOverride(0,0,0);
 
-							char* pch = strtok (currentLine," ");
-							pch = strtok (NULL, " ");
-							jointPositionOverride.x = (((atof(pch))));
-							pch = strtok (NULL, " ");
-							jointPositionOverride.y = (((atof(pch))));
-							pch = strtok (NULL, " ");
-							jointPositionOverride.z = (((atof(pch))));
+								char* pch = strtok (currentLine," ");
+								pch = strtok (NULL, " ");
+								jointPositionOverride.x = (((atof(pch))));
+								pch = strtok (NULL, " ");
+								jointPositionOverride.y = (((atof(pch))));
+								pch = strtok (NULL, " ");
+								jointPositionOverride.z = (((atof(pch))));
 
-							skeletalOverrides[lastJointName] = jointPositionOverride;
+								skeletalOverrides[lastJointName] = jointPositionOverride;
+							}
+						}
+					}
+					else if (lineString.Find("#jointsrt ") == 0)
+					{
+						if (jointType == Relative)
+						{
+							if (lastJointName != "")
+							{
+								float3 jointRelativeScaleOverride(0,0,0);
+								float3 jointRelativeRotationOverride(0,0,0);
+								float3 jointRelativePositionOverride(0,0,0);
+
+								char* pch = strtok (currentLine," ");
+								pch = strtok (NULL, " ");
+								jointRelativeScaleOverride.x = (((atof(pch))));
+								pch = strtok (NULL, " ");
+								jointRelativeScaleOverride.y = (((atof(pch))));
+								pch = strtok (NULL, " ");
+								jointRelativeScaleOverride.z = (((atof(pch))));
+
+								skeletalOverridesRelativeScale[lastJointName] = jointRelativeScaleOverride;
+
+								pch = strtok (NULL, " ");
+								jointRelativeRotationOverride.x = (((atof(pch))));
+								pch = strtok (NULL, " ");
+								jointRelativeRotationOverride.y = (((atof(pch))));
+								pch = strtok (NULL, " ");
+								jointRelativeRotationOverride.z = (((atof(pch))));
+
+								skeletalOverridesRelativeRotation[lastJointName] = jointRelativeRotationOverride;
+
+								pch = strtok (NULL, " ");
+								jointRelativePositionOverride.x = (((atof(pch))));
+								pch = strtok (NULL, " ");
+								jointRelativePositionOverride.y = (((atof(pch))));
+								pch = strtok (NULL, " ");
+								jointRelativePositionOverride.z = (((atof(pch))));
+
+								skeletalOverridesRelativePosition[lastJointName] = jointRelativePositionOverride;
+							}
 						}
 					}
 				}
@@ -8844,7 +9105,7 @@ bool CObjToAn8Dlg::ReadFbxFile(CString inputFile, std::vector<CVerticeColor*>& v
 			}
 		}
 
-		ParseFbxSkeletonRecursive(rootNode, joints, float3(0,0,0), NULL, skeletalOverrides);
+		ParseFbxSkeletonRecursive(rootNode, joints, float3(0,0,0), NULL, skeletalOverrides, skeletalOverridesRelativeScale, skeletalOverridesRelativeRotation, skeletalOverridesRelativePosition, jointType);
 
 		CGroup* defaultGroup = new CGroup();
 		defaultGroup->name = "DefaultUnassigned";
@@ -8856,7 +9117,7 @@ bool CObjToAn8Dlg::ReadFbxFile(CString inputFile, std::vector<CVerticeColor*>& v
 		CString errorString = "";
 
 		ParseFbxNodeRecursive(rootNode, currentGroup, inputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
-			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, noGroups, errorString);
+			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, noGroups, errorString, jointType);
 
 		if (errorString != "")
 		{
@@ -9032,13 +9293,22 @@ void CObjToAn8Dlg::WriteFbxSkeleton(std::map<CString, FbxCluster*>& jointCluster
     FbxNode* lSkeletonLimbNode = FbxNode::Create(pScene, joint->name);
     lSkeletonLimbNode->SetNodeAttribute(lSkeletonLimbNodeAttribute);    
 
-	if (joint->parent != NULL)
+	if (joint->jointType == Absolute)
 	{
-		lSkeletonLimbNode->LclTranslation.Set(FbxVector4((joint->positionAbsolute.x - joint->parent->positionAbsolute.x), (joint->positionAbsolute.y - joint->parent->positionAbsolute.y), (joint->positionAbsolute.z - joint->parent->positionAbsolute.z)));
+		if (joint->parent != NULL)
+		{
+			lSkeletonLimbNode->LclTranslation.Set(FbxVector4((joint->positionAbsolute.x - joint->parent->positionAbsolute.x), (joint->positionAbsolute.y - joint->parent->positionAbsolute.y), (joint->positionAbsolute.z - joint->parent->positionAbsolute.z)));
+		}
+		else
+		{
+			lSkeletonLimbNode->LclTranslation.Set(FbxVector4(joint->positionAbsolute.x, joint->positionAbsolute.y, joint->positionAbsolute.z));
+		}
 	}
-	else
+	else if (joint->jointType == Relative)
 	{
-		lSkeletonLimbNode->LclTranslation.Set(FbxVector4(joint->positionAbsolute.x, joint->positionAbsolute.y, joint->positionAbsolute.z));
+		lSkeletonLimbNode->LclScaling.Set(FbxVector4(joint->scaleRelative.x, joint->scaleRelative.y, joint->scaleRelative.z));
+		lSkeletonLimbNode->LclRotation.Set(FbxVector4(joint->rotationRelative.x, joint->rotationRelative.y, joint->rotationRelative.z));
+		lSkeletonLimbNode->LclTranslation.Set(FbxVector4(joint->positionRelative.x, joint->positionRelative.y, joint->positionRelative.z));
 	}
 
 	skeletonNode->AddChild(lSkeletonLimbNode);
@@ -9052,7 +9322,7 @@ void CObjToAn8Dlg::WriteFbxSkeleton(std::map<CString, FbxCluster*>& jointCluster
 }
 
 void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, CString inputPath, bool regexFilterCheck, CString regexFilter, CString fbxExportType)
+		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, CString inputPath, bool regexFilterCheck, CString regexFilter, CString fbxExportType, float fps)
 {
 	FbxManager* pSdkManager = FbxManager::Create();
 
@@ -9077,6 +9347,34 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
     // add the documentInfo
     pScene->SetDocumentInfo(lDocInfo);
 
+	if (fps == 24.0)
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eFrames24);
+	else if (fps == 30.0)
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eFrames30);
+	else if (fps == 48)
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eFrames48);
+	else if (fps == 50.0)
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eFrames50);
+	else if (fps == 59.94)
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eFrames59dot94);
+	else if (fps == 60.0)
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eFrames60);
+	else if (fps == 72.0)
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eFrames72);
+	else if (fps == 96)
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eFrames96);
+	else if (fps == 100.0)
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eFrames100);
+	else if (fps == 120.0)
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eFrames120);
+	else if (fps == 1000.0)
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eFrames1000);
+	else
+	{
+		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eCustom);
+		pScene->GetGlobalSettings().SetCustomFrameRate(fps);
+	}
+			
 	FbxNode* lMainNode = pScene->GetRootNode();
 
 	std::map<CString, FbxCluster*> jointCluster;
@@ -9150,7 +9448,16 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 
 					jointSkeleton[rootJoint->name] = lSkeletonRoot;
 
-					lSkeletonRoot->LclTranslation.Set(FbxVector4(rootJoint->positionAbsolute.x, rootJoint->positionAbsolute.y, rootJoint->positionAbsolute.z));
+					if (rootJoint->jointType == Absolute)
+					{
+						lSkeletonRoot->LclTranslation.Set(FbxVector4(rootJoint->positionAbsolute.x, rootJoint->positionAbsolute.y, rootJoint->positionAbsolute.z));
+					}
+					else if (rootJoint->jointType == Relative)
+					{
+						lSkeletonRoot->LclScaling.Set(FbxVector4(rootJoint->scaleRelative.x, rootJoint->scaleRelative.y, rootJoint->scaleRelative.z));
+						lSkeletonRoot->LclRotation.Set(FbxVector4(rootJoint->rotationRelative.x, rootJoint->rotationRelative.y, rootJoint->rotationRelative.z));
+						lSkeletonRoot->LclTranslation.Set(FbxVector4(rootJoint->positionRelative.x, rootJoint->positionRelative.y, rootJoint->positionRelative.z));
+					}
 				}
 				else
 				{
@@ -9189,7 +9496,16 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 
 					jointSkeleton[rootJoints[x]->name] = lSkeletonRoot;
 
-					lSkeletonRoot->LclTranslation.Set(FbxVector4(rootJoints[x]->positionAbsolute.x, rootJoints[x]->positionAbsolute.y, rootJoints[x]->positionAbsolute.z));
+					if (rootJoint->jointType == Absolute)
+					{
+						lSkeletonRoot->LclTranslation.Set(FbxVector4(rootJoints[x]->positionAbsolute.x, rootJoints[x]->positionAbsolute.y, rootJoints[x]->positionAbsolute.z));
+					}
+					else if (rootJoint->jointType == Relative)
+					{
+						lSkeletonRoot->LclScaling.Set(FbxVector4(rootJoints[x]->scaleRelative.x, rootJoints[x]->scaleRelative.y, rootJoints[x]->scaleRelative.z));
+						lSkeletonRoot->LclRotation.Set(FbxVector4(rootJoints[x]->rotationRelative.x, rootJoints[x]->rotationRelative.y, rootJoints[x]->rotationRelative.z));
+						lSkeletonRoot->LclTranslation.Set(FbxVector4(rootJoints[x]->positionRelative.x, rootJoints[x]->positionRelative.y, rootJoints[x]->positionRelative.z));
+					}
 
 					for (int y = 0; y < rootJoints[x]->children.size(); y++)
 					{
@@ -9451,13 +9767,13 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 				CPolygonPoint* polygonPoint = (CPolygonPoint*)*iterpolygonpoint;
 
 				CVertice* vertice = NULL;
-				if (polygonPoint->verticeIndex != -1)
+				if ((polygonPoint->verticeIndex != -1) && (polygonPoint->verticeIndex < vertices.size()))
 					vertice = vertices[polygonPoint->verticeIndex];
 				CUVCoordinate* uv = NULL;
-				if (polygonPoint->uvIndex != -1)
+				if ((polygonPoint->uvIndex != -1) && (polygonPoint->uvIndex < uvCoordinates.size()))
 					uv = uvCoordinates[polygonPoint->uvIndex];
 				CNormal* normal = NULL;
-				if (polygonPoint->normalIndex != -1)
+				if ((polygonPoint->normalIndex != -1) && (polygonPoint->normalIndex < normals.size()))
 					normal = normals[polygonPoint->normalIndex];
 				CVerticeColor* verticeColor = NULL;
 				if (polygonPoint->verticeColorIndex != -1)
@@ -9539,8 +9855,14 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 						{
 							cluster->AddControlPointIndex(subVerticeCounter, 1.0f);
 
-							lControlPoints[subVerticeCounter] = FbxVector4(vertice->vertex.x - joints[x]->positionAbsolute.x, vertice->vertex.y - joints[x]->positionAbsolute.y, vertice->vertex.z - joints[x]->positionAbsolute.z);
-
+							if (joints[x]->jointType == Absolute)
+							{
+								lControlPoints[subVerticeCounter] = FbxVector4(vertice->vertex.x - joints[x]->positionAbsolute.x, vertice->vertex.y - joints[x]->positionAbsolute.y, vertice->vertex.z - joints[x]->positionAbsolute.z);
+							}
+							else if (joints[x]->jointType == Relative)
+							{
+								lControlPoints[subVerticeCounter] = FbxVector4(vertice->vertex.x, vertice->vertex.y, vertice->vertex.z);
+							}
 							found++;
 							break;
 						}
@@ -9695,7 +10017,7 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 				CString formatIndexStr;
 				if (foundTextureUV)
 				{
-					if (polygonPoint->uvIndex != -1)
+					if ((polygonPoint->uvIndex != -1) && (polygonPoint->uvIndex < uvCoordinates.size()))
 					{
 						CUVCoordinate* uv = ((CUVCoordinate*)uvCoordinates[polygonPoint->uvIndex]);
 
@@ -9734,7 +10056,7 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 
 				if (foundNormals)
 				{
-					if (polygonPoint->normalIndex != -1)
+					if ((polygonPoint->normalIndex != -1) && (polygonPoint->normalIndex < normals.size()))
 					{
 						CNormal* normal = ((CNormal*)normals[polygonPoint->normalIndex]);
 
@@ -9771,7 +10093,7 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 					lElementNormal->GetIndexArray().SetAt(pointNum, -1);
 				}
 
-				if (polygonPoint->verticeColorIndex != -1)
+				if ((polygonPoint->verticeColorIndex != -1) && (polygonPoint->verticeColorIndex < verticeColors.size()))
 				{
 					CVerticeColor* verticeColor = ((CVerticeColor*)verticeColors[polygonPoint->verticeColorIndex]);
 					if (verticeColor->contains)
@@ -11253,6 +11575,22 @@ void CObjToAn8Dlg::GetNumberKeyframesFbxAnimationRecursive(FbxAnimLayer* pAnimLa
     }
 }
 
+std::vector<int> CObjToAn8Dlg::GetKeyframeIndexes(FbxAnimCurve* lAnimCurve)
+{
+	int lKeyCount = lAnimCurve->KeyGetCount();
+
+	std::vector<int> keyIndexes;
+	for(int lCount = 0; lCount < lKeyCount; lCount++)
+	{
+		float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+		FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+		int frameIndex = lKeyTime.GetFrameCount();
+		keyIndexes.push_back(frameIndex);
+	}
+
+	return keyIndexes;
+}
+
 void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pNode, std::vector<CJoint*>& joints, CAnimation* animation, int numberKeyframes)
 {
 	if (pNode == NULL)
@@ -11285,12 +11623,17 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 					lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
 					if (lAnimCurve)
 					{
+						std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 						for (int lCount = 0; lCount < numberKeyframes; lCount++)
 						{
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
 							keyframe->translation.x = lAnimCurve->Evaluate(fbxTime);
+
+							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+								keyframe->translationIsInterpolated[0] = true;
 						}
 
 						/*CKeyframe defaultKeyframe;
@@ -11334,6 +11677,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 										sliceKeyframe->translation.x = previousKeyframe->translation.x + (deltaSlice * (y + 1));
+										sliceKeyframe->translationIsInterpolated[0] = true;
 									}
 
 									keyframe->translation.x = lKeyValue;
@@ -11354,12 +11698,17 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 					lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
 					if (lAnimCurve)
 					{
+						std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 						for (int lCount = 0; lCount < numberKeyframes; lCount++)
 						{
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
 							keyframe->translation.y = lAnimCurve->Evaluate(fbxTime);
+
+							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+								keyframe->translationIsInterpolated[1] = true;
 						}
 
 						/*CKeyframe defaultKeyframe;
@@ -11403,6 +11752,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 										sliceKeyframe->translation.y = previousKeyframe->translation.y + (deltaSlice * (y + 1));
+										sliceKeyframe->translationIsInterpolated[1] = true;
 									}
 
 									keyframe->translation.y = lKeyValue;
@@ -11423,12 +11773,17 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 					lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 					if (lAnimCurve)
 					{
+						std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 						for (int lCount = 0; lCount < numberKeyframes; lCount++)
 						{
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
 							keyframe->translation.z = lAnimCurve->Evaluate(fbxTime);
+
+							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+								keyframe->translationIsInterpolated[2] = true;
 						}
 
 						/*CKeyframe defaultKeyframe;
@@ -11472,6 +11827,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 										sliceKeyframe->translation.z = previousKeyframe->translation.z + (deltaSlice * (y + 1));
+										sliceKeyframe->translationIsInterpolated[2] = true;
 									}
 
 									keyframe->translation.z = lKeyValue;
@@ -11493,6 +11849,8 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 					lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
 					if (lAnimCurve)
 					{
+						std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 						for (int lCount = 0; lCount < numberKeyframes; lCount++)
 						{
 							FbxTime fbxTime;
@@ -11504,6 +11862,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 								keyframe->rotation.x -= 360.0f;
 							while (keyframe->rotation.x < 0.0f)
 								keyframe->rotation.x += 360.0f;
+
+							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+								keyframe->rotationIsInterpolated[0] = true;
 						}
 
 						/*CKeyframe defaultKeyframe;
@@ -11569,6 +11930,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 										sliceKeyframe->rotation.x = previousKeyframe->rotation.x + (deltaSlice * (y + 1));
+										sliceKeyframe->rotationIsInterpolated[0] = true;
 									}
 
 									if (Sign(span) != Sign(lKeyValue))
@@ -11592,6 +11954,8 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 					lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
 					if (lAnimCurve)
 					{
+						std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 						for (int lCount = 0; lCount < numberKeyframes; lCount++)
 						{
 							FbxTime fbxTime;
@@ -11603,6 +11967,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 								keyframe->rotation.y -= 360.0f;
 							while (keyframe->rotation.y < 0.0f)
 								keyframe->rotation.y += 360.0f;
+
+							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+								keyframe->rotationIsInterpolated[1] = true;
 						}
 						/*CKeyframe defaultKeyframe;
 						defaultKeyframe.rotation.y = pNode->LclRotation.Get().mData[1];
@@ -11667,6 +12034,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 										sliceKeyframe->rotation.y = previousKeyframe->rotation.y + (deltaSlice * (y + 1));
+										sliceKeyframe->rotationIsInterpolated[1] = true;
 									}
 
 									if (Sign(span) != Sign(lKeyValue))
@@ -11687,9 +12055,12 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							sliceKeyframe->rotation.y = previousKeyframe->rotation.y;
 						}*/
 					}
-					lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+					lAnimCurve = pNode->LclRotation.
+						GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 					if (lAnimCurve)
 					{
+						std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 						for (int lCount = 0; lCount < numberKeyframes; lCount++)
 						{
 							FbxTime fbxTime;
@@ -11701,6 +12072,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 								keyframe->rotation.z -= 360.0f;
 							while (keyframe->rotation.z < 0.0f)
 								keyframe->rotation.z += 360.0f;
+
+							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+								keyframe->rotationIsInterpolated[2] = true;
 						}
 
 						/*CKeyframe defaultKeyframe;
@@ -11766,6 +12140,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 										sliceKeyframe->rotation.z = previousKeyframe->rotation.z + (deltaSlice * (y + 1));
+										sliceKeyframe->rotationIsInterpolated[2] = true;
 									}
 
 									if (Sign(span) != Sign(lKeyValue))
@@ -11790,12 +12165,17 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 					lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
 					if (lAnimCurve)
 					{
+						std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 						for (int lCount = 0; lCount < numberKeyframes; lCount++)
 						{
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
 							keyframe->scale.x = lAnimCurve->Evaluate(fbxTime);
+
+							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+								keyframe->scaleIsInterpolated[0] = true;
 						}
 
 						/*CKeyframe defaultKeyframe;
@@ -11839,6 +12219,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 										sliceKeyframe->scale.x = previousKeyframe->scale.x + (deltaSlice * (y + 1));
+										sliceKeyframe->scaleIsInterpolated[0] = true;
 									}
 
 									keyframe->scale.x = lKeyValue;
@@ -11859,12 +12240,17 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 					lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
 					if (lAnimCurve)
 					{
+						std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 						for (int lCount = 0; lCount < numberKeyframes; lCount++)
 						{
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
 							keyframe->scale.y = lAnimCurve->Evaluate(fbxTime);
+
+							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+								keyframe->scaleIsInterpolated[1] = true;
 						}
 
 						/*CKeyframe defaultKeyframe;
@@ -11908,6 +12294,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 										sliceKeyframe->scale.y = previousKeyframe->scale.y + (deltaSlice * (y + 1));
+										sliceKeyframe->scaleIsInterpolated[1] = true;
 									}
 
 									keyframe->scale.y = lKeyValue;
@@ -11928,12 +12315,17 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 					lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 					if (lAnimCurve)
 					{
+						std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 						for (int lCount = 0; lCount < numberKeyframes; lCount++)
 						{
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
 							keyframe->scale.z = lAnimCurve->Evaluate(fbxTime);
+
+							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+								keyframe->scaleIsInterpolated[2] = true;
 						}
 
 						/*CKeyframe defaultKeyframe;
@@ -11977,6 +12369,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 										sliceKeyframe->scale.z = previousKeyframe->scale.z + (deltaSlice * (y + 1));
+										sliceKeyframe->scaleIsInterpolated[2] = true;
 									}
 
 									keyframe->scale.z = lKeyValue;
@@ -12097,6 +12490,8 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
 							if (lAnimCurve)
 							{
+								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 								for (int lCount = 0; lCount < numberKeyframes; lCount++)
 								{
 									FbxTime fbxTime;
@@ -12109,6 +12504,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									if (joints[x]->parent != NULL)
 										deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.x);
 									animationPart->translation.x = animationPart->translation.x - deltaPartPos;
+
+									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+										animationPart->translationIsInterpolated[0] = true;
 								}
 								/*CAnimationPart defaultAnimationPart;
 								defaultAnimationPart.translation.x = pNode->LclTranslation.Get().mData[0];
@@ -12159,6 +12557,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
 												sliceAnimationPart->translation.x = previousAnimationPart->translation.x + (deltaSlice * (y + 1));
+												sliceAnimationPart->translationIsInterpolated[0] = true;
 											}
 
 											animationPart->translation.x = lKeyValue;
@@ -12180,6 +12579,8 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
 							if (lAnimCurve)
 							{
+								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 								for (int lCount = 0; lCount < numberKeyframes; lCount++)
 								{
 									FbxTime fbxTime;
@@ -12192,6 +12593,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									if (joints[x]->parent != NULL)
 										deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.y);
 									animationPart->translation.y = animationPart->translation.y - deltaPartPos;
+
+									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+										animationPart->translationIsInterpolated[1] = true;
 								}
 								/*CAnimationPart defaultAnimationPart;
 								defaultAnimationPart.translation.y = pNode->LclTranslation.Get().mData[1];
@@ -12242,6 +12646,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
 												sliceAnimationPart->translation.y = previousAnimationPart->translation.y + (deltaSlice * (y + 1));
+												sliceAnimationPart->translationIsInterpolated[1] = true;
 											}
 
 											animationPart->translation.y = lKeyValue;
@@ -12263,6 +12668,8 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 							if (lAnimCurve)
 							{
+								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 								for (int lCount = 0; lCount < numberKeyframes; lCount++)
 								{
 									FbxTime fbxTime;
@@ -12275,6 +12682,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									if (joints[x]->parent != NULL)
 										deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.z);
 									animationPart->translation.z = animationPart->translation.z - deltaPartPos;
+
+									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+										animationPart->translationIsInterpolated[2] = true;
 								}
 								/*CAnimationPart defaultAnimationPart;
 								defaultAnimationPart.translation.z = pNode->LclTranslation.Get().mData[2];
@@ -12325,6 +12735,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
 												sliceAnimationPart->translation.z = previousAnimationPart->translation.z + (deltaSlice * (y + 1));
+												sliceAnimationPart->translationIsInterpolated[2] = true;
 											}
 
 											animationPart->translation.z = lKeyValue;
@@ -12347,6 +12758,8 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
 							if (lAnimCurve)
 							{
+								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 								for (int lCount = 0; lCount < numberKeyframes; lCount++)
 								{
 									FbxTime fbxTime;
@@ -12359,6 +12772,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										animationPart->rotation.x -= 360.0f;
 									while (animationPart->rotation.x < 0.0f)
 										animationPart->rotation.x += 360.0f;
+
+									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+										animationPart->rotationIsInterpolated[0] = true;
 								}
 								/*CAnimationPart defaultPart;
 								defaultPart.rotation.x = pNode->LclRotation.Get().mData[0];
@@ -12426,6 +12842,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
 												sliceAnimationPart->rotation.x = previousAnimationPart->rotation.x + (deltaSlice * (y + 1));
+												sliceAnimationPart->rotationIsInterpolated[0] = true;
 											}
 
 											if (Sign(span) != Sign(lKeyValue))
@@ -12450,6 +12867,8 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
 							if (lAnimCurve)
 							{
+								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 								for (int lCount = 0; lCount < numberKeyframes; lCount++)
 								{
 									FbxTime fbxTime;
@@ -12462,6 +12881,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										animationPart->rotation.y -= 360.0f;
 									while (animationPart->rotation.y < 0.0f)
 										animationPart->rotation.y += 360.0f;
+
+									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+										animationPart->rotationIsInterpolated[1] = true;
 								}
 
 								/*CAnimationPart defaultPart;
@@ -12530,6 +12952,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
 												sliceAnimationPart->rotation.y = previousAnimationPart->rotation.y + (deltaSlice * (y + 1));
+												sliceAnimationPart->rotationIsInterpolated[1] = true;
 											}
 
 											if (Sign(span) != Sign(lKeyValue))
@@ -12554,6 +12977,8 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 							if (lAnimCurve)
 							{
+								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 								for (int lCount = 0; lCount < numberKeyframes; lCount++)
 								{
 									FbxTime fbxTime;
@@ -12566,6 +12991,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 										animationPart->rotation.z -= 360.0f;
 									while (animationPart->rotation.z < 0.0f)
 										animationPart->rotation.z += 360.0f;
+
+									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+										animationPart->rotationIsInterpolated[2] = true;
 								}
 								/*CAnimationPart defaultPart;
 								defaultPart.rotation.z = pNode->LclRotation.Get().mData[2];
@@ -12633,6 +13061,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
 												sliceAnimationPart->rotation.z = previousAnimationPart->rotation.z + (deltaSlice * (y + 1));
+												sliceAnimationPart->rotationIsInterpolated[2] = true;
 											}
 
 											if (Sign(span) != Sign(lKeyValue))
@@ -12658,6 +13087,8 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
 							if (lAnimCurve)
 							{
+								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 								for (int lCount = 0; lCount < numberKeyframes; lCount++)
 								{
 									FbxTime fbxTime;
@@ -12665,6 +13096,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
 									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 									animationPart->scale.x = lAnimCurve->Evaluate(fbxTime);
+
+									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+										animationPart->scaleIsInterpolated[0] = true;
 								}
 								/*CAnimationPart defaultAnimationPart;
 								defaultAnimationPart.scale.x = pNode->LclScaling.Get().mData[0];
@@ -12710,6 +13144,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
 												sliceAnimationPart->scale.x = previousAnimationPart->scale.x + (deltaSlice * (y + 1));
+												sliceAnimationPart->scaleIsInterpolated[0] = true;
 											}
 
 											animationPart->scale.x = lKeyValue;
@@ -12731,6 +13166,8 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
 							if (lAnimCurve)
 							{
+								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 								for (int lCount = 0; lCount < numberKeyframes; lCount++)
 								{
 									FbxTime fbxTime;
@@ -12738,6 +13175,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
 									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 									animationPart->scale.y = lAnimCurve->Evaluate(fbxTime);
+
+									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+										animationPart->scaleIsInterpolated[1] = true;
 								}
 								/*CAnimationPart defaultAnimationPart;
 								defaultAnimationPart.scale.y = pNode->LclScaling.Get().mData[1];
@@ -12783,6 +13223,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
 												sliceAnimationPart->scale.y = previousAnimationPart->scale.y + (deltaSlice * (y + 1));
+												sliceAnimationPart->scaleIsInterpolated[1] = true;
 											}
 
 											animationPart->scale.y = lKeyValue;
@@ -12804,6 +13245,8 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 							if (lAnimCurve)
 							{
+								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
 								for (int lCount = 0; lCount < numberKeyframes; lCount++)
 								{
 									FbxTime fbxTime;
@@ -12811,6 +13254,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
 									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 									animationPart->scale.z = lAnimCurve->Evaluate(fbxTime);
+
+									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+										animationPart->scaleIsInterpolated[2] = true;
 								}
 								/*CAnimationPart defaultAnimationPart;
 								defaultAnimationPart.scale.z = pNode->LclScaling.Get().mData[2];
@@ -12856,6 +13302,7 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
 												sliceAnimationPart->scale.z = previousAnimationPart->scale.z + (deltaSlice * (y + 1));
+												sliceAnimationPart->scaleIsInterpolated[2] = true;
 											}
 
 											animationPart->scale.z = lKeyValue;
@@ -12981,6 +13428,7 @@ void CObjToAn8Dlg::ParseFbxCameraRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pN
 									CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 									sliceKeyframe->translation.x = previousKeyframe->translation.x + (deltaSlice * (y + 1));
+									sliceKeyframe->translationIsInterpolated[0] = true;
 								}
 
 								keyframe->translation.x = lKeyValue;
@@ -13051,6 +13499,7 @@ void CObjToAn8Dlg::ParseFbxCameraRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pN
 									CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 									sliceKeyframe->translation.y = previousKeyframe->translation.y + (deltaSlice * (y + 1));
+									sliceKeyframe->translationIsInterpolated[1] = true;
 								}
 
 								keyframe->translation.y = lKeyValue;
@@ -13120,6 +13569,7 @@ void CObjToAn8Dlg::ParseFbxCameraRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pN
 									CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 									sliceKeyframe->translation.z = previousKeyframe->translation.z + (deltaSlice * (y + 1));
+									sliceKeyframe->translationIsInterpolated[2] = true;
 								}
 
 								keyframe->translation.z = lKeyValue;
@@ -13217,6 +13667,7 @@ void CObjToAn8Dlg::ParseFbxCameraRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pN
 									CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 									sliceKeyframe->rotation.x = previousKeyframe->rotation.x + (deltaSlice * (y + 1));
+									sliceKeyframe->rotationIsInterpolated[0] = true;
 								}
 
 								if (Sign(span) != Sign(lKeyValue))
@@ -13315,6 +13766,7 @@ void CObjToAn8Dlg::ParseFbxCameraRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pN
 									CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 									sliceKeyframe->rotation.y = previousKeyframe->rotation.y + (deltaSlice * (y + 1));
+									sliceKeyframe->rotationIsInterpolated[1] = true;
 								}
 
 								if (Sign(span) != Sign(lKeyValue))
@@ -13414,6 +13866,7 @@ void CObjToAn8Dlg::ParseFbxCameraRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pN
 									CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 									sliceKeyframe->rotation.z = previousKeyframe->rotation.z + (deltaSlice * (y + 1));
+									sliceKeyframe->rotationIsInterpolated[2] = true;
 								}
 
 								if (Sign(span) != Sign(lKeyValue))
@@ -13487,6 +13940,7 @@ void CObjToAn8Dlg::ParseFbxCameraRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pN
 									CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 									sliceKeyframe->scale.x = previousKeyframe->scale.x + (deltaSlice * (y + 1));
+									sliceKeyframe->scaleIsInterpolated[0] = true;
 								}
 
 								keyframe->scale.x = lKeyValue;
@@ -13556,6 +14010,7 @@ void CObjToAn8Dlg::ParseFbxCameraRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pN
 									CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 									sliceKeyframe->scale.y = previousKeyframe->scale.y + (deltaSlice * (y + 1));
+									sliceKeyframe->scaleIsInterpolated[1] = true;
 								}
 
 								keyframe->scale.y = lKeyValue;
@@ -13625,6 +14080,7 @@ void CObjToAn8Dlg::ParseFbxCameraRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pN
 									CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
 
 									sliceKeyframe->scale.z = previousKeyframe->scale.z + (deltaSlice * (y + 1));
+									sliceKeyframe->scaleIsInterpolated[2] = true;
 								}
 
 								keyframe->scale.z = lKeyValue;
@@ -13950,11 +14406,13 @@ void CObjToAn8Dlg::ParseFbxBlendShapeRecursive(FbxAnimLayer* pAnimLayer, FbxNode
     }
 }
 
-void CObjToAn8Dlg::ParseFbxSkeletonRecursive(FbxNode* pNode, std::vector<CJoint*>& joints, float3 position, CJoint* parent, map<CString, float3> skeletalOverrides)
+void CObjToAn8Dlg::ParseFbxSkeletonRecursive(FbxNode* pNode, std::vector<CJoint*>& joints, float3 position, CJoint* parent, map<CString, float3> skeletalOverrides, map<CString, float3> skeletalOverridesRelativeScale, map<CString, float3> skeletalOverridesRelativeRotation, map<CString, float3> skeletalOverridesRelativePosition, JointType jointType)
 {
 	if (pNode == NULL)
 		return;
 
+	FbxVector4 lclScaling = pNode->LclScaling.Get();
+	FbxVector4 lclRotation = pNode->LclRotation.Get();
 	FbxVector4 lclTranslation = pNode->LclTranslation.Get();
 
 	CString nodeName = pNode->GetName();
@@ -13989,25 +14447,61 @@ void CObjToAn8Dlg::ParseFbxSkeletonRecursive(FbxNode* pNode, std::vector<CJoint*
 							CJoint* joint = new CJoint();
 							joint->name = nodeName;
 
-							if (skeletalOverrides.find(nodeName) == skeletalOverrides.end())
+							if (jointType == Absolute)
 							{
-								position.x += lclTranslation[0];
-								position.y += lclTranslation[1];
-								position.z += lclTranslation[2];
-								
-								joint->positionAbsolute.x = position.x;
-								joint->positionAbsolute.y = position.y;
-								joint->positionAbsolute.z = position.z;
+								joint->jointType = Absolute;
+								if (skeletalOverrides.find(nodeName) == skeletalOverrides.end())
+								{
+									position.x += lclTranslation[0];
+									position.y += lclTranslation[1];
+									position.z += lclTranslation[2];
+									
+									joint->positionAbsolute.x = position.x;
+									joint->positionAbsolute.y = position.y;
+									joint->positionAbsolute.z = position.z;
+								}
+								else
+								{
+									position.x = skeletalOverrides[nodeName].x;
+									position.y = skeletalOverrides[nodeName].y;
+									position.z = skeletalOverrides[nodeName].z;
+									
+									joint->positionAbsolute.x = position.x;
+									joint->positionAbsolute.y = position.y;
+									joint->positionAbsolute.z = position.z;
+								}
 							}
-							else
+							else if (jointType == Relative)
 							{
-								position.x = skeletalOverrides[nodeName].x;
-								position.y = skeletalOverrides[nodeName].y;
-								position.z = skeletalOverrides[nodeName].z;
-								
-								joint->positionAbsolute.x = position.x;
-								joint->positionAbsolute.y = position.y;
-								joint->positionAbsolute.z = position.z;
+								joint->jointType = Relative;
+								if (skeletalOverridesRelativeScale.find(nodeName) == skeletalOverridesRelativeScale.end())
+								{
+									joint->scaleRelative.x = lclScaling[0];
+									joint->scaleRelative.y = lclScaling[1];
+									joint->scaleRelative.z = lclScaling[2];
+
+									joint->rotationRelative.x = lclRotation[0];
+									joint->rotationRelative.y = lclRotation[1];
+									joint->rotationRelative.z = lclRotation[2];
+
+									joint->positionRelative.x = lclTranslation[0];
+									joint->positionRelative.y = lclTranslation[1];
+									joint->positionRelative.z = lclTranslation[2];
+								}
+								else
+								{
+									joint->scaleRelative.x = skeletalOverridesRelativeScale[nodeName].x;
+									joint->scaleRelative.y = skeletalOverridesRelativeScale[nodeName].y;
+									joint->scaleRelative.z = skeletalOverridesRelativeScale[nodeName].z;
+
+									joint->rotationRelative.x = skeletalOverridesRelativeRotation[nodeName].x;
+									joint->rotationRelative.y = skeletalOverridesRelativeRotation[nodeName].y;
+									joint->rotationRelative.z = skeletalOverridesRelativeRotation[nodeName].z;
+
+									joint->positionRelative.x = skeletalOverridesRelativePosition[nodeName].x;
+									joint->positionRelative.y = skeletalOverridesRelativePosition[nodeName].y;
+									joint->positionRelative.z = skeletalOverridesRelativePosition[nodeName].z;
+								}
 							}
 
 							joint->parent = parent;
@@ -14046,12 +14540,12 @@ void CObjToAn8Dlg::ParseFbxSkeletonRecursive(FbxNode* pNode, std::vector<CJoint*
 	for(int i = 0; i < pNode->GetChildCount(); i++)
     {
         // recursively call this
-		ParseFbxSkeletonRecursive(pNode->GetChild(i), joints, position, parent, skeletalOverrides);
+		ParseFbxSkeletonRecursive(pNode->GetChild(i), joints, position, parent, skeletalOverrides, skeletalOverridesRelativeScale, skeletalOverridesRelativeRotation, skeletalOverridesRelativePosition, jointType);
     }
 }
 
 void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, CString inputFile, std::vector<CVerticeColor*>& verticeColors, std::vector<CNormal*>& normals, std::vector<CUVCoordinate*>& uvCoordinates, std::vector<CVertice*>& vertices, std::vector<CGroup*>& groups, std::vector<CMaterialFile*>& materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-										 bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool noGroups, CString& errorString)
+										 bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool noGroups, CString& errorString, JointType jointType)
 {
 	if (pNode == NULL)
 		return;
@@ -14608,7 +15102,7 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
     {
         // recursively call this
 		ParseFbxNodeRecursive(pNode->GetChild(i), currentGroup, inputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
-			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, noGroups, errorString);
+			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, noGroups, errorString, jointType);
     }
 }
 #endif

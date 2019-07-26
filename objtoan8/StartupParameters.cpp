@@ -61,6 +61,10 @@ CStartupParameters::CStartupParameters(void)
 
 	overrideSkeleton = false;
 	overrideSkeletonFile = "";
+
+	jointMode = "absolute";
+
+	fps = 30.0;
 }
 
 CStartupParameters::~CStartupParameters(void)

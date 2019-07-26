@@ -65,4 +65,8 @@ public:
 	bool autoExit;
 
 	bool doMessageBoxes;
+	CString jointMode;
+	float fps;
+
+	bool noValueEveryKeyframe;
 };

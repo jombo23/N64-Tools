@@ -5,6 +5,7 @@
 
 using namespace math;
 
+enum JointType { Absolute, Relative };
 
 class CJoint
 {
@@ -22,5 +23,10 @@ public:
 	float3 orientationVectorY;
 	float3 orientationVectorZ;
 
+	float3 scaleRelative;
+	float3 rotationRelative;
+	float3 positionRelative;
+
 	std::vector<int> controlPoints;
+	JointType jointType;
 };
