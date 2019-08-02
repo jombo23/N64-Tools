@@ -9998,7 +9998,7 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 				for (iterVertice = subVerticeList.begin(); iterVertice != subVerticeList.end(); iterVertice++)
 				{
 					CVertice* verticeTest = (CVertice*)(*iterVertice);
-					if (
+					/*if (
 						(vertice->vertex.x == verticeTest->vertex.x)
 						&&
 						(vertice->vertex.y == verticeTest->vertex.y)
@@ -10007,7 +10007,9 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 						)
 					{
 						break;
-					}
+					}*/
+					if (vertice == verticeTest)
+						break;
 					foundPoint++;
 				}
 
@@ -10026,10 +10028,11 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 						for (iterUV = subUVList.begin(); iterUV != subUVList.end(); iterUV++)
 						{
 							CUVCoordinate* uvTest = (CUVCoordinate*)(*iterUV);
-							if (
+							/*if (
 								(uv->u == uvTest->u)
 								&&
-								(uv->v == uvTest->v))
+								(uv->v == uvTest->v))*/
+							if (uvTest == uv)
 							{
 								break;
 							}
@@ -10065,13 +10068,14 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 						for (iterNormal = subNormalList.begin(); iterNormal != subNormalList.end(); iterNormal++)
 						{
 							CNormal* normalTest = (CNormal*)(*iterNormal);
-							if (
+							/*if (
 								(normal->nx == normalTest->nx)
 								&&
 								(normal->ny == normalTest->ny)
 								&&
 								(normal->nz == normalTest->nz)
-								)
+								)*/
+							if (normal == normalTest)
 							{
 								break;
 							}
@@ -10104,13 +10108,14 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 						for (iterVertColor = subVertexColorList.begin(); iterVertColor != subVertexColorList.end(); iterVertColor++)
 						{
 							CVerticeColor* vertColorTest = (CVerticeColor*)(*iterVertColor);
-							if (
+							/*if (
 								(verticeColor->color.r == vertColorTest->color.r)
 								&&
 								(verticeColor->color.g == vertColorTest->color.g)
 								&&
 								(verticeColor->color.b == vertColorTest->color.b)
-								)
+								)*/
+							if (vertColorTest == verticeColor)
 							{
 								break;
 							}
