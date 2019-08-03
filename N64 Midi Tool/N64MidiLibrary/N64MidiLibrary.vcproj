@@ -161,6 +161,14 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\AidynDecoder.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AidynToDCMConvertor.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ASMICDecoder.cpp"
 				>
 			</File>
@@ -210,6 +218,10 @@
 			</File>
 			<File
 				RelativePath=".\NintendoEncoder.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\QuakeDecoder.cpp"
 				>
 			</File>
 			<File
@@ -279,6 +291,14 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\AidynDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\AidynToDCMConvertor.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ASMICDecoder.h"
 				>
 			</File>
@@ -332,6 +352,10 @@
 			</File>
 			<File
 				RelativePath=".\NintendoEncoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\QuakeDecoder.h"
 				>
 			</File>
 			<File

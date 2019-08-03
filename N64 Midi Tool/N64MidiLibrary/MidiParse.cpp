@@ -22,6 +22,9 @@
 #include "ASMICDecoder.h"
 #include "NaganoDecoder.h"
 #include "yaz0.h"
+#include "AidynDecoder.h"
+#include "AidynToDCMConvertor.h"
+#include "QuakeDecoder.h"
 
 #include <algorithm>
 #include <map>
@@ -15891,6 +15894,29 @@ void CMidiParse::ExportToBin(CString gameName, unsigned char* buffer, unsigned l
 
 			delete [] outputDecompressed;
 		}
+		else if (gameName.CompareNoCase("Quake2Sng") == 0)
+		{
+			int fileSizeCompressed = -1;
+			CQuakeDecoder decode;
+			unsigned char* outputDecompressed = new unsigned char[0x50000];
+
+			int decompressedSize = decode.aridecode(&buffer[address], 0x50000, outputDecompressed, decompressedSize);
+			
+
+			FILE* outFile = fopen(fileName, "wb");
+			if (outFile == NULL)
+			{
+				MessageBox(NULL, "Cannot Write File", "Error", NULL);
+				return;
+			}
+			for (int x = 0; x < decompressedSize; x++)
+			{
+				fwrite(&outputDecompressed[x], 1, 1, outFile);
+			}
+			fclose(outFile);
+
+			delete [] outputDecompressed;
+		}
 		else if (gameName.CompareNoCase("TazSng") == 0)
 		{
 			CString inTempFileName;
@@ -16400,17 +16426,9 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			expectedSize = decode.dec(&gamebuffer[address], expectedSize, outputDecompressed, fileSizeCompressed, true, false);
 			
 
-			FILE* outFile = fopen(fileName, "wb");
-			if (outFile == NULL)
-			{
-				MessageBox(NULL, "Cannot Write File", "Error", NULL);
-				return;
-			}
-			for (int x = 0; x < expectedSize; x++)
-			{
-				fwrite(&outputDecompressed[x], 1, 1, outFile);
-			}
-			fclose(outFile);
+			SngToMidi(outputDecompressed, expectedSize, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra);
+			if (generateDebugTextFile)
+				SngToDebugTextFile(gameName, address, outputDecompressed, expectedSize, fileName + " TrackParseDebug.txt", extra);
 
 			delete [] outputDecompressed;
 		}
@@ -16431,17 +16449,30 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			expectedSize = decode.dec(&gamebuffer[address], expectedSize, outputDecompressed, fileSizeCompressed, true, true);
 			
 
-			FILE* outFile = fopen(fileName, "wb");
-			if (outFile == NULL)
-			{
-				MessageBox(NULL, "Cannot Write File", "Error", NULL);
-				return;
-			}
-			for (int x = 0; x < expectedSize; x++)
-			{
-				fwrite(&outputDecompressed[x], 1, 1, outFile);
-			}
-			fclose(outFile);
+			SngToMidi(outputDecompressed, expectedSize, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra);
+			if (generateDebugTextFile)
+				SngToDebugTextFile(gameName, address, outputDecompressed, expectedSize, fileName + " TrackParseDebug.txt", extra);
+
+
+			delete [] outputDecompressed;
+		}
+		else
+		{
+
+		}
+	}
+	else if (gameType.CompareNoCase("Quake2Sng") == 0)
+	{
+		if (compressed)
+		{
+			CQuakeDecoder decode;
+			unsigned char* outputDecompressed = new unsigned char[0x50000];
+
+			int decompressedSize = decode.aridecode(&gamebuffer[address], 0x50000, outputDecompressed, decompressedSize);
+
+			SngToMidi(outputDecompressed, decompressedSize, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra);
+			if (generateDebugTextFile)
+				SngToDebugTextFile(gameName, address, outputDecompressed, decompressedSize, fileName + " TrackParseDebug.txt", extra);
 
 			delete [] outputDecompressed;
 		}
@@ -17412,7 +17443,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 				return;
 			}
 
-			CH20Decoder h20dec;
+			CH20DecoderMidiTool h20dec;
 			int compressedSize = -1;
 			unsigned char* outputDecompressed = new unsigned char[0x50000];
 			unsigned char* cleanDecompressed = new unsigned char[0x50000];
@@ -17529,6 +17560,39 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 		{
 
 		}
+	}
+	else if (gameType.CompareNoCase("Aidyn") == 0)
+	{
+		FILE* outFile = fopen(fileName, "wb");
+		if (outFile == NULL)
+		{
+			MessageBox(NULL, "Cannot Write File", "Error", NULL);
+			return;
+		}
+
+		int decompressedSize = -1;
+		int fileTable = size;
+		int fileID = address;
+		int fileTableData = extra;
+		unsigned char* tempInput = CAidynDecoder::DecompressAidynFile(gamebuffer, fileTable, fileTableData, fileID, decompressedSize);
+
+		if (tempInput != NULL)
+		{
+			std::map<int, fileData> smp;
+			unsigned char* outputDecompressed = new unsigned char[0x100000];
+			int dcmSize = -1;
+			CAidynToDCMConvertor::convert(tempInput, gamebuffer, fileTable, fileTableData, smp, "", outputDecompressed, dcmSize);
+			fwrite(outputDecompressed, 1, dcmSize, outFile);
+
+			if (outputDecompressed)
+			{
+				delete [] outputDecompressed;
+				outputDecompressed = NULL;
+			}
+			delete [] tempInput;
+		}
+
+		fclose(outFile);
 	}
 	else if (gameType.CompareNoCase("LZSamplesDCM") == 0)
 	{

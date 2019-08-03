@@ -1,27 +1,38 @@
 #include "StdAfx.h"
 #include "H20Decoder.h"
 
-CH20Decoder::CH20Decoder(void)
+CH20DecoderMidiTool::CH20DecoderMidiTool(void)
 {
 }
 
-CH20Decoder::~CH20Decoder(void)
+CH20DecoderMidiTool::~CH20DecoderMidiTool(void)
 {
 }
 
-int CH20Decoder::decPolaris(unsigned char* inputBuffer, int compressedSize, unsigned char* output)
+int CH20DecoderMidiTool::decPolaris(unsigned char* inputBuffer, int compressedSize, unsigned char* output, bool skipheader)
 {
-	//"""Wrapper containing either uncompressed or LZO1x files."""
-    if ((inputBuffer[0] != 0x48) || (inputBuffer[1] != 0x32) || (inputBuffer[2] != 0x4F)) // H2O
-        return 0;
+	if (!skipheader)
+	{
+		//"""Wrapper containing either uncompressed or LZO1x files."""
+		if ((inputBuffer[0] != 0x48) || (inputBuffer[1] != 0x32) || (inputBuffer[2] != 0x4F)) // H2O
+			return 0;
+	}
 
     //# Contains the decompressed size, which we won't putz with.
-    int dec = ((((((inputBuffer[4] << 8) | inputBuffer[5]) << 8) | inputBuffer[6]) << 8) | inputBuffer[7]);
+    int dec;
+	if (!skipheader)
+	{
+		dec = ((((((inputBuffer[4] << 8) | inputBuffer[5]) << 8) | inputBuffer[6]) << 8) | inputBuffer[7]);
+	}
+
 	unsigned char* adjustData;
 
 	int inputPosition = 8;
-
-	if (inputBuffer[3] == 'N')
+	if (skipheader)
+	{
+		inputPosition = 0;
+	}
+	else if (inputBuffer[3] == 'N')
 	{
 		memcpy(output, &inputBuffer[inputPosition], dec);
 		return dec;
@@ -180,5 +191,8 @@ int CH20Decoder::decPolaris(unsigned char* inputBuffer, int compressedSize, unsi
 	}
 
     //# Shuffle output into a bytes object to prevent alteration.
-    return dec;
+	if (skipheader)
+		return outputPosition;
+	else
+		return dec;
 }
