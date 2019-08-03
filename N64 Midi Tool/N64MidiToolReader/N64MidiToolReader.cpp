@@ -18,6 +18,7 @@
 #include "..\N64MidiLibrary\SnowDecoder.h"
 #include "..\N64MidiLibrary\ASMICDecoder.h"
 #include "..\N64MidiLibrary\NaganoDecoder.h"
+#include "..\N64MidiLibrary\QuakeDecoder.h"
 
 CMidiParse CN64MidiToolReader::midiParse;
 GECompression CN64MidiToolReader::compress;
@@ -1173,6 +1174,35 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 			}
 		}
 	}
+	else if (gameName.CompareNoCase("Quake2Sng") == 0)
+	{
+		compressed = true;
+
+		for (int x = 0; x < gameConfig[gameNumber].numberMidis; x++)
+		{
+			CString tempSpotStr;
+			tempSpotStr.Format("%08X:%08X", gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start));
+			addMidiStrings.push_back(tempSpotStr);
+			numberMidiStrings++;
+
+			if (calculateInstrumentCount)
+			{
+				int numberInstTemp = 0;
+				
+				CQuakeDecoder decode;
+				unsigned char* outputDecompressed = new unsigned char[0x50000];
+
+				int decompressedSize = decode.aridecode(&buffer[gameConfig[gameNumber].midiBanks[x].start], 0x50000, outputDecompressed, decompressedSize);
+
+				midiParse.SngToMidi(outputDecompressed, decompressedSize, "asdasdaw43.mid", numberInstTemp, true, separateByInstrument, gameConfig[gameNumber].midiBanks[x].extra);
+
+				if (numberInstTemp > numberInstruments)
+					numberInstruments = numberInstTemp;
+				delete [] outputDecompressed;
+				::DeleteFile("asdasdaw43.mid");
+			}
+		}
+	}
 	else if (gameName.CompareNoCase("TazSng") == 0)
 	{
 		compressed = true;
@@ -1848,6 +1878,18 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 		{
 			CString tempSpotStr;
 			tempSpotStr.Format("%08X:%08X", gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start));
+			addMidiStrings.push_back(tempSpotStr);
+			numberMidiStrings++;
+		}
+	}
+	else if (gameName.CompareNoCase("Aidyn") == 0)
+	{
+		compressed = false;
+		//midiParse.ImportMidiConfig("aerofightersassault.txt");
+		for (int x = 0; x < gameConfig[gameNumber].numberMidis; x++)
+		{
+			CString tempSpotStr;
+			tempSpotStr.Format("%08X:%08X:%08X", gameConfig[gameNumber].midiBanks[x].start, gameConfig[gameNumber].midiBanks[x].end, gameConfig[gameNumber].midiBanks[x].extra);
 			addMidiStrings.push_back(tempSpotStr);
 			numberMidiStrings++;
 		}
