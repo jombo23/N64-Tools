@@ -273,7 +273,7 @@ BOOL CN64SoundListToolDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	this->SetWindowText("N64 Sound Tool V1.4 (By SubDrag and Ice Mario) " __DATE__);
+	this->SetWindowText("N64 Sound Tool V1.4 (By SubDrag and Ice Mario and Zoinkity) " __DATE__);
 
 	mUseT1.SetCheck(true);
 
@@ -3471,6 +3471,178 @@ void CN64SoundListToolDlg::ShowSoundBankControls()
 		m_sampleDecayVolumeStatic.ShowWindow(SW_HIDE);
 	}
 	else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLEV2ZLIB)
+	{
+		m_instrVolStatic.SetWindowText("C Tune");
+		m_instrPanStatic.SetWindowText("F Tune");
+
+		mHalfVADPCMPrecision.ShowWindow(SW_HIDE);
+		mCheckUnknownEADFlag.ShowWindow(SW_HIDE);
+		mLabelTableIndex.ShowWindow(SW_HIDE);
+		mTableIndex.ShowWindow(SW_HIDE);
+		m_injectInPlaceButton.ShowWindow(SW_HIDE);
+		m_playButton.ShowWindow(SW_SHOW);
+		m_playLoopedButton.ShowWindow(SW_SHOW);
+		m_stopButton.ShowWindow(SW_SHOW);
+		m_saveButton.ShowWindow(SW_SHOW);
+		m_import16BitRaw.ShowWindow(SW_HIDE);
+		m_import16BitADPCM.ShowWindow(SW_HIDE);
+		m_import16BitADPCMSamePred.ShowWindow(SW_HIDE);
+		m_import16BitRawValues.ShowWindow(SW_HIDE);
+		m_importPredictors.ShowWindow(SW_HIDE);
+		mImportFromSDKTools.ShowWindow(SW_HIDE);
+		m_add16BitRaw.ShowWindow(SW_HIDE);
+		m_add16BitADPCM.ShowWindow(SW_HIDE);
+		mAddInstrumentButton.ShowWindow(SW_HIDE);
+		mDeleteInstrumentButton.ShowWindow(SW_HIDE);
+		mDeletePercussionBank.ShowWindow(SW_HIDE);
+		mAddPercussionBank.ShowWindow(SW_HIDE);
+		mDeleteSfxBank.ShowWindow(SW_HIDE);
+		mAddSfxBank.ShowWindow(SW_HIDE);
+		m_importGroupBox.ShowWindow(SW_HIDE);
+		m_addToEndGroupBox.ShowWindow(SW_HIDE);
+		m_deleteButton.ShowWindow(SW_HIDE);
+		m_miscGroupBox.ShowWindow(SW_HIDE);
+		m_tremGroupBox.ShowWindow(SW_HIDE);
+		m_vibrGroupBox.ShowWindow(SW_HIDE);
+		mVolume.ShowWindow(SW_SHOW);
+		mPan.ShowWindow(SW_SHOW);
+		mPriority.ShowWindow(SW_HIDE);
+		mTremType.ShowWindow(SW_HIDE);
+		mTremRate.ShowWindow(SW_HIDE);
+		mTremDepth.ShowWindow(SW_HIDE);
+		mTremDelay.ShowWindow(SW_HIDE);
+		mVibType.ShowWindow(SW_HIDE);
+		mVibRate.ShowWindow(SW_HIDE);
+		mVibDepth.ShowWindow(SW_HIDE);
+		mVibDelay.ShowWindow(SW_HIDE);
+		mBendRange.ShowWindow(SW_HIDE);
+		mSamplePan.ShowWindow(SW_HIDE);
+		mSampleVol.ShowWindow(SW_HIDE);
+		mAttackTime.ShowWindow(SW_HIDE);
+		mDecayTime.ShowWindow(SW_HIDE);
+		mReleaseTime.ShowWindow(SW_HIDE);
+		mAttackVolume.ShowWindow(SW_HIDE);
+		mDecayVolume.ShowWindow(SW_HIDE);
+		mVelMin.ShowWindow(SW_HIDE);
+		mVelMax.ShowWindow(SW_HIDE);
+		mKeyMin.ShowWindow(SW_HIDE);
+		mKeyMax.ShowWindow(SW_HIDE);
+		mKeyBase.ShowWindow(SW_HIDE);
+		mKeyBaseListCtrl.ShowWindow(SW_HIDE);
+		mDetune.ShowWindow(SW_HIDE);
+		m_instrVolStatic.ShowWindow(SW_SHOW);
+		m_instrPanStatic.ShowWindow(SW_SHOW);
+		m_InstrPriorityStatic.ShowWindow(SW_HIDE);
+		m_instrTremTypeStatic.ShowWindow(SW_HIDE);
+		m_instrTremRateStatic.ShowWindow(SW_HIDE);
+		m_instrTremDepthStatic.ShowWindow(SW_HIDE);
+		m_instrTremDelayStatic.ShowWindow(SW_HIDE);
+		m_instrVibrTypeStatic.ShowWindow(SW_HIDE);
+		m_InstrBendRangeStatic.ShowWindow(SW_HIDE);
+		m_instrVibrRateStatic.ShowWindow(SW_HIDE);
+		m_instrVibrDepthStatic.ShowWindow(SW_HIDE);
+		m_instrVibrDelayStatic.ShowWindow(SW_HIDE);
+		m_samplePanStatic.ShowWindow(SW_HIDE);
+		m_sampleVolStatic.ShowWindow(SW_HIDE);
+		m_sampleVelMinStatic.ShowWindow(SW_HIDE);
+		m_sampleVelMaxStatic.ShowWindow(SW_HIDE);
+		m_sampleKeyMinStatic.ShowWindow(SW_HIDE);
+		m_sampleKeyMaxStatic.ShowWindow(SW_HIDE);
+		m_sampleKeyBaseStatic.ShowWindow(SW_HIDE);
+		m_sampleDetuneStatic.ShowWindow(SW_HIDE);
+		m_sampleAttackTimeStatic.ShowWindow(SW_HIDE);
+		m_sampleDecayTimeStatic.ShowWindow(SW_HIDE);
+		m_sampleReleaseTimeStatic.ShowWindow(SW_HIDE);
+		m_sampleAttackVolumeStatic.ShowWindow(SW_HIDE);
+		m_sampleDecayVolumeStatic.ShowWindow(SW_HIDE);
+	}
+	else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLEQUAKE2)
+	{
+		m_instrVolStatic.SetWindowText("C Tune");
+		m_instrPanStatic.SetWindowText("F Tune");
+
+		mHalfVADPCMPrecision.ShowWindow(SW_HIDE);
+		mCheckUnknownEADFlag.ShowWindow(SW_HIDE);
+		mLabelTableIndex.ShowWindow(SW_HIDE);
+		mTableIndex.ShowWindow(SW_HIDE);
+		m_injectInPlaceButton.ShowWindow(SW_HIDE);
+		m_playButton.ShowWindow(SW_SHOW);
+		m_playLoopedButton.ShowWindow(SW_SHOW);
+		m_stopButton.ShowWindow(SW_SHOW);
+		m_saveButton.ShowWindow(SW_SHOW);
+		m_import16BitRaw.ShowWindow(SW_HIDE);
+		m_import16BitADPCM.ShowWindow(SW_HIDE);
+		m_import16BitADPCMSamePred.ShowWindow(SW_HIDE);
+		m_import16BitRawValues.ShowWindow(SW_HIDE);
+		m_importPredictors.ShowWindow(SW_HIDE);
+		mImportFromSDKTools.ShowWindow(SW_HIDE);
+		m_add16BitRaw.ShowWindow(SW_HIDE);
+		m_add16BitADPCM.ShowWindow(SW_HIDE);
+		mAddInstrumentButton.ShowWindow(SW_HIDE);
+		mDeleteInstrumentButton.ShowWindow(SW_HIDE);
+		mDeletePercussionBank.ShowWindow(SW_HIDE);
+		mAddPercussionBank.ShowWindow(SW_HIDE);
+		mDeleteSfxBank.ShowWindow(SW_HIDE);
+		mAddSfxBank.ShowWindow(SW_HIDE);
+		m_importGroupBox.ShowWindow(SW_HIDE);
+		m_addToEndGroupBox.ShowWindow(SW_HIDE);
+		m_deleteButton.ShowWindow(SW_HIDE);
+		m_miscGroupBox.ShowWindow(SW_HIDE);
+		m_tremGroupBox.ShowWindow(SW_HIDE);
+		m_vibrGroupBox.ShowWindow(SW_HIDE);
+		mVolume.ShowWindow(SW_SHOW);
+		mPan.ShowWindow(SW_SHOW);
+		mPriority.ShowWindow(SW_HIDE);
+		mTremType.ShowWindow(SW_HIDE);
+		mTremRate.ShowWindow(SW_HIDE);
+		mTremDepth.ShowWindow(SW_HIDE);
+		mTremDelay.ShowWindow(SW_HIDE);
+		mVibType.ShowWindow(SW_HIDE);
+		mVibRate.ShowWindow(SW_HIDE);
+		mVibDepth.ShowWindow(SW_HIDE);
+		mVibDelay.ShowWindow(SW_HIDE);
+		mBendRange.ShowWindow(SW_HIDE);
+		mSamplePan.ShowWindow(SW_HIDE);
+		mSampleVol.ShowWindow(SW_HIDE);
+		mAttackTime.ShowWindow(SW_HIDE);
+		mDecayTime.ShowWindow(SW_HIDE);
+		mReleaseTime.ShowWindow(SW_HIDE);
+		mAttackVolume.ShowWindow(SW_HIDE);
+		mDecayVolume.ShowWindow(SW_HIDE);
+		mVelMin.ShowWindow(SW_HIDE);
+		mVelMax.ShowWindow(SW_HIDE);
+		mKeyMin.ShowWindow(SW_HIDE);
+		mKeyMax.ShowWindow(SW_HIDE);
+		mKeyBase.ShowWindow(SW_HIDE);
+		mKeyBaseListCtrl.ShowWindow(SW_HIDE);
+		mDetune.ShowWindow(SW_HIDE);
+		m_instrVolStatic.ShowWindow(SW_SHOW);
+		m_instrPanStatic.ShowWindow(SW_SHOW);
+		m_InstrPriorityStatic.ShowWindow(SW_HIDE);
+		m_instrTremTypeStatic.ShowWindow(SW_HIDE);
+		m_instrTremRateStatic.ShowWindow(SW_HIDE);
+		m_instrTremDepthStatic.ShowWindow(SW_HIDE);
+		m_instrTremDelayStatic.ShowWindow(SW_HIDE);
+		m_instrVibrTypeStatic.ShowWindow(SW_HIDE);
+		m_InstrBendRangeStatic.ShowWindow(SW_HIDE);
+		m_instrVibrRateStatic.ShowWindow(SW_HIDE);
+		m_instrVibrDepthStatic.ShowWindow(SW_HIDE);
+		m_instrVibrDelayStatic.ShowWindow(SW_HIDE);
+		m_samplePanStatic.ShowWindow(SW_HIDE);
+		m_sampleVolStatic.ShowWindow(SW_HIDE);
+		m_sampleVelMinStatic.ShowWindow(SW_HIDE);
+		m_sampleVelMaxStatic.ShowWindow(SW_HIDE);
+		m_sampleKeyMinStatic.ShowWindow(SW_HIDE);
+		m_sampleKeyMaxStatic.ShowWindow(SW_HIDE);
+		m_sampleKeyBaseStatic.ShowWindow(SW_HIDE);
+		m_sampleDetuneStatic.ShowWindow(SW_HIDE);
+		m_sampleAttackTimeStatic.ShowWindow(SW_HIDE);
+		m_sampleDecayTimeStatic.ShowWindow(SW_HIDE);
+		m_sampleReleaseTimeStatic.ShowWindow(SW_HIDE);
+		m_sampleAttackVolumeStatic.ShowWindow(SW_HIDE);
+		m_sampleDecayVolumeStatic.ShowWindow(SW_HIDE);
+	}
+	else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLESNOWBOARDKIDS)
 	{
 		m_instrVolStatic.SetWindowText("C Tune");
 		m_instrPanStatic.SetWindowText("F Tune");
@@ -7734,6 +7906,16 @@ void CN64SoundListToolDlg::OnBnClickedInjectplace()
 			MessageBox("Sorry, no encoding yet for ZLIB N64Wave format");
 			return;
 		}
+		else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLEQUAKE2)
+		{
+			MessageBox("Sorry, no encoding yet for Quake N64Wave format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLESNOWBOARDKIDS)
+		{
+			MessageBox("Sorry, no encoding yet for Snowboard Kids N64Wave format");
+			return;
+		}
 		else if (alBankCurrent->soundBankFormat == TITUS)
 		{
 			MessageBox("Sorry, no encoding yet for Titus format");
@@ -8707,7 +8889,7 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 
 			if (gameConfig[y].gameType.CompareNoCase("MultiPartERZN64WavePtrV2") == 0)
 			{
-				unsigned char* ctlBinaryPre = new unsigned char[0x1000000];
+				unsigned char* ctlBinaryPre = new unsigned char[0x2000000];
 				unsigned long  ctlSize = 0;
 
 				for (int x = 0; x < gameConfig[y].numberSoundBanks; x++)
@@ -8716,7 +8898,7 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					int fileSizeCompressed = romSize - gameConfig[y].soundBanks[x].ctl;
 					if (fileSizeCompressed > 0xFE000)
 						fileSizeCompressed = 0xFE000;
-					unsigned char* outputDecompressed = new unsigned char[0x1000000];
+					unsigned char* outputDecompressed = new unsigned char[0x2000000];
 					ROM[gameConfig[y].soundBanks[x].ctl] = 0x52;
 					ROM[gameConfig[y].soundBanks[x].ctl+1] = 0x4E;
 					ROM[gameConfig[y].soundBanks[x].ctl+2] = 0x43;
@@ -8741,7 +8923,7 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 			}
 			else if (gameConfig[y].gameType.CompareNoCase("MultiPartTigWavePtrV2") == 0)
 			{
-				unsigned char* ctlBinaryPre = new unsigned char[0x1000000];
+				unsigned char* ctlBinaryPre = new unsigned char[0x2000000];
 				unsigned long  ctlSize = 0;
 
 				int currentIndex = -1;
@@ -8763,7 +8945,7 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 						start = x;
 						// start a new one
 
-						ctlBinaryPre = new unsigned char[0x1000000];
+						ctlBinaryPre = new unsigned char[0x2000000];
 						ctlSize = 0;
 					}
 
@@ -8771,7 +8953,7 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					int fileSizeCompressed = romSize - gameConfig[y].soundBanks[x].ctl;
 					if (fileSizeCompressed > 0xFE000)
 						fileSizeCompressed = 0xFE000;
-					unsigned char* outputDecompressed = new unsigned char[0x1000000];
+					unsigned char* outputDecompressed = new unsigned char[0x2000000];
 					
 					unsigned long address = gameConfig[y].soundBanks[x].ctl;
 					unsigned long compressedsize = ((((((ROM[address+3] << 8) | ROM[address+2]) << 8) | ROM[address+1]) << 8) | ROM[address+0]);
@@ -8928,6 +9110,14 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					else if (gameConfig[y].gameType.CompareNoCase("YAY0N64WavePtrTableV2") == 0)
 					{
 						results[numberResults].bank = n64AudioLibrary.ReadAudioN64PtrWavetableV2YAY0(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
+					}
+					else if (gameConfig[y].gameType.CompareNoCase("QuakeN64WavePtrTableV2") == 0)
+					{
+						results[numberResults].bank = n64AudioLibrary.ReadAudioN64PtrWavetableQuake2(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
+					}
+					else if (gameConfig[y].gameType.CompareNoCase("SnowboardKidsN64WavePtrTable") == 0)
+					{
+						results[numberResults].bank = n64AudioLibrary.ReadAudioN64PtrWavetableSnowboardKids(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
 					}
 					else if (gameConfig[y].gameType.CompareNoCase("BlitzN64WavePtrTableV2") == 0)
 					{
