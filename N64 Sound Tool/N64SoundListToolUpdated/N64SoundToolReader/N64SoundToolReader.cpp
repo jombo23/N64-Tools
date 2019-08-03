@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "N64SoundToolReader.h"
 #include "..\N64SoundLibrary\TigDecoder.h"
+#include "..\N64SoundLibrary\QuakeDecoder.h"
 
 CN64SoundToolReader::CN64SoundToolReader(void)
 {
@@ -535,7 +536,7 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 	numberResults = 0;
 	if (gameConfig.gameType.CompareNoCase("MultiPartERZN64WavePtrV2") == 0)
 	{
-		unsigned char* ctlBinaryPre = new unsigned char[0x1000000];
+		unsigned char* ctlBinaryPre = new unsigned char[0x2000000];
 		unsigned long  ctlSize = 0;
 
 		for (int x = 0; x < gameConfig.numberSoundBanks; x++)
@@ -544,7 +545,7 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			int fileSizeCompressed = romSize - gameConfig.soundBanks[x].ctl;
 			if (fileSizeCompressed > 0xFE000)
 				fileSizeCompressed = 0xFE000;
-			unsigned char* outputDecompressed = new unsigned char[0x1000000];
+			unsigned char* outputDecompressed = new unsigned char[0x2000000];
 			ROM[gameConfig.soundBanks[x].ctl] = 0x52;
 			ROM[gameConfig.soundBanks[x].ctl+1] = 0x4E;
 			ROM[gameConfig.soundBanks[x].ctl+2] = 0x43;
@@ -572,7 +573,7 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 	}
 	else if (gameConfig.gameType.CompareNoCase("MultiPartTigWavePtrV2") == 0)
 	{
-		unsigned char* ctlBinaryPre = new unsigned char[0x1000000];
+		unsigned char* ctlBinaryPre = new unsigned char[0x2000000];
 		unsigned long  ctlSize = 0;
 
 		int currentIndex = -1;
@@ -597,7 +598,7 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 				currentIndex = 0;
 				// start a new one
 
-				ctlBinaryPre = new unsigned char[0x1000000];
+				ctlBinaryPre = new unsigned char[0x2000000];
 				ctlSize = 0;
 			}
 
@@ -605,7 +606,7 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			int fileSizeCompressed = romSize - gameConfig.soundBanks[x].ctl;
 			if (fileSizeCompressed > 0xFE000)
 				fileSizeCompressed = 0xFE000;
-			unsigned char* outputDecompressed = new unsigned char[0x1000000];
+			unsigned char* outputDecompressed = new unsigned char[0x2000000];
 			
 			unsigned long address = gameConfig.soundBanks[x].ctl;
 			unsigned long compressedsize = ((((((ROM[address+3] << 8) | ROM[address+2]) << 8) | ROM[address+1]) << 8) | ROM[address+0]);
@@ -756,6 +757,14 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			else if (gameConfig.gameType.CompareNoCase("YAY0N64WavePtrTableV2") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioN64PtrWavetableV2YAY0(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
+			}
+			else if (gameConfig.gameType.CompareNoCase("QuakeN64WavePtrTableV2") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioN64PtrWavetableQuake2(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
+			}
+			else if (gameConfig.gameType.CompareNoCase("SnowboardKidsN64WavePtrTable") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioN64PtrWavetableSnowboardKids(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
 			}
 			else if (gameConfig.gameType.CompareNoCase("Titus") == 0)
 			{
