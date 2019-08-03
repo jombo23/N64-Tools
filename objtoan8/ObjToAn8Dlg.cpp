@@ -15068,6 +15068,7 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 							float nx;
 							float ny;
 							float nz;
+							FbxVector4 tempVector;
 
 							if(leNormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
 							{
@@ -15078,7 +15079,10 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 									ny = leNormal->GetDirectArray().GetAt(vertexId)[1];
 									nz = leNormal->GetDirectArray().GetAt(vertexId)[2];
 
-									polygonPoint->normalIndex = GetAddNormalIndex(normals, nx, ny, nz);
+									tempVector = leNormal->GetDirectArray().GetAt(vertexId);
+									tempVector = matrix.MultR(tempVector);
+
+									polygonPoint->normalIndex = GetAddNormalIndex(normals, tempVector[0], tempVector[1], tempVector[2]);
 									break;
 								case FbxGeometryElement::eIndexToDirect:
 									{
@@ -15087,7 +15091,10 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 										ny = leNormal->GetDirectArray().GetAt(id)[1];
 										nz = leNormal->GetDirectArray().GetAt(id)[2];
 
-										polygonPoint->normalIndex = GetAddNormalIndex(normals, nx, ny, nz);
+										tempVector = leNormal->GetDirectArray().GetAt(id);
+										tempVector = matrix.MultR(tempVector);
+
+										polygonPoint->normalIndex = GetAddNormalIndex(normals, tempVector[0], tempVector[1], tempVector[2]);
 									}
 									break;
 								default:
@@ -15870,13 +15877,14 @@ void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor
 					for (iterVertice = subVerticeList.begin(); iterVertice != subVerticeList.end(); iterVertice++)
 					{
 						CVertice* verticeTest = (CVertice*)(*iterVertice);
-						if (
+						/*if (
 							(vertice->vertex.x == verticeTest->vertex.x)
 							&&
 							(vertice->vertex.y == verticeTest->vertex.y)
 							&& 
 							(vertice->vertex.z == verticeTest->vertex.z)
-							)
+							)*/
+						if (verticeTest == vertice)
 						{
 							break;
 						}
@@ -15899,13 +15907,14 @@ void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor
 							for (iterNormal = subNormalList.begin(); iterNormal != subNormalList.end(); iterNormal++)
 							{
 								CNormal* normalTest = (CNormal*)(*iterNormal);
-								if (
+								/*if (
 									(normal->nx == normalTest->nx)
 									&&
 									(normal->ny == normalTest->ny)
 									&&
 									(normal->nz == normalTest->nz)
-									)
+									)*/
+								if (normal == normalTest)
 								{
 									break;
 								}
@@ -15936,10 +15945,11 @@ void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor
 							for (iterUV = subUVList.begin(); iterUV != subUVList.end(); iterUV++)
 							{
 								CUVCoordinate* uvTest = (CUVCoordinate*)(*iterUV);
-								if (
+								/*if (
 									(uv->u == uvTest->u)
 									&&
-									(uv->v == uvTest->v))
+									(uv->v == uvTest->v))*/
+								if (uv == uvTest)
 								{
 									break;
 								}
@@ -15969,13 +15979,14 @@ void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor
 								for (iterVertColor = subVertexColorList.begin(); iterVertColor != subVertexColorList.end(); iterVertColor++)
 								{
 									CVerticeColor* vertColorTest = (CVerticeColor*)(*iterVertColor);
-									if (
+									/*if (
 										(verticeColor->color.r == vertColorTest->color.r)
 										&&
 										(verticeColor->color.g == vertColorTest->color.g)
 										&&
 										(verticeColor->color.b == vertColorTest->color.b)
-										)
+										)*/
+									if (verticeColor == vertColorTest)
 									{
 										break;
 									}
