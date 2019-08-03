@@ -6,6 +6,8 @@
 #include "..\N64SoundLibrary\yaz0.h"
 #include "..\N64SoundLibrary\MORTDecoder.h"
 #include "..\N64SoundLibrary\Kobe2ADPCMDecoder.h"
+#include "..\N64SoundLibrary\QuakeDecoder.h"
+#include "..\N64SoundLibrary\SnowboardKidsDecoder.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -7991,6 +7993,16 @@ void CN64AIFCAudio::WriteAudioToFile(ALBank*& alBank, CString outFileNameCtl, CS
 		MessageBox(NULL, "Sorry, no encoding yet for Army Men format", "Error", NULL);
 		return;
 	}
+	else if (alBank->soundBankFormat == N64PTRWAVETABLETABLEQUAKE2)
+	{
+		MessageBox(NULL, "Sorry, no encoding yet for Quake N64Wave format", "Error", NULL);
+		return;
+	}
+	else if (alBank->soundBankFormat == N64PTRWAVETABLETABLESNOWBOARDKIDS)
+	{
+		MessageBox(NULL, "Sorry, no encoding yet for Snowboard Kids N64Wave format", "Error", NULL);
+		return;
+	}
 	else if (alBank->soundBankFormat == N64PTRWAVETABLETABLEV2ZLIB)
 	{
 		MessageBox(NULL, "Sorry, no encoding yet for ZLib N64Wave format", "Error", NULL);
@@ -8059,11 +8071,11 @@ void CN64AIFCAudio::WriteAudioToFile(ALBank*& alBank, CString outFileNameCtl, CS
 
 void CN64AIFCAudio::WriteAudioN64PtrWavetableV1(ALBank*& alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize)
 {
-	unsigned char* temporaryCtlBuffer = new unsigned char[0x1000000];
-	unsigned char* temporaryTblBuffer = new unsigned char[0x1000000];
+	unsigned char* temporaryCtlBuffer = new unsigned char[0x2000000];
+	unsigned char* temporaryTblBuffer = new unsigned char[0x2000000];
 	unsigned long outputCtlCounter = 0;
 
-	for (int x = 0; x < 0x1000000; x++)
+	for (int x = 0; x < 0x2000000; x++)
 		temporaryCtlBuffer[x] = 0x00;
 
 	WriteLongToBuffer(temporaryCtlBuffer, outputCtlCounter, 0x4E363420);
@@ -8330,11 +8342,11 @@ void CN64AIFCAudio::WriteAudioN64PtrWavetableV1(ALBank*& alBank, unsigned char*&
 
 void CN64AIFCAudio::WriteAudioN64PtrWavetableV2(ALBank*& alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize)
 {
-	unsigned char* temporaryCtlBuffer = new unsigned char[0x1000000];
-	unsigned char* temporaryTblBuffer = new unsigned char[0x1000000];
+	unsigned char* temporaryCtlBuffer = new unsigned char[0x2000000];
+	unsigned char* temporaryTblBuffer = new unsigned char[0x2000000];
 	unsigned long outputCtlCounter = 0;
 
-	for (int x = 0; x < 0x1000000; x++)
+	for (int x = 0; x < 0x2000000; x++)
 		temporaryCtlBuffer[x] = 0x00;
 
 	WriteLongToBuffer(temporaryCtlBuffer, outputCtlCounter, 0x4E363420);
@@ -10138,9 +10150,9 @@ bool CN64AIFCAudio::CompareBytes(unsigned char* in, int inLength, unsigned char*
 
 void CN64AIFCAudio::WriteAudioSuperMario(std::vector<ctlTblResult>& results, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize)
 {
-	unsigned char* temporaryCtlBuffer = new unsigned char[0x1000000];
-	unsigned char* temporaryTblBuffer = new unsigned char[0x1000000];
-	for (int x = 0; x < 0x1000000; x++)
+	unsigned char* temporaryCtlBuffer = new unsigned char[0x2000000];
+	unsigned char* temporaryTblBuffer = new unsigned char[0x2000000];
+	for (int x = 0; x < 0x2000000; x++)
 	{
 		temporaryCtlBuffer[x] = 0;
 		temporaryTblBuffer[x] = 0;
@@ -10165,9 +10177,9 @@ void CN64AIFCAudio::WriteAudioSuperMario(std::vector<ctlTblResult>& results, uns
 		outputCtlCounter += ((0x10 - (outputCtlCounter % 0x10)));
 
 	unsigned long tblSizes = 0;
-	unsigned char* tblData = new unsigned char[0x1000000];
+	unsigned char* tblData = new unsigned char[0x2000000];
 
-	for (int y = 0; y < 0x1000000; y++)
+	for (int y = 0; y < 0x2000000; y++)
 		tblData[y] = 0;
 
 	std::vector<unsigned long> overallTblOffsets;
@@ -12249,8 +12261,8 @@ void CN64AIFCAudio::WriteKonami8ADSR(unsigned char* ROM, ALBank*& alBank, unsign
 
 void CN64AIFCAudio::WriteAudio(ALBank*& alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize)
 {
-	unsigned char* temporaryCtlBuffer = new unsigned char[0x1000000];
-	unsigned char* temporaryTblBuffer = new unsigned char[0x1000000];
+	unsigned char* temporaryCtlBuffer = new unsigned char[0x2000000];
+	unsigned char* temporaryTblBuffer = new unsigned char[0x2000000];
 	unsigned long outputCtlCounter = 0;
 	
 	// magic
@@ -13995,10 +14007,10 @@ void CN64AIFCAudio::WriteAudio(ALBank*& alBank, unsigned char*& ctl, int& ctlSiz
 
 void CN64AIFCAudio::WriteAudioConker(ALBank*& alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize, int ctlOffsetPartTwo, unsigned char*& ctl2, int& ctlSize2)
 {
-	unsigned char* temporaryCtlBuffer = new unsigned char[0x1000000];
-	unsigned char* temporaryCtlBuffer2 = new unsigned char[0x1000000];
+	unsigned char* temporaryCtlBuffer = new unsigned char[0x2000000];
+	unsigned char* temporaryCtlBuffer2 = new unsigned char[0x2000000];
 	unsigned char* temporaryTblBuffer = new unsigned char[0x4000000];
-	for (int x = 0; x < 0x1000000; x++)
+	for (int x = 0; x < 0x2000000; x++)
 	{
 		temporaryCtlBuffer[x] = 0;
 		temporaryCtlBuffer2[x] = 0;
@@ -15557,7 +15569,7 @@ ALBank* CN64AIFCAudio::ReadAudioTetrisphereRaw816(unsigned char* ctl, unsigned l
 
 ALBank* CN64AIFCAudio::ReadAudioRNCN64PtrOffset(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, unsigned long offset)
 {
-	unsigned char* outputDecompressed = new unsigned char[0x1000000];
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	int fileSizeCompressed = -1;
 	RncDecoder rnc;
 	int returnedSize = rnc.unpackM1(&ctl[ctlOffset], outputDecompressed, 0x0, fileSizeCompressed);
@@ -15570,7 +15582,7 @@ ALBank* CN64AIFCAudio::ReadAudioRNCN64PtrOffset(unsigned char* ctl, unsigned lon
 
 ALBank* CN64AIFCAudio::ReadAudioAVL_0Ptr(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
 {
-	unsigned char* outputDecompressed = new unsigned char[0x1000000];
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	int fileSizeCompressed = ctlSize;
 	CMidwayDecoder midwayDec;
 	int returnedSize = midwayDec.dec(&ctl[ctlOffset], fileSizeCompressed, outputDecompressed, "LZSS");
@@ -15583,7 +15595,7 @@ ALBank* CN64AIFCAudio::ReadAudioAVL_0Ptr(unsigned char* ctl, unsigned long& ctlS
 
 ALBank* CN64AIFCAudio::ReadAudioSno(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, unsigned long expectedSize)
 {
-	unsigned char* outputDecompressed = new unsigned char[0x1000000];
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	CSnoDecoder snoDecoder;
 	snoDecoder.dec(&ctl[ctlOffset], ctlSize, expectedSize, outputDecompressed);
 	ALBank* alBank = ReadAudioN64PtrWavetableV2(&outputDecompressed[0], expectedSize, 0, tbl);
@@ -15599,7 +15611,7 @@ ALBank* CN64AIFCAudio::ReadAudioRNCN64Ptr(unsigned char* ctl, unsigned long& ctl
 
 ALBank* CN64AIFCAudio::ReadRNCAudio(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber)
 {
-	unsigned char* outputDecompressed = new unsigned char[0x1000000];
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	int fileSizeCompressed = -1;
 	RncDecoder rnc;
 	rnc.unpackM1(&ctl[ctlOffset], outputDecompressed, 0x0, fileSizeCompressed);
@@ -15611,8 +15623,8 @@ ALBank* CN64AIFCAudio::ReadRNCAudio(unsigned char* ROM, unsigned char* ctl, unsi
 
 ALBank* CN64AIFCAudio::ReadRNXAudio(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber)
 {
-	unsigned char* outputDecompressedA = new unsigned char[0x1000000];
-	unsigned char* outputDecompressedB = new unsigned char[0x1000000];
+	unsigned char* outputDecompressedA = new unsigned char[0x2000000];
+	unsigned char* outputDecompressedB = new unsigned char[0x2000000];
 	int fileSizeCompressed = -1;
 	RncDecoder rnc;
 	int size1 = rnc.unpackM1(&ctl[ctlOffset], outputDecompressedA, 0x0, fileSizeCompressed);
@@ -15624,7 +15636,7 @@ ALBank* CN64AIFCAudio::ReadRNXAudio(unsigned char* ROM, unsigned char* ctl, unsi
 
 	int size2 = rnc.unpackM1(&ctl[nextCtlSpot], outputDecompressedB, 0x0, fileSizeCompressed);
 
-	unsigned char* outputDecompressed = new unsigned char[0x1000000];
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	for (int x = 0; x < size1; x++)
 	{
 		outputDecompressed[x] = outputDecompressedA[x];
@@ -15865,7 +15877,7 @@ ALBank* CN64AIFCAudio::ReadAudioN64SN64Zlib(unsigned char* ctl, unsigned long& c
 
 ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableBlitz(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
 {
-	unsigned char* outputDecompressed = new unsigned char[0x1000000];
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	int fileSizeCompressed = -1;
 	CBlitzDecoder blitzdec;
 	blitzdec.dec(&ctl[ctlOffset], outputDecompressed, fileSizeCompressed);
@@ -15919,9 +15931,33 @@ ALBank* CN64AIFCAudio::ReadAudioN64Titus(unsigned char* ROM, unsigned char* ctl,
 	return alBank;
 }
 
+ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableQuake2(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
+{
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
+	int fileSizeCompressed = -1;
+	CQuakeDecoder quakeDecoder;
+	quakeDecoder.aridecode(&ctl[ctlOffset], 0x2000000, outputDecompressed, fileSizeCompressed);
+	ALBank* alBank = ReadAudioN64PtrWavetableV2(&outputDecompressed[0], ctlSize, 0, tbl);
+	alBank->soundBankFormat = N64PTRWAVETABLETABLEQUAKE2;
+	delete [] outputDecompressed;
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableSnowboardKids(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
+{
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
+	int fileSizeCompressed = -1;
+	CSnowboardKidsDecoder snowboardKidsDecoder;
+	snowboardKidsDecoder.decode(&ctl[ctlOffset], outputDecompressed, fileSizeCompressed);
+	ALBank* alBank = ReadAudioN64PtrWavetableV1(&outputDecompressed[0], ctlSize, 0, tbl);
+	alBank->soundBankFormat = N64PTRWAVETABLETABLESNOWBOARDKIDS;
+	delete [] outputDecompressed;
+	return alBank;
+}
+
 ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableV2YAY0(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
 {
-	unsigned char* outputDecompressed = new unsigned char[0x1000000];
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	int fileSizeCompressed = -1;
 	YAY0 yay0;
 	yay0.decodeAll(&ctl[ctlOffset], outputDecompressed, fileSizeCompressed);
@@ -16115,7 +16151,7 @@ ALBank* CN64AIFCAudio::ReadAudioBnkB(unsigned char* ctl, unsigned long& ctlSize,
 
 ALBank* CN64AIFCAudio::ReadAudioN64MKMythologies(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, unsigned long uncompressedSize)
 {
-	unsigned char* outputDecompressed = new unsigned char[0x1000000];
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	int fileSizeCompressed = -1;
 	CMKMythologiesDecode compression;
 	compression.dec(&ctl[ctlOffset], fileSizeCompressed, uncompressedSize, outputDecompressed);
@@ -16127,7 +16163,7 @@ ALBank* CN64AIFCAudio::ReadAudioN64MKMythologies(unsigned char* ROM, unsigned ch
 
 ALBank* CN64AIFCAudio::ReadAudioArmyMenCompressed(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, bool littleEndianCompressedHeader, bool sarge2style)
 {
-	unsigned char* outputDecompressed = new unsigned char[0x1000000];
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	int fileSizeCompressed = -1;
 	n643docompression compression;
 	compression.dec(&ctl[ctlOffset], compression.uncompressedSize(&ctl[ctlOffset], littleEndianCompressedHeader), outputDecompressed, fileSizeCompressed, littleEndianCompressedHeader, sarge2style);
@@ -16149,7 +16185,7 @@ ALBank* CN64AIFCAudio::ReadAudioMegamanN64PtrWavetableV2(unsigned char* ctl, uns
 	}
 	else
 	{
-		unsigned char* outputDecompressed = new unsigned char[0x1000000];
+		unsigned char* outputDecompressed = new unsigned char[0x2000000];
 		int fileSizeCompressed = -1;
 		MidwayLZ compression;
 		ctlSize = compression.decLZSS0B(&ctl[ctlOffset], fileSizeCompressed, outputDecompressed);
@@ -19579,7 +19615,7 @@ ALBank* CN64AIFCAudio::ReadAudioZLibMusyx(unsigned char* ctl, int ctlSize, int c
 
 ALBank* CN64AIFCAudio::ReadAudioBlastCorps(unsigned char* ROM, unsigned char* ctl, int ctlSize, int ctlOffset, unsigned char* tbl)
 {
-	unsigned char* outputDecompressed = new unsigned char[0x1000000];
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	int fileSizeCompressed = ctlSize;
 	BlastCorpsLZBDecoder blastCorpsLzb;
 	int decompressedSize = blastCorpsLzb.dec(&ctl[ctlOffset], outputDecompressed, fileSizeCompressed);
@@ -19591,7 +19627,7 @@ ALBank* CN64AIFCAudio::ReadAudioBlastCorps(unsigned char* ROM, unsigned char* ct
 
 ALBank* CN64AIFCAudio::ReadAudioLzMusyx(unsigned char* ctl, int ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments, int lastSoundEnd)
 {
-	unsigned char* outputDecompressed = new unsigned char[0x1000000];
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	int fileSizeCompressed = ctlSize;
 	MidwayLZ midwayLz;
 	int decompressedSize = midwayLz.dec(&ctl[ctlOffset], fileSizeCompressed, outputDecompressed);

@@ -281,7 +281,7 @@ int CTetrisphereDecoder::sphereDecompress(unsigned char* inputBuffer, unsigned c
 
 	inputBuffer = &inputBuffer[c];
 
-	unsigned char* inputBufferTemp = new unsigned char[0x1000000];
+	unsigned char* inputBufferTemp = new unsigned char[0x2000000];
 	memcpy(inputBufferTemp, inputBuffer, l);
 	memcpy(output, inputBufferTemp, l);
 

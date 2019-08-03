@@ -1,3 +1,4 @@
+// By Zoinkity
 #pragma once
 
 class CMidwayDecoder
