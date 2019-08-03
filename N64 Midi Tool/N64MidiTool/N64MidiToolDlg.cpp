@@ -488,6 +488,7 @@ void CN64MidiToolDlg::OnBnClickedButtonloadrom()
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("ARISng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("ArmySargeSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("ArmySarge2Sng") == 0)
+			|| (gameConfig[gameNumber].gameType.CompareNoCase("Quake2Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("TazSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("FLA2Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("RNCSngOffset") == 0)
@@ -616,6 +617,7 @@ void CN64MidiToolDlg::OnBnClickedButtonloadrom()
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("ARISng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("ArmySargeSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("ArmySarge2Sng") == 0)
+			|| (gameConfig[gameNumber].gameType.CompareNoCase("Quake2Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("TazSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("FLA2Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("RNCSngOffset") == 0)
@@ -649,6 +651,7 @@ void CN64MidiToolDlg::OnBnClickedButtonloadrom()
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("MidiLZSSWilliams") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("LZSamplesDCM") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("DCM") == 0)
+			|| (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("MultipartZLibXMFastTracker2") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("MIDx") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("PaperMario") == 0)
@@ -807,6 +810,62 @@ void CN64MidiToolDlg::OnBnClickedButtonexportbin()
 		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("DCM") == 0)
+	{
+		CFileDialog m_svFile(FALSE, "dcm", "song.dcm", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Dcm File (*.dcm)|*.dcm|", this);
+
+		int statusFileOpen = (int) m_svFile.DoModal();
+
+		if ((statusFileOpen == IDCANCEL) || (m_svFile.GetFileName() == ""))
+			return;
+
+		if (statusFileOpen == FALSE)
+			return;
+
+		CString fileName;
+		if (statusFileOpen == IDOK)
+		{
+			fileName = m_svFile.GetPathName();
+		}
+		else
+		{
+			return;
+		}
+
+		int numberInstruments;
+		bool hasLoopPoint = false;
+		int loopStart = 0;
+		int loopEnd = 0;
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
+	{
+		CFileDialog m_svFile(FALSE, "dcm", "song.dcm", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Dcm File (*.dcm)|*.dcm|", this);
+
+		int statusFileOpen = (int) m_svFile.DoModal();
+
+		if ((statusFileOpen == IDCANCEL) || (m_svFile.GetFileName() == ""))
+			return;
+
+		if (statusFileOpen == FALSE)
+			return;
+
+		CString fileName;
+		if (statusFileOpen == IDOK)
+		{
+			fileName = m_svFile.GetPathName();
+		}
+		else
+		{
+			return;
+		}
+
+		int numberInstruments;
+		bool hasLoopPoint = false;
+		int loopStart = 0;
+		int loopEnd = 0;
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
 	{
 		CFileDialog m_svFile(FALSE, "dcm", "song.dcm", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Dcm File (*.dcm)|*.dcm|", this);
 
@@ -1025,6 +1084,10 @@ void CN64MidiToolDlg::OnBnClickedButtonexportmidi()
 	{
 		outputName.Format("%s%s %08X %08X.dcm", "", gameName, midiIndex, address);
 	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
+	{
+		outputName.Format("%s%s %08X %08X.dcm", "", gameName, midiIndex, address);
+	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("LZSamplesDCM") == 0)
 	{
 		outputName.Format("%s%s %08X %08X.dcm", "", gameName, midiIndex, address);
@@ -1081,6 +1144,34 @@ void CN64MidiToolDlg::OnBnClickedButtonexportmidi()
 		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
 	}
 	else if ((gameConfig[gameNumber].gameType.CompareNoCase("DCM") == 0) || (gameConfig[gameNumber].gameType.CompareNoCase("LZSamplesDCM") == 0))
+	{
+		CFileDialog m_svFile(FALSE, "dcm", outputName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Dcm File (*.dcm)|*.dcm|", this);
+
+		int statusFileOpen = (int) m_svFile.DoModal();
+
+		if ((statusFileOpen == IDCANCEL) || (m_svFile.GetFileName() == ""))
+			return;
+
+		if (statusFileOpen == FALSE)
+			return;
+
+		CString fileName;
+		if (statusFileOpen == IDOK)
+		{
+			fileName = m_svFile.GetPathName();
+		}
+		else
+		{
+			return;
+		}
+
+		int numberInstruments;
+		bool hasLoopPoint = false;
+		int loopStart = 0;
+		int loopEnd = 0;
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
 	{
 		CFileDialog m_svFile(FALSE, "dcm", outputName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Dcm File (*.dcm)|*.dcm|", this);
 
@@ -1465,6 +1556,7 @@ void CN64MidiToolDlg::ConvertIntoSpot(CString inputFile)
 			(gameConfig[gameNumber].gameType == "SnowSng") ||
 			(gameConfig[gameNumber].gameType == "ArmySargeSng") ||
 			(gameConfig[gameNumber].gameType == "ArmySarge2Sng") ||
+			(gameConfig[gameNumber].gameType == "Quake2Sng") ||
 			(gameConfig[gameNumber].gameType == "TazSng") ||
 			(gameConfig[gameNumber].gameType == "ARISng") ||
 			(gameConfig[gameNumber].gameType == "FLA2Sng") ||
@@ -1488,6 +1580,7 @@ void CN64MidiToolDlg::ConvertIntoSpot(CString inputFile)
 			(gameConfig[gameNumber].gameType == "RNCSeq") ||
 			(gameConfig[gameNumber].gameType == "MultipartZLibXMFastTracker2") ||
 			(gameConfig[gameNumber].gameType == "DCM") ||
+			(gameConfig[gameNumber].gameType == "Aidyn") ||
 			(gameConfig[gameNumber].gameType == "LZSamplesDCM")
 			)
 
@@ -1954,6 +2047,11 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 		MessageBox("Unsupported DCM import");
 		return;
 	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
+	{
+		MessageBox("Unsupported Aidyn import");
+		return;
+	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("LZSamplesDCM") == 0)
 	{
 		MessageBox("Unsupported LZSamplesDCM import");
@@ -2007,6 +2105,11 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("ArmySargeSng") == 0)
 	{
 		MessageBox("Unsupported ArmySargeSng import");
+		return;
+	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("Quake2Sng") == 0)
+	{
+		MessageBox("Unsupported Quake2Sng import");
 		return;
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("ArmySarge2Sng") == 0)
@@ -2468,6 +2571,10 @@ void CN64MidiToolDlg::OnBnClickedButtonexportalltomidi()
 			{
 				outputName.Format("%s%s %08X %08X.dcm", tempPath, gameName, x, address);
 			}
+			else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
+			{
+				outputName.Format("%s%s %08X %08X.dcm", tempPath, gameName, x, address);
+			}
 			else if (gameConfig[gameNumber].gameType.CompareNoCase("LZSamplesDCM") == 0)
 			{
 				outputName.Format("%s%s %08X %08X.dcm", tempPath, gameName, x, address);
@@ -2597,6 +2704,12 @@ void CN64MidiToolDlg::OnBnClickedButtonexportalltorawbin()
 			CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
 		}
 		else if (gameConfig[gameNumber].gameType.CompareNoCase("DCM") == 0)
+		{
+			outputName.Format("%s%s %08X %08X.dcm", tempPath, gameName, x, address);
+			int numberInstruments;
+			CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		}
+		else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
 		{
 			outputName.Format("%s%s %08X %08X.dcm", tempPath, gameName, x, address);
 			int numberInstruments;
@@ -2738,6 +2851,13 @@ void CN64MidiToolDlg::OnBnClickedButtonplaymidi()
 		ShellExecute( GetSafeHwnd(), "open", "explorer.exe", (mainFolder + "tempAS123123as.xm"), mainFolder, SW_SHOWNORMAL );
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("DCM") == 0)
+	{
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.dcm", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CString sParameter;
+		normalExec((mainFolder + "MikIT.exe " + (mainFolder + "tempAS123123as.dcm ") + (mainFolder + "tempAS123123as.wav ") + "300").GetBuffer(), mainFolder);
+		ShellExecute( GetSafeHwnd(), "open", "explorer.exe", (mainFolder + "tempAS123123as.wav"), mainFolder, SW_SHOWNORMAL );
+	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
 	{
 		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.dcm", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
 		CString sParameter;
