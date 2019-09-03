@@ -3,7 +3,6 @@
 #include "common.h"
 #include "VGMFile.h"
 #include "DLSFile.h"
-#include "Menu.h"
 
 class VGMSampColl;
 class VGMInstr;
