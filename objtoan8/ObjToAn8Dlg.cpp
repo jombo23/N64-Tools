@@ -8979,6 +8979,24 @@ bool CObjToAn8Dlg::ReadFbxFile(CString inputFile, std::vector<CVerticeColor*>& v
 	
 	try
 	{
+		FbxAxisSystem lAxisSystemReference = pScene->GetGlobalSettings().GetAxisSystem();
+		int lUpVectorSign = 1;
+		int lFrontVectorSign = 1;
+
+		FbxAxisSystem::EUpVector lUpVector = lAxisSystemReference.GetUpVector( lUpVectorSign );
+		//get FrontVector and its sign.
+		FbxAxisSystem::EFrontVector lFrontVector = lAxisSystemReference.GetFrontVector( lFrontVectorSign );
+		//get uCoorSystem. 
+		FbxAxisSystem::ECoordSystem lCoorSystem = lAxisSystemReference.GetCoorSystem();
+
+		if (
+			(lUpVector != FbxAxisSystem::EUpVector::eYAxis)
+			|| (lFrontVector != FbxAxisSystem::EFrontVector::eParityOdd)
+			|| (lCoorSystem != FbxAxisSystem::ECoordSystem::eRightHanded))
+		{
+			MessageBox("WARNING: FBX Format is not Y-up, Z-forward, and Right Handed.  It must be these axes for correct conversion.");
+		}
+
 		FbxNode* rootNode = pScene->GetRootNode();
 
 		std::string rootName = rootNode->GetName();
