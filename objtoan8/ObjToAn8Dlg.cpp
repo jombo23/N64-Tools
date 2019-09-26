@@ -11260,16 +11260,188 @@ void CObjToAn8Dlg::GetNumberKeyframesFbxAnimationRecursive(FbxAnimLayer* pAnimLa
 	if (name.Find("_") == 0)
 		name = name.Mid(1);
 
+	FbxNodeAttribute::EType attributeType = FbxNodeAttribute::eNull;
 	if (pNode->GetNodeAttribute() != NULL)
-	{
-		FbxNodeAttribute::EType attributeType = pNode->GetNodeAttribute()->GetAttributeType();
+		attributeType = pNode->GetNodeAttribute()->GetAttributeType();
 
-		FbxNode* parentNode = pNode->GetParent();
-		if ((name == "TopJoint") || (parentNode != NULL))
+	FbxNode* parentNode = pNode->GetParent();
+	if ((name == "TopJoint") || (parentNode != NULL))
+	{
+		if ((name == "TopJoint") || (((joints.size() == 0)) && (attributeType == FbxNodeAttribute::eCamera))) // assume camera or top
 		{
-			if ((name == "TopJoint") || ((parentNode->GetNodeAttribute() != NULL) || (((joints.size() == 0)) && (attributeType == FbxNodeAttribute::eCamera))))
+			FbxAnimCurve* lAnimCurve = NULL;
+
+			lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+			if (lAnimCurve)
 			{
-				if ((name == "TopJoint") || (((joints.size() == 0)) && (attributeType == FbxNodeAttribute::eCamera))) // assume camera or top
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+				
+					if ((keyframeNumber+1) > maxKeyframes)
+						maxKeyframes = (keyframeNumber+1);
+				}
+			}
+			lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+			if (lAnimCurve)
+			{
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					if ((keyframeNumber+1) > maxKeyframes)
+						maxKeyframes = (keyframeNumber+1);
+				}
+			}
+			lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+			if (lAnimCurve)
+			{
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					if ((keyframeNumber+1) > maxKeyframes)
+						maxKeyframes = (keyframeNumber+1);
+				}
+			}
+
+			lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+			if (lAnimCurve)
+			{
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					if ((keyframeNumber+1) > maxKeyframes)
+						maxKeyframes = (keyframeNumber+1);
+				}
+			}
+			lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+			if (lAnimCurve)
+			{
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					if ((keyframeNumber+1) > maxKeyframes)
+						maxKeyframes = (keyframeNumber+1);
+				}
+			}
+			lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+			if (lAnimCurve)
+			{
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					if ((keyframeNumber+1) > maxKeyframes)
+						maxKeyframes = (keyframeNumber+1);
+				}
+			}
+
+			lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+			if (lAnimCurve)
+			{
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					//if ((keyframeNumber+1) > maxKeyframes)
+						//maxKeyframes = (keyframeNumber+1);
+				}
+			}    
+			lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+			if (lAnimCurve)
+			{
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					//if ((keyframeNumber+1) > maxKeyframes)
+						//maxKeyframes = (keyframeNumber+1);
+				}
+			}
+			lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+			if (lAnimCurve)
+			{
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					//if ((keyframeNumber+1) > maxKeyframes)
+						//maxKeyframes = (keyframeNumber+1);
+				}
+			}
+
+			if (joints.size() == 0) // camera get field of view
+			{
+				if (pNode->GetNodeAttribute() != NULL)
+				{
+					FbxNodeAttribute::EType attributeType = pNode->GetNodeAttribute()->GetAttributeType();
+					if (attributeType == FbxNodeAttribute::eCamera) 
+					{
+						FbxCamera* lCamera = (FbxCamera*) pNode->GetNodeAttribute();
+						lAnimCurve = lCamera->FieldOfView.GetCurve(pAnimLayer, true);
+
+						if (lAnimCurve)
+						{
+							int lKeyCount = lAnimCurve->KeyGetCount();
+
+							for(int lCount = 0; lCount < lKeyCount; lCount++)
+							{
+								float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+								FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+								int keyframeNumber = lKeyTime.GetFrameCount();
+								
+								if ((keyframeNumber+1) > maxKeyframes)
+									maxKeyframes = (keyframeNumber+1);
+							}
+						}
+					}
+				}
+			}
+		}
+		else if ((attributeType == FbxNodeAttribute::eNull) || (attributeType == FbxNodeAttribute::eSkeleton))
+		{
+			for (int x = 0; x < joints.size(); x++)
+			{
+				if (joints[x]->name == name)
 				{
 					FbxAnimCurve* lAnimCurve = NULL;
 
@@ -11283,7 +11455,7 @@ void CObjToAn8Dlg::GetNumberKeyframesFbxAnimationRecursive(FbxAnimLayer* pAnimLa
 							float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
 							FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
 							int keyframeNumber = lKeyTime.GetFrameCount();
-						
+							
 							if ((keyframeNumber+1) > maxKeyframes)
 								maxKeyframes = (keyframeNumber+1);
 						}
@@ -11376,8 +11548,8 @@ void CObjToAn8Dlg::GetNumberKeyframesFbxAnimationRecursive(FbxAnimLayer* pAnimLa
 							FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
 							int keyframeNumber = lKeyTime.GetFrameCount();
 							
-							//if ((keyframeNumber+1) > maxKeyframes)
-								//maxKeyframes = (keyframeNumber+1);
+							if ((keyframeNumber+1) > maxKeyframes)
+								maxKeyframes = (keyframeNumber+1);
 						}
 					}    
 					lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
@@ -11391,8 +11563,8 @@ void CObjToAn8Dlg::GetNumberKeyframesFbxAnimationRecursive(FbxAnimLayer* pAnimLa
 							FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
 							int keyframeNumber = lKeyTime.GetFrameCount();
 							
-							//if ((keyframeNumber+1) > maxKeyframes)
-								//maxKeyframes = (keyframeNumber+1);
+							if ((keyframeNumber+1) > maxKeyframes)
+								maxKeyframes = (keyframeNumber+1);
 						}
 					}
 					lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
@@ -11406,187 +11578,11 @@ void CObjToAn8Dlg::GetNumberKeyframesFbxAnimationRecursive(FbxAnimLayer* pAnimLa
 							FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
 							int keyframeNumber = lKeyTime.GetFrameCount();
 							
-							//if ((keyframeNumber+1) > maxKeyframes)
-								//maxKeyframes = (keyframeNumber+1);
+							if ((keyframeNumber+1) > maxKeyframes)
+								maxKeyframes = (keyframeNumber+1);
 						}
 					}
-
-					if (joints.size() == 0) // camera get field of view
-					{
-						if (pNode->GetNodeAttribute() != NULL)
-						{
-							FbxNodeAttribute::EType attributeType = pNode->GetNodeAttribute()->GetAttributeType();
-							if (attributeType == FbxNodeAttribute::eCamera) 
-							{
-								FbxCamera* lCamera = (FbxCamera*) pNode->GetNodeAttribute();
-								lAnimCurve = lCamera->FieldOfView.GetCurve(pAnimLayer, true);
-
-								if (lAnimCurve)
-								{
-									int lKeyCount = lAnimCurve->KeyGetCount();
-
-									for(int lCount = 0; lCount < lKeyCount; lCount++)
-									{
-										float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-										FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-										int keyframeNumber = lKeyTime.GetFrameCount();
-										
-										if ((keyframeNumber+1) > maxKeyframes)
-											maxKeyframes = (keyframeNumber+1);
-									}
-								}
-							}
-						}
-					}
-				}
-				else if ((attributeType == FbxNodeAttribute::eNull) || (attributeType == FbxNodeAttribute::eSkeleton))
-				{
-					for (int x = 0; x < joints.size(); x++)
-					{
-						if (joints[x]->name == name)
-						{
-							FbxAnimCurve* lAnimCurve = NULL;
-
-							lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-							if (lAnimCurve)
-							{
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									if ((keyframeNumber+1) > maxKeyframes)
-										maxKeyframes = (keyframeNumber+1);
-								}
-							}
-							lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-							if (lAnimCurve)
-							{
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									if ((keyframeNumber+1) > maxKeyframes)
-										maxKeyframes = (keyframeNumber+1);
-								}
-							}
-							lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-							if (lAnimCurve)
-							{
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									if ((keyframeNumber+1) > maxKeyframes)
-										maxKeyframes = (keyframeNumber+1);
-								}
-							}
-
-							lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-							if (lAnimCurve)
-							{
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									if ((keyframeNumber+1) > maxKeyframes)
-										maxKeyframes = (keyframeNumber+1);
-								}
-							}
-							lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-							if (lAnimCurve)
-							{
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									if ((keyframeNumber+1) > maxKeyframes)
-										maxKeyframes = (keyframeNumber+1);
-								}
-							}
-							lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-							if (lAnimCurve)
-							{
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									if ((keyframeNumber+1) > maxKeyframes)
-										maxKeyframes = (keyframeNumber+1);
-								}
-							}
-
-							lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-							if (lAnimCurve)
-							{
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									if ((keyframeNumber+1) > maxKeyframes)
-										maxKeyframes = (keyframeNumber+1);
-								}
-							}    
-							lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-							if (lAnimCurve)
-							{
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									if ((keyframeNumber+1) > maxKeyframes)
-										maxKeyframes = (keyframeNumber+1);
-								}
-							}
-							lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-							if (lAnimCurve)
-							{
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									if ((keyframeNumber+1) > maxKeyframes)
-										maxKeyframes = (keyframeNumber+1);
-								}
-							}
-							break;
-						}
-					}
+					break;
 				}
 			}
 		}
@@ -11630,16 +11626,881 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 	if (name.Find("_") == 0)
 		name = name.Mid(1);
 
+	FbxNodeAttribute::EType attributeType = FbxNodeAttribute::eNull;
 	if (pNode->GetNodeAttribute() != NULL)
-	{
-		FbxNodeAttribute::EType attributeType = pNode->GetNodeAttribute()->GetAttributeType();
+		attributeType = pNode->GetNodeAttribute()->GetAttributeType();
 
-		FbxNode* parentNode = pNode->GetParent();
-		if ((name == "TopJoint") || (parentNode != NULL))
+	FbxNode* parentNode = pNode->GetParent();
+	if ((name == "TopJoint") || (parentNode != NULL))
+	{
+		if (name == "TopJoint")
 		{
-			if ((name == "TopJoint") || ((parentNode->GetNodeAttribute() != NULL)))
+			FbxAnimCurve* lAnimCurve = NULL;
+
+			lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+			if (lAnimCurve)
 			{
-				if (name == "TopJoint")
+				std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
+				for (int lCount = 0; lCount < numberKeyframes; lCount++)
+				{
+					FbxTime fbxTime;
+					fbxTime.SetFrame(lCount);
+					CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
+					keyframe->translation.x = lAnimCurve->Evaluate(fbxTime);
+
+					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+						keyframe->translationIsInterpolated[0] = true;
+				}
+
+				/*CKeyframe defaultKeyframe;
+				defaultKeyframe.translation.x = pNode->LclTranslation.Get().mData[0];
+
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				int previousKeyframeNumber = -1;
+				CKeyframe* previousKeyframe = &defaultKeyframe;
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+
+					if (keyframeNumber == (previousKeyframeNumber + 1))
+					{
+						keyframe->translation.x = lKeyValue;
+					}
+					else
+					{
+						if (lCount == 0)
+						{
+							for (int y = 0; y < keyframeNumber; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+								sliceKeyframe->translation.x = lKeyValue;
+							}
+							keyframe->translation.x = lKeyValue;
+						}
+						else
+						{
+							int slices = keyframeNumber - (previousKeyframeNumber+1);
+							float deltaSlice = (lKeyValue - previousKeyframe->translation.x) / (slices + 1);
+							for (int y = 0; y < slices; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+
+								sliceKeyframe->translation.x = previousKeyframe->translation.x + (deltaSlice * (y + 1));
+								sliceKeyframe->translationIsInterpolated[0] = true;
+							}
+
+							keyframe->translation.x = lKeyValue;
+						}
+					}
+
+					previousKeyframeNumber = keyframeNumber;
+					previousKeyframe = keyframe;
+				}
+
+				for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
+				{
+					CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+					sliceKeyframe->translation.x = previousKeyframe->translation.x;
+				}*/
+			}
+			lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+			if (lAnimCurve)
+			{
+				std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
+				for (int lCount = 0; lCount < numberKeyframes; lCount++)
+				{
+					FbxTime fbxTime;
+					fbxTime.SetFrame(lCount);
+					CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
+					keyframe->translation.y = lAnimCurve->Evaluate(fbxTime);
+
+					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+						keyframe->translationIsInterpolated[1] = true;
+				}
+
+				/*CKeyframe defaultKeyframe;
+				defaultKeyframe.translation.y = pNode->LclTranslation.Get().mData[1];
+
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				int previousKeyframeNumber = -1;
+				CKeyframe* previousKeyframe = &defaultKeyframe;
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+
+					if (keyframeNumber == (previousKeyframeNumber + 1))
+					{
+						keyframe->translation.y = lKeyValue;
+					}
+					else
+					{
+						if (lCount == 0)
+						{
+							for (int y = 0; y < keyframeNumber; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+								sliceKeyframe->translation.y = lKeyValue;
+							}
+							keyframe->translation.y = lKeyValue;
+						}
+						else
+						{
+							int slices = keyframeNumber - (previousKeyframeNumber+1);
+							float deltaSlice = (lKeyValue - previousKeyframe->translation.y) / (slices + 1);
+							for (int y = 0; y < slices; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+
+								sliceKeyframe->translation.y = previousKeyframe->translation.y + (deltaSlice * (y + 1));
+								sliceKeyframe->translationIsInterpolated[1] = true;
+							}
+
+							keyframe->translation.y = lKeyValue;
+						}
+					}
+
+					previousKeyframeNumber = keyframeNumber;
+					previousKeyframe = keyframe;
+				}
+
+				for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
+				{
+					CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+					sliceKeyframe->translation.y = previousKeyframe->translation.y;
+				}*/
+			}
+			lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+			if (lAnimCurve)
+			{
+				std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
+				for (int lCount = 0; lCount < numberKeyframes; lCount++)
+				{
+					FbxTime fbxTime;
+					fbxTime.SetFrame(lCount);
+					CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
+					keyframe->translation.z = lAnimCurve->Evaluate(fbxTime);
+
+					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+						keyframe->translationIsInterpolated[2] = true;
+				}
+
+				/*CKeyframe defaultKeyframe;
+				defaultKeyframe.translation.z = pNode->LclTranslation.Get().mData[2];
+
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				int previousKeyframeNumber = -1;
+				CKeyframe* previousKeyframe = &defaultKeyframe;
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+
+					if (keyframeNumber == (previousKeyframeNumber + 1))
+					{
+						keyframe->translation.z = lKeyValue;
+					}
+					else
+					{
+						if (lCount == 0)
+						{
+							for (int y = 0; y < keyframeNumber; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+								sliceKeyframe->translation.z = lKeyValue;
+							}
+							keyframe->translation.z = lKeyValue;
+						}
+						else
+						{
+							int slices = keyframeNumber - (previousKeyframeNumber+1);
+							float deltaSlice = (lKeyValue - previousKeyframe->translation.z) / (slices + 1);
+							for (int y = 0; y < slices; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+
+								sliceKeyframe->translation.z = previousKeyframe->translation.z + (deltaSlice * (y + 1));
+								sliceKeyframe->translationIsInterpolated[2] = true;
+							}
+
+							keyframe->translation.z = lKeyValue;
+						}
+					}
+
+					previousKeyframeNumber = keyframeNumber;
+					previousKeyframe = keyframe;
+				}
+
+				for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
+				{
+					CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+					sliceKeyframe->translation.z = previousKeyframe->translation.z;
+				}*/
+			}
+
+			lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+			if (lAnimCurve)
+			{
+				std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
+				for (int lCount = 0; lCount < numberKeyframes; lCount++)
+				{
+					FbxTime fbxTime;
+					fbxTime.SetFrame(lCount);
+					CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
+					keyframe->rotation.x = lAnimCurve->Evaluate(fbxTime);
+
+					while (keyframe->rotation.x >= 360.0f)
+						keyframe->rotation.x -= 360.0f;
+					while (keyframe->rotation.x < 0.0f)
+						keyframe->rotation.x += 360.0f;
+
+					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+						keyframe->rotationIsInterpolated[0] = true;
+				}
+
+				/*CKeyframe defaultKeyframe;
+				defaultKeyframe.rotation.x = pNode->LclRotation.Get().mData[0];
+
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				int previousKeyframeNumber = -1;
+				CKeyframe* previousKeyframe = &defaultKeyframe;
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+
+					if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
+						lKeyValue = 0;
+
+					while (lKeyValue >= 360.0f)
+						lKeyValue -= 360.0f;
+					while (lKeyValue < 0.0f)
+						lKeyValue += 360.0f;
+
+					if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
+						lKeyValue = 0;
+
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+
+					if (keyframeNumber == (previousKeyframeNumber + 1))
+					{
+						keyframe->rotation.x = lKeyValue;
+					}
+					else
+					{
+						if (lCount == 0)
+						{
+							for (int y = 0; y < keyframeNumber; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+								sliceKeyframe->rotation.x = lKeyValue;
+							}
+							keyframe->rotation.x = lKeyValue;
+						}
+						else
+						{
+							int slices = keyframeNumber - (previousKeyframeNumber+1);
+							float span = (lKeyValue - previousKeyframe->rotation.x);
+							
+							while (span >= 360.0f)
+								span -= 360.0f;
+							while (span < 0.0f)
+								span += 360.0f;
+
+							if (fabs(span) > 180.0f)
+								span -= 360.0f;
+
+							float deltaSlice = span / (slices + 1);
+							for (int y = 0; y < slices; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+
+								sliceKeyframe->rotation.x = previousKeyframe->rotation.x + (deltaSlice * (y + 1));
+								sliceKeyframe->rotationIsInterpolated[0] = true;
+							}
+
+							if (Sign(span) != Sign(lKeyValue))
+								keyframe->rotation.x = lKeyValue - 360.0f;
+							else
+								keyframe->rotation.x = lKeyValue;
+						}
+					}
+
+					previousKeyframeNumber = keyframeNumber;
+					previousKeyframe = keyframe;
+				}
+
+				for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
+				{
+					CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+					sliceKeyframe->rotation.x = previousKeyframe->rotation.x;
+				}*/
+			}
+			lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+			if (lAnimCurve)
+			{
+				std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
+				for (int lCount = 0; lCount < numberKeyframes; lCount++)
+				{
+					FbxTime fbxTime;
+					fbxTime.SetFrame(lCount);
+					CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
+					keyframe->rotation.y = lAnimCurve->Evaluate(fbxTime);
+
+					while (keyframe->rotation.y >= 360.0f)
+						keyframe->rotation.y -= 360.0f;
+					while (keyframe->rotation.y < 0.0f)
+						keyframe->rotation.y += 360.0f;
+
+					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+						keyframe->rotationIsInterpolated[1] = true;
+				}
+				/*CKeyframe defaultKeyframe;
+				defaultKeyframe.rotation.y = pNode->LclRotation.Get().mData[1];
+
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				int previousKeyframeNumber = -1;
+				CKeyframe* previousKeyframe = &defaultKeyframe;
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+
+					if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
+						lKeyValue = 0;
+
+					while (lKeyValue >= 360.0f)
+						lKeyValue -= 360.0f;
+					while (lKeyValue < 0.0f)
+						lKeyValue += 360.0f;
+
+					if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
+						lKeyValue = 0;
+
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+
+					if (keyframeNumber == (previousKeyframeNumber + 1))
+					{
+						keyframe->rotation.y = lKeyValue;
+					}
+					else
+					{
+						if (lCount == 0)
+						{
+							for (int y = 0; y < keyframeNumber; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+								sliceKeyframe->rotation.y = lKeyValue;
+							}
+							keyframe->rotation.y = lKeyValue;
+						}
+						else
+						{
+							int slices = keyframeNumber - (previousKeyframeNumber+1);
+							float span = (lKeyValue - previousKeyframe->rotation.y);
+							
+							while (span >= 360.0f)
+								span -= 360.0f;
+							while (span < 0.0f)
+								span += 360.0f;
+
+							if (fabs(span) > 180.0f)
+								span -= 360.0f;
+
+							float deltaSlice = span / (slices + 1);
+							for (int y = 0; y < slices; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+
+								sliceKeyframe->rotation.y = previousKeyframe->rotation.y + (deltaSlice * (y + 1));
+								sliceKeyframe->rotationIsInterpolated[1] = true;
+							}
+
+							if (Sign(span) != Sign(lKeyValue))
+								keyframe->rotation.y = lKeyValue - 360.0f;
+							else
+								keyframe->rotation.y = lKeyValue;
+						}
+					}
+
+					previousKeyframeNumber = keyframeNumber;
+					previousKeyframe = keyframe;
+				}
+
+				for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
+				{
+					CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+					sliceKeyframe->rotation.y = previousKeyframe->rotation.y;
+				}*/
+			}
+			lAnimCurve = pNode->LclRotation.
+				GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+			if (lAnimCurve)
+			{
+				std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
+				for (int lCount = 0; lCount < numberKeyframes; lCount++)
+				{
+					FbxTime fbxTime;
+					fbxTime.SetFrame(lCount);
+					CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
+					keyframe->rotation.z = lAnimCurve->Evaluate(fbxTime);
+
+					while (keyframe->rotation.z >= 360.0f)
+						keyframe->rotation.z -= 360.0f;
+					while (keyframe->rotation.z < 0.0f)
+						keyframe->rotation.z += 360.0f;
+
+					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+						keyframe->rotationIsInterpolated[2] = true;
+				}
+
+				/*CKeyframe defaultKeyframe;
+				defaultKeyframe.rotation.z = pNode->LclRotation.Get().mData[2];
+
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				int previousKeyframeNumber = -1;
+				CKeyframe* previousKeyframe = &defaultKeyframe;
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+
+					if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
+						lKeyValue = 0;
+
+					while (lKeyValue >= 360.0f)
+						lKeyValue -= 360.0f;
+					while (lKeyValue < 0.0f)
+						lKeyValue += 360.0f;
+
+					if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
+						lKeyValue = 0;
+
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+
+					if (keyframeNumber == (previousKeyframeNumber + 1))
+					{
+						keyframe->rotation.z = lKeyValue;
+					}
+					else
+					{
+						if (lCount == 0)
+						{
+							for (int y = 0; y < keyframeNumber; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+								sliceKeyframe->rotation.z = lKeyValue;
+							}
+							keyframe->rotation.z = lKeyValue;
+						}
+						else
+						{
+							int slices = keyframeNumber - (previousKeyframeNumber+1);
+							float span = (lKeyValue - previousKeyframe->rotation.z);
+							
+							while (span >= 360.0f)
+								span -= 360.0f;
+							while (span < 0.0f)
+								span += 360.0f;
+
+							if (fabs(span) > 180.0f)
+								span -= 360.0f;
+
+							float deltaSlice = span / (slices + 1);
+							for (int y = 0; y < slices; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+
+								sliceKeyframe->rotation.z = previousKeyframe->rotation.z + (deltaSlice * (y + 1));
+								sliceKeyframe->rotationIsInterpolated[2] = true;
+							}
+
+							if (Sign(span) != Sign(lKeyValue))
+								keyframe->rotation.z = lKeyValue - 360.0f;
+							else
+								keyframe->rotation.z = lKeyValue;
+						}
+					}
+
+					previousKeyframeNumber = keyframeNumber;
+					previousKeyframe = keyframe;
+				}
+
+				for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
+				{
+					CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+					sliceKeyframe->rotation.z = previousKeyframe->rotation.z;
+				}*/
+			}
+
+			lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
+			if (lAnimCurve)
+			{
+				std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
+				for (int lCount = 0; lCount < numberKeyframes; lCount++)
+				{
+					FbxTime fbxTime;
+					fbxTime.SetFrame(lCount);
+					CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
+					keyframe->scale.x = lAnimCurve->Evaluate(fbxTime);
+
+					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+						keyframe->scaleIsInterpolated[0] = true;
+				}
+
+				/*CKeyframe defaultKeyframe;
+				defaultKeyframe.scale.x = pNode->LclScaling.Get().mData[0];
+
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				int previousKeyframeNumber = -1;
+				CKeyframe* previousKeyframe = &defaultKeyframe;
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+
+					if (keyframeNumber == (previousKeyframeNumber + 1))
+					{
+						keyframe->scale.x = lKeyValue;
+					}
+					else
+					{
+						if (lCount == 0)
+						{
+							for (int y = 0; y < keyframeNumber; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+								sliceKeyframe->scale.x = lKeyValue;
+							}
+							keyframe->scale.x = lKeyValue;
+						}
+						else
+						{
+							int slices = keyframeNumber - (previousKeyframeNumber+1);
+							float deltaSlice = (lKeyValue - previousKeyframe->scale.x) / (slices + 1);
+							for (int y = 0; y < slices; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+
+								sliceKeyframe->scale.x = previousKeyframe->scale.x + (deltaSlice * (y + 1));
+								sliceKeyframe->scaleIsInterpolated[0] = true;
+							}
+
+							keyframe->scale.x = lKeyValue;
+						}
+					}
+
+					previousKeyframeNumber = keyframeNumber;
+					previousKeyframe = keyframe;
+				}
+
+				for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
+				{
+					CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+					sliceKeyframe->scale.x = previousKeyframe->scale.x;
+				}*/
+			}
+			lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
+			if (lAnimCurve)
+			{
+				std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
+				for (int lCount = 0; lCount < numberKeyframes; lCount++)
+				{
+					FbxTime fbxTime;
+					fbxTime.SetFrame(lCount);
+					CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
+					keyframe->scale.y = lAnimCurve->Evaluate(fbxTime);
+
+					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+						keyframe->scaleIsInterpolated[1] = true;
+				}
+
+				/*CKeyframe defaultKeyframe;
+				defaultKeyframe.scale.y = pNode->LclScaling.Get().mData[1];
+
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				int previousKeyframeNumber = -1;
+				CKeyframe* previousKeyframe = &defaultKeyframe;
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+
+					if (keyframeNumber == (previousKeyframeNumber + 1))
+					{
+						keyframe->scale.y = lKeyValue;
+					}
+					else
+					{
+						if (lCount == 0)
+						{
+							for (int y = 0; y < keyframeNumber; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+								sliceKeyframe->scale.y = lKeyValue;
+							}
+							keyframe->scale.y = lKeyValue;
+						}
+						else
+						{
+							int slices = keyframeNumber - (previousKeyframeNumber+1);
+							float deltaSlice = (lKeyValue - previousKeyframe->scale.y) / (slices + 1);
+							for (int y = 0; y < slices; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+
+								sliceKeyframe->scale.y = previousKeyframe->scale.y + (deltaSlice * (y + 1));
+								sliceKeyframe->scaleIsInterpolated[1] = true;
+							}
+
+							keyframe->scale.y = lKeyValue;
+						}
+					}
+
+					previousKeyframeNumber = keyframeNumber;
+					previousKeyframe = keyframe;
+				}
+
+				for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
+				{
+					CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+					sliceKeyframe->scale.y = previousKeyframe->scale.y;
+				}*/
+			}
+			lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+			if (lAnimCurve)
+			{
+				std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
+
+				for (int lCount = 0; lCount < numberKeyframes; lCount++)
+				{
+					FbxTime fbxTime;
+					fbxTime.SetFrame(lCount);
+					CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
+					keyframe->scale.z = lAnimCurve->Evaluate(fbxTime);
+
+					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
+						keyframe->scaleIsInterpolated[2] = true;
+				}
+
+				/*CKeyframe defaultKeyframe;
+				defaultKeyframe.scale.z = pNode->LclScaling.Get().mData[2];
+
+				int lKeyCount = lAnimCurve->KeyGetCount();
+
+				int previousKeyframeNumber = -1;
+				CKeyframe* previousKeyframe = &defaultKeyframe;
+
+				for(int lCount = 0; lCount < lKeyCount; lCount++)
+				{
+					float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+					FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+					int keyframeNumber = lKeyTime.GetFrameCount();
+					
+					CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+
+					if (keyframeNumber == (previousKeyframeNumber + 1))
+					{
+						keyframe->scale.z = lKeyValue;
+					}
+					else
+					{
+						if (lCount == 0)
+						{
+							for (int y = 0; y < keyframeNumber; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+								sliceKeyframe->scale.z = lKeyValue;
+							}
+							keyframe->scale.z = lKeyValue;
+						}
+						else
+						{
+							int slices = keyframeNumber - (previousKeyframeNumber+1);
+							float deltaSlice = (lKeyValue - previousKeyframe->scale.z) / (slices + 1);
+							for (int y = 0; y < slices; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+
+								sliceKeyframe->scale.z = previousKeyframe->scale.z + (deltaSlice * (y + 1));
+								sliceKeyframe->scaleIsInterpolated[2] = true;
+							}
+
+							keyframe->scale.z = lKeyValue;
+						}
+					}
+
+					previousKeyframeNumber = keyframeNumber;
+					previousKeyframe = keyframe;
+				}
+
+				for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
+				{
+					CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+					sliceKeyframe->scale.z = previousKeyframe->scale.z;
+				}*/
+			}
+
+			if (joints.size() == 0) // camera get field of view
+			{
+				if (pNode->GetNodeAttribute() != NULL)
+				{
+					std::string cameraNodeName = pNode->GetName();
+					FbxNodeAttribute::EType attributeType = pNode->GetNodeAttribute()->GetAttributeType();
+					if (attributeType == FbxNodeAttribute::eCamera) 
+					{
+						FbxCamera* lCamera = (FbxCamera*) pNode->GetNodeAttribute();
+						lAnimCurve = lCamera->FieldOfView.GetCurve(pAnimLayer, true);
+
+						CKeyframe defaultKeyframe;
+						defaultKeyframe.fieldOfView.contains = true;
+						defaultKeyframe.fieldOfView.floatValue = lCamera->FieldOfView.Get();
+
+						if (lAnimCurve)
+						{
+							for (int lCount = 0; lCount < numberKeyframes; lCount++)
+							{
+								FbxTime fbxTime;
+								fbxTime.SetFrame(lCount);
+								CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
+								keyframe->fieldOfView.contains = true;
+								keyframe->fieldOfView.floatValue = lAnimCurve->Evaluate(fbxTime);
+							}
+
+							/*int lKeyCount = lAnimCurve->KeyGetCount();
+
+							int previousKeyframeNumber = -1;
+							CKeyframe* previousKeyframe = &defaultKeyframe;
+
+							for(int lCount = 0; lCount < lKeyCount; lCount++)
+							{
+								float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
+								FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
+								int keyframeNumber = lKeyTime.GetFrameCount();
+								
+								CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+
+								if (keyframeNumber == (previousKeyframeNumber + 1))
+								{
+									keyframe->fieldOfView.contains = true;
+									keyframe->fieldOfView.floatValue = lKeyValue;
+								}
+								else
+								{
+									if (lCount == 0)
+									{
+										for (int y = 0; y < keyframeNumber; y++)
+										{
+											CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+											sliceKeyframe->fieldOfView.contains = true;
+											sliceKeyframe->fieldOfView.floatValue = lKeyValue;
+										}
+										keyframe->fieldOfView.contains = true;
+										keyframe->fieldOfView.floatValue = lKeyValue;
+									}
+									else
+									{
+										int slices = keyframeNumber - (previousKeyframeNumber+1);
+										float deltaSlice = (lKeyValue - previousKeyframe->translation.z) / (slices + 1);
+										for (int y = 0; y < slices; y++)
+										{
+											CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+
+											sliceKeyframe->fieldOfView.contains = true;
+											sliceKeyframe->fieldOfView.floatValue = previousKeyframe->fieldOfView.floatValue + (deltaSlice * (y + 1));
+										}
+
+										keyframe->fieldOfView.contains = true;
+										keyframe->fieldOfView.floatValue = lKeyValue;
+									}
+								}
+
+								previousKeyframeNumber = keyframeNumber;
+								previousKeyframe = keyframe;
+							}
+
+							for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
+							{
+								CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+
+								sliceKeyframe->fieldOfView.contains = true;
+								sliceKeyframe->fieldOfView.floatValue = previousKeyframe->fieldOfView.floatValue;
+							}*/
+						}
+					}
+				}
+			}
+		}
+		else if ((attributeType == FbxNodeAttribute::eNull) || (attributeType == FbxNodeAttribute::eSkeleton))
+		{
+			for (int x = 0; x < joints.size(); x++)
+			{
+				if (joints[x]->name == name)
 				{
 					FbxAnimCurve* lAnimCurve = NULL;
 
@@ -11653,31 +12514,42 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-							keyframe->translation.x = lAnimCurve->Evaluate(fbxTime);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
+							animationPart->translation.x = lAnimCurve->Evaluate(fbxTime);
+
+							float deltaPartPos = joints[x]->positionAbsolute.x;
+							if (joints[x]->parent != NULL)
+								deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.x);
+							animationPart->translation.x = animationPart->translation.x - deltaPartPos;
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-								keyframe->translationIsInterpolated[0] = true;
+								animationPart->translationIsInterpolated[0] = true;
 						}
-
-						/*CKeyframe defaultKeyframe;
-						defaultKeyframe.translation.x = pNode->LclTranslation.Get().mData[0];
+						/*CAnimationPart defaultAnimationPart;
+						defaultAnimationPart.translation.x = pNode->LclTranslation.Get().mData[0];
 
 						int lKeyCount = lAnimCurve->KeyGetCount();
 
 						int previousKeyframeNumber = -1;
-						CKeyframe* previousKeyframe = &defaultKeyframe;
+						CAnimationPart* previousAnimationPart = &defaultAnimationPart;
 
 						for(int lCount = 0; lCount < lKeyCount; lCount++)
 						{
 							float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
 							FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
 							int keyframeNumber = lKeyTime.GetFrameCount();
+
+							float deltaPartPos = joints[x]->positionAbsolute.x;
+							if (joints[x]->parent != NULL)
+								deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.x);
+							lKeyValue = lKeyValue - deltaPartPos;
 							
 							CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 
 							if (keyframeNumber == (previousKeyframeNumber + 1))
 							{
-								keyframe->translation.x = lKeyValue;
+								animationPart->translation.x = lKeyValue;
 							}
 							else
 							{
@@ -11686,36 +12558,39 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < keyframeNumber; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->translation.x = lKeyValue;
+										sliceAnimationPart->translation.x = lKeyValue;
 									}
-									keyframe->translation.x = lKeyValue;
+									animationPart->translation.x = lKeyValue;
 								}
 								else
 								{
 									int slices = keyframeNumber - (previousKeyframeNumber+1);
-									float deltaSlice = (lKeyValue - previousKeyframe->translation.x) / (slices + 1);
+									float deltaSlice = (lKeyValue - previousAnimationPart->translation.x) / (slices + 1);
 									for (int y = 0; y < slices; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->translation.x = previousKeyframe->translation.x + (deltaSlice * (y + 1));
-										sliceKeyframe->translationIsInterpolated[0] = true;
+										sliceAnimationPart->translation.x = previousAnimationPart->translation.x + (deltaSlice * (y + 1));
+										sliceAnimationPart->translationIsInterpolated[0] = true;
 									}
 
-									keyframe->translation.x = lKeyValue;
+									animationPart->translation.x = lKeyValue;
 								}
 							}
 
 							previousKeyframeNumber = keyframeNumber;
-							previousKeyframe = keyframe;
+							previousAnimationPart = animationPart;
 						}
 
 						for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
 						{
 							CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+							CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-							sliceKeyframe->translation.x = previousKeyframe->translation.x;
+							sliceAnimationPart->translation.x = previousAnimationPart->translation.x;
 						}*/
 					}
 					lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
@@ -11728,31 +12603,42 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-							keyframe->translation.y = lAnimCurve->Evaluate(fbxTime);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
+							animationPart->translation.y = lAnimCurve->Evaluate(fbxTime);
+
+							float deltaPartPos = joints[x]->positionAbsolute.y;
+							if (joints[x]->parent != NULL)
+								deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.y);
+							animationPart->translation.y = animationPart->translation.y - deltaPartPos;
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-								keyframe->translationIsInterpolated[1] = true;
+								animationPart->translationIsInterpolated[1] = true;
 						}
-
-						/*CKeyframe defaultKeyframe;
-						defaultKeyframe.translation.y = pNode->LclTranslation.Get().mData[1];
+						/*CAnimationPart defaultAnimationPart;
+						defaultAnimationPart.translation.y = pNode->LclTranslation.Get().mData[1];
 
 						int lKeyCount = lAnimCurve->KeyGetCount();
 
 						int previousKeyframeNumber = -1;
-						CKeyframe* previousKeyframe = &defaultKeyframe;
+						CAnimationPart* previousAnimationPart = &defaultAnimationPart;
 
 						for(int lCount = 0; lCount < lKeyCount; lCount++)
 						{
 							float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
 							FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
 							int keyframeNumber = lKeyTime.GetFrameCount();
+
+							float deltaPartPos = joints[x]->positionAbsolute.y;
+							if (joints[x]->parent != NULL)
+								deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.y);
+							lKeyValue = lKeyValue - deltaPartPos;
 							
 							CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 
 							if (keyframeNumber == (previousKeyframeNumber + 1))
 							{
-								keyframe->translation.y = lKeyValue;
+								animationPart->translation.y = lKeyValue;
 							}
 							else
 							{
@@ -11761,36 +12647,39 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < keyframeNumber; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->translation.y = lKeyValue;
+										sliceAnimationPart->translation.y = lKeyValue;
 									}
-									keyframe->translation.y = lKeyValue;
+									animationPart->translation.y = lKeyValue;
 								}
 								else
 								{
 									int slices = keyframeNumber - (previousKeyframeNumber+1);
-									float deltaSlice = (lKeyValue - previousKeyframe->translation.y) / (slices + 1);
+									float deltaSlice = (lKeyValue - previousAnimationPart->translation.y) / (slices + 1);
 									for (int y = 0; y < slices; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->translation.y = previousKeyframe->translation.y + (deltaSlice * (y + 1));
-										sliceKeyframe->translationIsInterpolated[1] = true;
+										sliceAnimationPart->translation.y = previousAnimationPart->translation.y + (deltaSlice * (y + 1));
+										sliceAnimationPart->translationIsInterpolated[1] = true;
 									}
 
-									keyframe->translation.y = lKeyValue;
+									animationPart->translation.y = lKeyValue;
 								}
 							}
 
 							previousKeyframeNumber = keyframeNumber;
-							previousKeyframe = keyframe;
+							previousAnimationPart = animationPart;
 						}
 
 						for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
 						{
 							CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+							CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-							sliceKeyframe->translation.y = previousKeyframe->translation.y;
+							sliceAnimationPart->translation.y = previousAnimationPart->translation.y;
 						}*/
 					}
 					lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
@@ -11803,31 +12692,42 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-							keyframe->translation.z = lAnimCurve->Evaluate(fbxTime);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
+							animationPart->translation.z = lAnimCurve->Evaluate(fbxTime);
+
+							float deltaPartPos = joints[x]->positionAbsolute.z;
+							if (joints[x]->parent != NULL)
+								deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.z);
+							animationPart->translation.z = animationPart->translation.z - deltaPartPos;
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-								keyframe->translationIsInterpolated[2] = true;
+								animationPart->translationIsInterpolated[2] = true;
 						}
-
-						/*CKeyframe defaultKeyframe;
-						defaultKeyframe.translation.z = pNode->LclTranslation.Get().mData[2];
+						/*CAnimationPart defaultAnimationPart;
+						defaultAnimationPart.translation.z = pNode->LclTranslation.Get().mData[2];
 
 						int lKeyCount = lAnimCurve->KeyGetCount();
 
 						int previousKeyframeNumber = -1;
-						CKeyframe* previousKeyframe = &defaultKeyframe;
+						CAnimationPart* previousAnimationPart = &defaultAnimationPart;
 
 						for(int lCount = 0; lCount < lKeyCount; lCount++)
 						{
 							float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
 							FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
 							int keyframeNumber = lKeyTime.GetFrameCount();
+
+							float deltaPartPos = joints[x]->positionAbsolute.z;
+							if (joints[x]->parent != NULL)
+								deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.z);
+							lKeyValue = lKeyValue - deltaPartPos;
 							
 							CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 
 							if (keyframeNumber == (previousKeyframeNumber + 1))
 							{
-								keyframe->translation.z = lKeyValue;
+								animationPart->translation.z = lKeyValue;
 							}
 							else
 							{
@@ -11836,36 +12736,39 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < keyframeNumber; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->translation.z = lKeyValue;
+										sliceAnimationPart->translation.z = lKeyValue;
 									}
-									keyframe->translation.z = lKeyValue;
+									animationPart->translation.z = lKeyValue;
 								}
 								else
 								{
 									int slices = keyframeNumber - (previousKeyframeNumber+1);
-									float deltaSlice = (lKeyValue - previousKeyframe->translation.z) / (slices + 1);
+									float deltaSlice = (lKeyValue - previousAnimationPart->translation.z) / (slices + 1);
 									for (int y = 0; y < slices; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->translation.z = previousKeyframe->translation.z + (deltaSlice * (y + 1));
-										sliceKeyframe->translationIsInterpolated[2] = true;
+										sliceAnimationPart->translation.z = previousAnimationPart->translation.z + (deltaSlice * (y + 1));
+										sliceAnimationPart->translationIsInterpolated[2] = true;
 									}
 
-									keyframe->translation.z = lKeyValue;
+									animationPart->translation.z = lKeyValue;
 								}
 							}
 
 							previousKeyframeNumber = keyframeNumber;
-							previousKeyframe = keyframe;
+							previousAnimationPart = animationPart;
 						}
 
 						for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
 						{
 							CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+							CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-							sliceKeyframe->translation.z = previousKeyframe->translation.z;
+							sliceAnimationPart->translation.z = previousAnimationPart->translation.z;
 						}*/
 					}
 
@@ -11879,24 +12782,24 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-							keyframe->rotation.x = lAnimCurve->Evaluate(fbxTime);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
+							animationPart->rotation.x = lAnimCurve->Evaluate(fbxTime);
 
-							while (keyframe->rotation.x >= 360.0f)
-								keyframe->rotation.x -= 360.0f;
-							while (keyframe->rotation.x < 0.0f)
-								keyframe->rotation.x += 360.0f;
+							while (animationPart->rotation.x >= 360.0f)
+								animationPart->rotation.x -= 360.0f;
+							while (animationPart->rotation.x < 0.0f)
+								animationPart->rotation.x += 360.0f;
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-								keyframe->rotationIsInterpolated[0] = true;
+								animationPart->rotationIsInterpolated[0] = true;
 						}
-
-						/*CKeyframe defaultKeyframe;
-						defaultKeyframe.rotation.x = pNode->LclRotation.Get().mData[0];
+						/*CAnimationPart defaultPart;
+						defaultPart.rotation.x = pNode->LclRotation.Get().mData[0];
 
 						int lKeyCount = lAnimCurve->KeyGetCount();
 
 						int previousKeyframeNumber = -1;
-						CKeyframe* previousKeyframe = &defaultKeyframe;
+						CAnimationPart* previousAnimationPart = &defaultPart;
 
 						for(int lCount = 0; lCount < lKeyCount; lCount++)
 						{
@@ -11917,10 +12820,11 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							int keyframeNumber = lKeyTime.GetFrameCount();
 							
 							CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 
 							if (keyframeNumber == (previousKeyframeNumber + 1))
 							{
-								keyframe->rotation.x = lKeyValue;
+								animationPart->rotation.x = lKeyValue;
 							}
 							else
 							{
@@ -11929,16 +12833,17 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < keyframeNumber; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->rotation.x = lKeyValue;
+										sliceAnimationPart->rotation.x = lKeyValue;
 									}
-									keyframe->rotation.x = lKeyValue;
+									animationPart->rotation.x = lKeyValue;
 								}
 								else
 								{
 									int slices = keyframeNumber - (previousKeyframeNumber+1);
-									float span = (lKeyValue - previousKeyframe->rotation.x);
-									
+									float span = (lKeyValue - previousAnimationPart->rotation.x);
+
 									while (span >= 360.0f)
 										span -= 360.0f;
 									while (span < 0.0f)
@@ -11951,27 +12856,29 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < slices; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->rotation.x = previousKeyframe->rotation.x + (deltaSlice * (y + 1));
-										sliceKeyframe->rotationIsInterpolated[0] = true;
+										sliceAnimationPart->rotation.x = previousAnimationPart->rotation.x + (deltaSlice * (y + 1));
+										sliceAnimationPart->rotationIsInterpolated[0] = true;
 									}
 
 									if (Sign(span) != Sign(lKeyValue))
-										keyframe->rotation.x = lKeyValue - 360.0f;
+										animationPart->rotation.x = lKeyValue - 360.0f;
 									else
-										keyframe->rotation.x = lKeyValue;
+										animationPart->rotation.x = lKeyValue;
 								}
 							}
 
 							previousKeyframeNumber = keyframeNumber;
-							previousKeyframe = keyframe;
+							previousAnimationPart = animationPart;
 						}
 
 						for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
 						{
 							CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+							CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-							sliceKeyframe->rotation.x = previousKeyframe->rotation.x;
+							sliceAnimationPart->rotation.x = previousAnimationPart->rotation.x;
 						}*/
 					}
 					lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
@@ -11984,23 +12891,25 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-							keyframe->rotation.y = lAnimCurve->Evaluate(fbxTime);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
+							animationPart->rotation.y = lAnimCurve->Evaluate(fbxTime);
 
-							while (keyframe->rotation.y >= 360.0f)
-								keyframe->rotation.y -= 360.0f;
-							while (keyframe->rotation.y < 0.0f)
-								keyframe->rotation.y += 360.0f;
+							while (animationPart->rotation.y >= 360.0f)
+								animationPart->rotation.y -= 360.0f;
+							while (animationPart->rotation.y < 0.0f)
+								animationPart->rotation.y += 360.0f;
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-								keyframe->rotationIsInterpolated[1] = true;
+								animationPart->rotationIsInterpolated[1] = true;
 						}
-						/*CKeyframe defaultKeyframe;
-						defaultKeyframe.rotation.y = pNode->LclRotation.Get().mData[1];
+
+						/*CAnimationPart defaultPart;
+						defaultPart.rotation.y = pNode->LclRotation.Get().mData[1];
 
 						int lKeyCount = lAnimCurve->KeyGetCount();
 
 						int previousKeyframeNumber = -1;
-						CKeyframe* previousKeyframe = &defaultKeyframe;
+						CAnimationPart* previousAnimationPart = &defaultPart;
 
 						for(int lCount = 0; lCount < lKeyCount; lCount++)
 						{
@@ -12021,10 +12930,11 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							int keyframeNumber = lKeyTime.GetFrameCount();
 							
 							CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 
 							if (keyframeNumber == (previousKeyframeNumber + 1))
 							{
-								keyframe->rotation.y = lKeyValue;
+								animationPart->rotation.y = lKeyValue;
 							}
 							else
 							{
@@ -12033,15 +12943,16 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < keyframeNumber; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->rotation.y = lKeyValue;
+										sliceAnimationPart->rotation.y = lKeyValue;
 									}
-									keyframe->rotation.y = lKeyValue;
+									animationPart->rotation.y = lKeyValue;
 								}
 								else
 								{
 									int slices = keyframeNumber - (previousKeyframeNumber+1);
-									float span = (lKeyValue - previousKeyframe->rotation.y);
+									float span = (lKeyValue - previousAnimationPart->rotation.y);
 									
 									while (span >= 360.0f)
 										span -= 360.0f;
@@ -12055,31 +12966,32 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < slices; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->rotation.y = previousKeyframe->rotation.y + (deltaSlice * (y + 1));
-										sliceKeyframe->rotationIsInterpolated[1] = true;
+										sliceAnimationPart->rotation.y = previousAnimationPart->rotation.y + (deltaSlice * (y + 1));
+										sliceAnimationPart->rotationIsInterpolated[1] = true;
 									}
 
 									if (Sign(span) != Sign(lKeyValue))
-										keyframe->rotation.y = lKeyValue - 360.0f;
+										animationPart->rotation.y = lKeyValue - 360.0f;
 									else
-										keyframe->rotation.y = lKeyValue;
+										animationPart->rotation.y = lKeyValue;
 								}
 							}
 
 							previousKeyframeNumber = keyframeNumber;
-							previousKeyframe = keyframe;
+							previousAnimationPart = animationPart;
 						}
 
 						for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
 						{
 							CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+							CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-							sliceKeyframe->rotation.y = previousKeyframe->rotation.y;
+							sliceAnimationPart->rotation.y = previousAnimationPart->rotation.y;
 						}*/
 					}
-					lAnimCurve = pNode->LclRotation.
-						GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
+					lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
 					if (lAnimCurve)
 					{
 						std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
@@ -12089,24 +13001,24 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-							keyframe->rotation.z = lAnimCurve->Evaluate(fbxTime);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
+							animationPart->rotation.z = lAnimCurve->Evaluate(fbxTime);
 
-							while (keyframe->rotation.z >= 360.0f)
-								keyframe->rotation.z -= 360.0f;
-							while (keyframe->rotation.z < 0.0f)
-								keyframe->rotation.z += 360.0f;
+							while (animationPart->rotation.z >= 360.0f)
+								animationPart->rotation.z -= 360.0f;
+							while (animationPart->rotation.z < 0.0f)
+								animationPart->rotation.z += 360.0f;
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-								keyframe->rotationIsInterpolated[2] = true;
+								animationPart->rotationIsInterpolated[2] = true;
 						}
-
-						/*CKeyframe defaultKeyframe;
-						defaultKeyframe.rotation.z = pNode->LclRotation.Get().mData[2];
+						/*CAnimationPart defaultPart;
+						defaultPart.rotation.z = pNode->LclRotation.Get().mData[2];
 
 						int lKeyCount = lAnimCurve->KeyGetCount();
 
 						int previousKeyframeNumber = -1;
-						CKeyframe* previousKeyframe = &defaultKeyframe;
+						CAnimationPart* previousAnimationPart = &defaultPart;
 
 						for(int lCount = 0; lCount < lKeyCount; lCount++)
 						{
@@ -12127,10 +13039,11 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							int keyframeNumber = lKeyTime.GetFrameCount();
 							
 							CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 
 							if (keyframeNumber == (previousKeyframeNumber + 1))
 							{
-								keyframe->rotation.z = lKeyValue;
+								animationPart->rotation.z = lKeyValue;
 							}
 							else
 							{
@@ -12139,15 +13052,16 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < keyframeNumber; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->rotation.z = lKeyValue;
+										sliceAnimationPart->rotation.z = lKeyValue;
 									}
-									keyframe->rotation.z = lKeyValue;
+									animationPart->rotation.z = lKeyValue;
 								}
 								else
 								{
 									int slices = keyframeNumber - (previousKeyframeNumber+1);
-									float span = (lKeyValue - previousKeyframe->rotation.z);
+									float span = (lKeyValue - previousAnimationPart->rotation.z);
 									
 									while (span >= 360.0f)
 										span -= 360.0f;
@@ -12161,30 +13075,32 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < slices; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->rotation.z = previousKeyframe->rotation.z + (deltaSlice * (y + 1));
-										sliceKeyframe->rotationIsInterpolated[2] = true;
+										sliceAnimationPart->rotation.z = previousAnimationPart->rotation.z + (deltaSlice * (y + 1));
+										sliceAnimationPart->rotationIsInterpolated[2] = true;
 									}
 
 									if (Sign(span) != Sign(lKeyValue))
-										keyframe->rotation.z = lKeyValue - 360.0f;
+										animationPart->rotation.z = lKeyValue - 360.0f;
 									else
-										keyframe->rotation.z = lKeyValue;
+										animationPart->rotation.z = lKeyValue;
 								}
 							}
 
 							previousKeyframeNumber = keyframeNumber;
-							previousKeyframe = keyframe;
+							previousAnimationPart = animationPart;
 						}
 
 						for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
 						{
 							CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+							CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-							sliceKeyframe->rotation.z = previousKeyframe->rotation.z;
+							sliceAnimationPart->rotation.z = previousAnimationPart->rotation.z;
 						}*/
 					}
-
+	  
 					lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
 					if (lAnimCurve)
 					{
@@ -12195,31 +13111,32 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-							keyframe->scale.x = lAnimCurve->Evaluate(fbxTime);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
+							animationPart->scale.x = lAnimCurve->Evaluate(fbxTime);
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-								keyframe->scaleIsInterpolated[0] = true;
+								animationPart->scaleIsInterpolated[0] = true;
 						}
-
-						/*CKeyframe defaultKeyframe;
-						defaultKeyframe.scale.x = pNode->LclScaling.Get().mData[0];
+						/*CAnimationPart defaultAnimationPart;
+						defaultAnimationPart.scale.x = pNode->LclScaling.Get().mData[0];
 
 						int lKeyCount = lAnimCurve->KeyGetCount();
 
 						int previousKeyframeNumber = -1;
-						CKeyframe* previousKeyframe = &defaultKeyframe;
+						CAnimationPart* previousAnimationPart = &defaultAnimationPart;
 
 						for(int lCount = 0; lCount < lKeyCount; lCount++)
 						{
 							float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
 							FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
 							int keyframeNumber = lKeyTime.GetFrameCount();
-							
+
 							CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 
 							if (keyframeNumber == (previousKeyframeNumber + 1))
 							{
-								keyframe->scale.x = lKeyValue;
+								animationPart->scale.x = lKeyValue;
 							}
 							else
 							{
@@ -12228,36 +13145,39 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < keyframeNumber; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->scale.x = lKeyValue;
+										sliceAnimationPart->scale.x = lKeyValue;
 									}
-									keyframe->scale.x = lKeyValue;
+									animationPart->scale.x = lKeyValue;
 								}
 								else
 								{
 									int slices = keyframeNumber - (previousKeyframeNumber+1);
-									float deltaSlice = (lKeyValue - previousKeyframe->scale.x) / (slices + 1);
+									float deltaSlice = (lKeyValue - previousAnimationPart->scale.x) / (slices + 1);
 									for (int y = 0; y < slices; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->scale.x = previousKeyframe->scale.x + (deltaSlice * (y + 1));
-										sliceKeyframe->scaleIsInterpolated[0] = true;
+										sliceAnimationPart->scale.x = previousAnimationPart->scale.x + (deltaSlice * (y + 1));
+										sliceAnimationPart->scaleIsInterpolated[0] = true;
 									}
 
-									keyframe->scale.x = lKeyValue;
+									animationPart->scale.x = lKeyValue;
 								}
 							}
 
 							previousKeyframeNumber = keyframeNumber;
-							previousKeyframe = keyframe;
+							previousAnimationPart = animationPart;
 						}
 
 						for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
 						{
 							CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+							CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-							sliceKeyframe->scale.x = previousKeyframe->scale.x;
+							sliceAnimationPart->scale.x = previousAnimationPart->scale.x;
 						}*/
 					}
 					lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
@@ -12270,31 +13190,32 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-							keyframe->scale.y = lAnimCurve->Evaluate(fbxTime);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
+							animationPart->scale.y = lAnimCurve->Evaluate(fbxTime);
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-								keyframe->scaleIsInterpolated[1] = true;
+								animationPart->scaleIsInterpolated[1] = true;
 						}
-
-						/*CKeyframe defaultKeyframe;
-						defaultKeyframe.scale.y = pNode->LclScaling.Get().mData[1];
+						/*CAnimationPart defaultAnimationPart;
+						defaultAnimationPart.scale.y = pNode->LclScaling.Get().mData[1];
 
 						int lKeyCount = lAnimCurve->KeyGetCount();
 
 						int previousKeyframeNumber = -1;
-						CKeyframe* previousKeyframe = &defaultKeyframe;
+						CAnimationPart* previousAnimationPart = &defaultAnimationPart;
 
 						for(int lCount = 0; lCount < lKeyCount; lCount++)
 						{
 							float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
 							FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
 							int keyframeNumber = lKeyTime.GetFrameCount();
-							
+
 							CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 
 							if (keyframeNumber == (previousKeyframeNumber + 1))
 							{
-								keyframe->scale.y = lKeyValue;
+								animationPart->scale.y = lKeyValue;
 							}
 							else
 							{
@@ -12303,36 +13224,39 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < keyframeNumber; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->scale.y = lKeyValue;
+										sliceAnimationPart->scale.y = lKeyValue;
 									}
-									keyframe->scale.y = lKeyValue;
+									animationPart->scale.y = lKeyValue;
 								}
 								else
 								{
 									int slices = keyframeNumber - (previousKeyframeNumber+1);
-									float deltaSlice = (lKeyValue - previousKeyframe->scale.y) / (slices + 1);
+									float deltaSlice = (lKeyValue - previousAnimationPart->scale.y) / (slices + 1);
 									for (int y = 0; y < slices; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->scale.y = previousKeyframe->scale.y + (deltaSlice * (y + 1));
-										sliceKeyframe->scaleIsInterpolated[1] = true;
+										sliceAnimationPart->scale.y = previousAnimationPart->scale.y + (deltaSlice * (y + 1));
+										sliceAnimationPart->scaleIsInterpolated[1] = true;
 									}
 
-									keyframe->scale.y = lKeyValue;
+									animationPart->scale.y = lKeyValue;
 								}
 							}
 
 							previousKeyframeNumber = keyframeNumber;
-							previousKeyframe = keyframe;
+							previousAnimationPart = animationPart;
 						}
 
 						for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
 						{
 							CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+							CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-							sliceKeyframe->scale.y = previousKeyframe->scale.y;
+							sliceAnimationPart->scale.y = previousAnimationPart->scale.y;
 						}*/
 					}
 					lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
@@ -12345,31 +13269,32 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 							FbxTime fbxTime;
 							fbxTime.SetFrame(lCount);
 							CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-							keyframe->scale.z = lAnimCurve->Evaluate(fbxTime);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
+							animationPart->scale.z = lAnimCurve->Evaluate(fbxTime);
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-								keyframe->scaleIsInterpolated[2] = true;
+								animationPart->scaleIsInterpolated[2] = true;
 						}
-
-						/*CKeyframe defaultKeyframe;
-						defaultKeyframe.scale.z = pNode->LclScaling.Get().mData[2];
+						/*CAnimationPart defaultAnimationPart;
+						defaultAnimationPart.scale.z = pNode->LclScaling.Get().mData[2];
 
 						int lKeyCount = lAnimCurve->KeyGetCount();
 
 						int previousKeyframeNumber = -1;
-						CKeyframe* previousKeyframe = &defaultKeyframe;
+						CAnimationPart* previousAnimationPart = &defaultAnimationPart;
 
 						for(int lCount = 0; lCount < lKeyCount; lCount++)
 						{
 							float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
 							FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
 							int keyframeNumber = lKeyTime.GetFrameCount();
-							
+
 							CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
+							CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
 
 							if (keyframeNumber == (previousKeyframeNumber + 1))
 							{
-								keyframe->scale.z = lKeyValue;
+								animationPart->scale.z = lKeyValue;
 							}
 							else
 							{
@@ -12378,975 +13303,42 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 									for (int y = 0; y < keyframeNumber; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->scale.z = lKeyValue;
+										sliceAnimationPart->scale.z = lKeyValue;
 									}
-									keyframe->scale.z = lKeyValue;
+									animationPart->scale.z = lKeyValue;
 								}
 								else
 								{
 									int slices = keyframeNumber - (previousKeyframeNumber+1);
-									float deltaSlice = (lKeyValue - previousKeyframe->scale.z) / (slices + 1);
+									float deltaSlice = (lKeyValue - previousAnimationPart->scale.z) / (slices + 1);
 									for (int y = 0; y < slices; y++)
 									{
 										CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
+										CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-										sliceKeyframe->scale.z = previousKeyframe->scale.z + (deltaSlice * (y + 1));
-										sliceKeyframe->scaleIsInterpolated[2] = true;
+										sliceAnimationPart->scale.z = previousAnimationPart->scale.z + (deltaSlice * (y + 1));
+										sliceAnimationPart->scaleIsInterpolated[2] = true;
 									}
 
-									keyframe->scale.z = lKeyValue;
+									animationPart->scale.z = lKeyValue;
 								}
 							}
 
 							previousKeyframeNumber = keyframeNumber;
-							previousKeyframe = keyframe;
+							previousAnimationPart = animationPart;
 						}
 
 						for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
 						{
 							CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
+							CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
 
-							sliceKeyframe->scale.z = previousKeyframe->scale.z;
+							sliceAnimationPart->scale.z = previousAnimationPart->scale.z;
 						}*/
 					}
-
-					if (joints.size() == 0) // camera get field of view
-					{
-						if (pNode->GetNodeAttribute() != NULL)
-						{
-							std::string cameraNodeName = pNode->GetName();
-							FbxNodeAttribute::EType attributeType = pNode->GetNodeAttribute()->GetAttributeType();
-							if (attributeType == FbxNodeAttribute::eCamera) 
-							{
-								FbxCamera* lCamera = (FbxCamera*) pNode->GetNodeAttribute();
-								lAnimCurve = lCamera->FieldOfView.GetCurve(pAnimLayer, true);
-
-								CKeyframe defaultKeyframe;
-								defaultKeyframe.fieldOfView.contains = true;
-								defaultKeyframe.fieldOfView.floatValue = lCamera->FieldOfView.Get();
-
-								if (lAnimCurve)
-								{
-									for (int lCount = 0; lCount < numberKeyframes; lCount++)
-									{
-										FbxTime fbxTime;
-										fbxTime.SetFrame(lCount);
-										CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-										keyframe->fieldOfView.contains = true;
-										keyframe->fieldOfView.floatValue = lAnimCurve->Evaluate(fbxTime);
-									}
-
-									/*int lKeyCount = lAnimCurve->KeyGetCount();
-
-									int previousKeyframeNumber = -1;
-									CKeyframe* previousKeyframe = &defaultKeyframe;
-
-									for(int lCount = 0; lCount < lKeyCount; lCount++)
-									{
-										float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-										FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-										int keyframeNumber = lKeyTime.GetFrameCount();
-										
-										CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
-
-										if (keyframeNumber == (previousKeyframeNumber + 1))
-										{
-											keyframe->fieldOfView.contains = true;
-											keyframe->fieldOfView.floatValue = lKeyValue;
-										}
-										else
-										{
-											if (lCount == 0)
-											{
-												for (int y = 0; y < keyframeNumber; y++)
-												{
-													CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-
-													sliceKeyframe->fieldOfView.contains = true;
-													sliceKeyframe->fieldOfView.floatValue = lKeyValue;
-												}
-												keyframe->fieldOfView.contains = true;
-												keyframe->fieldOfView.floatValue = lKeyValue;
-											}
-											else
-											{
-												int slices = keyframeNumber - (previousKeyframeNumber+1);
-												float deltaSlice = (lKeyValue - previousKeyframe->translation.z) / (slices + 1);
-												for (int y = 0; y < slices; y++)
-												{
-													CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
-
-													sliceKeyframe->fieldOfView.contains = true;
-													sliceKeyframe->fieldOfView.floatValue = previousKeyframe->fieldOfView.floatValue + (deltaSlice * (y + 1));
-												}
-
-												keyframe->fieldOfView.contains = true;
-												keyframe->fieldOfView.floatValue = lKeyValue;
-											}
-										}
-
-										previousKeyframeNumber = keyframeNumber;
-										previousKeyframe = keyframe;
-									}
-
-									for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
-									{
-										CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-
-										sliceKeyframe->fieldOfView.contains = true;
-										sliceKeyframe->fieldOfView.floatValue = previousKeyframe->fieldOfView.floatValue;
-									}*/
-								}
-							}
-						}
-					}
-				}
-				else if ((attributeType == FbxNodeAttribute::eNull) || (attributeType == FbxNodeAttribute::eSkeleton))
-				{
-					for (int x = 0; x < joints.size(); x++)
-					{
-						if (joints[x]->name == name)
-						{
-							FbxAnimCurve* lAnimCurve = NULL;
-
-							lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-							if (lAnimCurve)
-							{
-								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
-
-								for (int lCount = 0; lCount < numberKeyframes; lCount++)
-								{
-									FbxTime fbxTime;
-									fbxTime.SetFrame(lCount);
-									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-									animationPart->translation.x = lAnimCurve->Evaluate(fbxTime);
-
-									float deltaPartPos = joints[x]->positionAbsolute.x;
-									if (joints[x]->parent != NULL)
-										deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.x);
-									animationPart->translation.x = animationPart->translation.x - deltaPartPos;
-
-									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-										animationPart->translationIsInterpolated[0] = true;
-								}
-								/*CAnimationPart defaultAnimationPart;
-								defaultAnimationPart.translation.x = pNode->LclTranslation.Get().mData[0];
-
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								int previousKeyframeNumber = -1;
-								CAnimationPart* previousAnimationPart = &defaultAnimationPart;
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-
-									float deltaPartPos = joints[x]->positionAbsolute.x;
-									if (joints[x]->parent != NULL)
-										deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.x);
-									lKeyValue = lKeyValue - deltaPartPos;
-									
-									CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-
-									if (keyframeNumber == (previousKeyframeNumber + 1))
-									{
-										animationPart->translation.x = lKeyValue;
-									}
-									else
-									{
-										if (lCount == 0)
-										{
-											for (int y = 0; y < keyframeNumber; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->translation.x = lKeyValue;
-											}
-											animationPart->translation.x = lKeyValue;
-										}
-										else
-										{
-											int slices = keyframeNumber - (previousKeyframeNumber+1);
-											float deltaSlice = (lKeyValue - previousAnimationPart->translation.x) / (slices + 1);
-											for (int y = 0; y < slices; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->translation.x = previousAnimationPart->translation.x + (deltaSlice * (y + 1));
-												sliceAnimationPart->translationIsInterpolated[0] = true;
-											}
-
-											animationPart->translation.x = lKeyValue;
-										}
-									}
-
-									previousKeyframeNumber = keyframeNumber;
-									previousAnimationPart = animationPart;
-								}
-
-								for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
-								{
-									CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-									CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-									sliceAnimationPart->translation.x = previousAnimationPart->translation.x;
-								}*/
-							}
-							lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-							if (lAnimCurve)
-							{
-								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
-
-								for (int lCount = 0; lCount < numberKeyframes; lCount++)
-								{
-									FbxTime fbxTime;
-									fbxTime.SetFrame(lCount);
-									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-									animationPart->translation.y = lAnimCurve->Evaluate(fbxTime);
-
-									float deltaPartPos = joints[x]->positionAbsolute.y;
-									if (joints[x]->parent != NULL)
-										deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.y);
-									animationPart->translation.y = animationPart->translation.y - deltaPartPos;
-
-									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-										animationPart->translationIsInterpolated[1] = true;
-								}
-								/*CAnimationPart defaultAnimationPart;
-								defaultAnimationPart.translation.y = pNode->LclTranslation.Get().mData[1];
-
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								int previousKeyframeNumber = -1;
-								CAnimationPart* previousAnimationPart = &defaultAnimationPart;
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-
-									float deltaPartPos = joints[x]->positionAbsolute.y;
-									if (joints[x]->parent != NULL)
-										deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.y);
-									lKeyValue = lKeyValue - deltaPartPos;
-									
-									CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-
-									if (keyframeNumber == (previousKeyframeNumber + 1))
-									{
-										animationPart->translation.y = lKeyValue;
-									}
-									else
-									{
-										if (lCount == 0)
-										{
-											for (int y = 0; y < keyframeNumber; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->translation.y = lKeyValue;
-											}
-											animationPart->translation.y = lKeyValue;
-										}
-										else
-										{
-											int slices = keyframeNumber - (previousKeyframeNumber+1);
-											float deltaSlice = (lKeyValue - previousAnimationPart->translation.y) / (slices + 1);
-											for (int y = 0; y < slices; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->translation.y = previousAnimationPart->translation.y + (deltaSlice * (y + 1));
-												sliceAnimationPart->translationIsInterpolated[1] = true;
-											}
-
-											animationPart->translation.y = lKeyValue;
-										}
-									}
-
-									previousKeyframeNumber = keyframeNumber;
-									previousAnimationPart = animationPart;
-								}
-
-								for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
-								{
-									CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-									CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-									sliceAnimationPart->translation.y = previousAnimationPart->translation.y;
-								}*/
-							}
-							lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-							if (lAnimCurve)
-							{
-								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
-
-								for (int lCount = 0; lCount < numberKeyframes; lCount++)
-								{
-									FbxTime fbxTime;
-									fbxTime.SetFrame(lCount);
-									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-									animationPart->translation.z = lAnimCurve->Evaluate(fbxTime);
-
-									float deltaPartPos = joints[x]->positionAbsolute.z;
-									if (joints[x]->parent != NULL)
-										deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.z);
-									animationPart->translation.z = animationPart->translation.z - deltaPartPos;
-
-									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-										animationPart->translationIsInterpolated[2] = true;
-								}
-								/*CAnimationPart defaultAnimationPart;
-								defaultAnimationPart.translation.z = pNode->LclTranslation.Get().mData[2];
-
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								int previousKeyframeNumber = -1;
-								CAnimationPart* previousAnimationPart = &defaultAnimationPart;
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-
-									float deltaPartPos = joints[x]->positionAbsolute.z;
-									if (joints[x]->parent != NULL)
-										deltaPartPos = (deltaPartPos - joints[x]->parent->positionAbsolute.z);
-									lKeyValue = lKeyValue - deltaPartPos;
-									
-									CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-
-									if (keyframeNumber == (previousKeyframeNumber + 1))
-									{
-										animationPart->translation.z = lKeyValue;
-									}
-									else
-									{
-										if (lCount == 0)
-										{
-											for (int y = 0; y < keyframeNumber; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->translation.z = lKeyValue;
-											}
-											animationPart->translation.z = lKeyValue;
-										}
-										else
-										{
-											int slices = keyframeNumber - (previousKeyframeNumber+1);
-											float deltaSlice = (lKeyValue - previousAnimationPart->translation.z) / (slices + 1);
-											for (int y = 0; y < slices; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->translation.z = previousAnimationPart->translation.z + (deltaSlice * (y + 1));
-												sliceAnimationPart->translationIsInterpolated[2] = true;
-											}
-
-											animationPart->translation.z = lKeyValue;
-										}
-									}
-
-									previousKeyframeNumber = keyframeNumber;
-									previousAnimationPart = animationPart;
-								}
-
-								for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
-								{
-									CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-									CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-									sliceAnimationPart->translation.z = previousAnimationPart->translation.z;
-								}*/
-							}
-
-							lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-							if (lAnimCurve)
-							{
-								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
-
-								for (int lCount = 0; lCount < numberKeyframes; lCount++)
-								{
-									FbxTime fbxTime;
-									fbxTime.SetFrame(lCount);
-									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-									animationPart->rotation.x = lAnimCurve->Evaluate(fbxTime);
-
-									while (animationPart->rotation.x >= 360.0f)
-										animationPart->rotation.x -= 360.0f;
-									while (animationPart->rotation.x < 0.0f)
-										animationPart->rotation.x += 360.0f;
-
-									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-										animationPart->rotationIsInterpolated[0] = true;
-								}
-								/*CAnimationPart defaultPart;
-								defaultPart.rotation.x = pNode->LclRotation.Get().mData[0];
-
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								int previousKeyframeNumber = -1;
-								CAnimationPart* previousAnimationPart = &defaultPart;
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-
-									if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
-										lKeyValue = 0;
-
-									while (lKeyValue >= 360.0f)
-										lKeyValue -= 360.0f;
-									while (lKeyValue < 0.0f)
-										lKeyValue += 360.0f;
-
-									if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
-										lKeyValue = 0;
-
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-
-									if (keyframeNumber == (previousKeyframeNumber + 1))
-									{
-										animationPart->rotation.x = lKeyValue;
-									}
-									else
-									{
-										if (lCount == 0)
-										{
-											for (int y = 0; y < keyframeNumber; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->rotation.x = lKeyValue;
-											}
-											animationPart->rotation.x = lKeyValue;
-										}
-										else
-										{
-											int slices = keyframeNumber - (previousKeyframeNumber+1);
-											float span = (lKeyValue - previousAnimationPart->rotation.x);
-
-											while (span >= 360.0f)
-												span -= 360.0f;
-											while (span < 0.0f)
-												span += 360.0f;
-
-											if (fabs(span) > 180.0f)
-												span -= 360.0f;
-
-											float deltaSlice = span / (slices + 1);
-											for (int y = 0; y < slices; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->rotation.x = previousAnimationPart->rotation.x + (deltaSlice * (y + 1));
-												sliceAnimationPart->rotationIsInterpolated[0] = true;
-											}
-
-											if (Sign(span) != Sign(lKeyValue))
-												animationPart->rotation.x = lKeyValue - 360.0f;
-											else
-												animationPart->rotation.x = lKeyValue;
-										}
-									}
-
-									previousKeyframeNumber = keyframeNumber;
-									previousAnimationPart = animationPart;
-								}
-
-								for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
-								{
-									CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-									CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-									sliceAnimationPart->rotation.x = previousAnimationPart->rotation.x;
-								}*/
-							}
-							lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-							if (lAnimCurve)
-							{
-								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
-
-								for (int lCount = 0; lCount < numberKeyframes; lCount++)
-								{
-									FbxTime fbxTime;
-									fbxTime.SetFrame(lCount);
-									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-									animationPart->rotation.y = lAnimCurve->Evaluate(fbxTime);
-
-									while (animationPart->rotation.y >= 360.0f)
-										animationPart->rotation.y -= 360.0f;
-									while (animationPart->rotation.y < 0.0f)
-										animationPart->rotation.y += 360.0f;
-
-									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-										animationPart->rotationIsInterpolated[1] = true;
-								}
-
-								/*CAnimationPart defaultPart;
-								defaultPart.rotation.y = pNode->LclRotation.Get().mData[1];
-
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								int previousKeyframeNumber = -1;
-								CAnimationPart* previousAnimationPart = &defaultPart;
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-
-									if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
-										lKeyValue = 0;
-
-									while (lKeyValue >= 360.0f)
-										lKeyValue -= 360.0f;
-									while (lKeyValue < 0.0f)
-										lKeyValue += 360.0f;
-
-									if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
-										lKeyValue = 0;
-
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-
-									if (keyframeNumber == (previousKeyframeNumber + 1))
-									{
-										animationPart->rotation.y = lKeyValue;
-									}
-									else
-									{
-										if (lCount == 0)
-										{
-											for (int y = 0; y < keyframeNumber; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->rotation.y = lKeyValue;
-											}
-											animationPart->rotation.y = lKeyValue;
-										}
-										else
-										{
-											int slices = keyframeNumber - (previousKeyframeNumber+1);
-											float span = (lKeyValue - previousAnimationPart->rotation.y);
-											
-											while (span >= 360.0f)
-												span -= 360.0f;
-											while (span < 0.0f)
-												span += 360.0f;
-
-											if (fabs(span) > 180.0f)
-												span -= 360.0f;
-
-											float deltaSlice = span / (slices + 1);
-											for (int y = 0; y < slices; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->rotation.y = previousAnimationPart->rotation.y + (deltaSlice * (y + 1));
-												sliceAnimationPart->rotationIsInterpolated[1] = true;
-											}
-
-											if (Sign(span) != Sign(lKeyValue))
-												animationPart->rotation.y = lKeyValue - 360.0f;
-											else
-												animationPart->rotation.y = lKeyValue;
-										}
-									}
-
-									previousKeyframeNumber = keyframeNumber;
-									previousAnimationPart = animationPart;
-								}
-
-								for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
-								{
-									CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-									CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-									sliceAnimationPart->rotation.y = previousAnimationPart->rotation.y;
-								}*/
-							}
-							lAnimCurve = pNode->LclRotation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-							if (lAnimCurve)
-							{
-								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
-
-								for (int lCount = 0; lCount < numberKeyframes; lCount++)
-								{
-									FbxTime fbxTime;
-									fbxTime.SetFrame(lCount);
-									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-									animationPart->rotation.z = lAnimCurve->Evaluate(fbxTime);
-
-									while (animationPart->rotation.z >= 360.0f)
-										animationPart->rotation.z -= 360.0f;
-									while (animationPart->rotation.z < 0.0f)
-										animationPart->rotation.z += 360.0f;
-
-									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-										animationPart->rotationIsInterpolated[2] = true;
-								}
-								/*CAnimationPart defaultPart;
-								defaultPart.rotation.z = pNode->LclRotation.Get().mData[2];
-
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								int previousKeyframeNumber = -1;
-								CAnimationPart* previousAnimationPart = &defaultPart;
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-
-									if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
-										lKeyValue = 0;
-
-									while (lKeyValue >= 360.0f)
-										lKeyValue -= 360.0f;
-									while (lKeyValue < 0.0f)
-										lKeyValue += 360.0f;
-
-									if ((fabs(lKeyValue) < EPSILONVALUES) || (fabs(360 - lKeyValue) < EPSILONVALUES))
-										lKeyValue = 0;
-
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-									
-									CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-
-									if (keyframeNumber == (previousKeyframeNumber + 1))
-									{
-										animationPart->rotation.z = lKeyValue;
-									}
-									else
-									{
-										if (lCount == 0)
-										{
-											for (int y = 0; y < keyframeNumber; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->rotation.z = lKeyValue;
-											}
-											animationPart->rotation.z = lKeyValue;
-										}
-										else
-										{
-											int slices = keyframeNumber - (previousKeyframeNumber+1);
-											float span = (lKeyValue - previousAnimationPart->rotation.z);
-											
-											while (span >= 360.0f)
-												span -= 360.0f;
-											while (span < 0.0f)
-												span += 360.0f;
-
-											if (fabs(span) > 180.0f)
-												span -= 360.0f;
-
-											float deltaSlice = span / (slices + 1);
-											for (int y = 0; y < slices; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->rotation.z = previousAnimationPart->rotation.z + (deltaSlice * (y + 1));
-												sliceAnimationPart->rotationIsInterpolated[2] = true;
-											}
-
-											if (Sign(span) != Sign(lKeyValue))
-												animationPart->rotation.z = lKeyValue - 360.0f;
-											else
-												animationPart->rotation.z = lKeyValue;
-										}
-									}
-
-									previousKeyframeNumber = keyframeNumber;
-									previousAnimationPart = animationPart;
-								}
-
-								for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
-								{
-									CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-									CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-									sliceAnimationPart->rotation.z = previousAnimationPart->rotation.z;
-								}*/
-							}
-			  
-							lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
-							if (lAnimCurve)
-							{
-								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
-
-								for (int lCount = 0; lCount < numberKeyframes; lCount++)
-								{
-									FbxTime fbxTime;
-									fbxTime.SetFrame(lCount);
-									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-									animationPart->scale.x = lAnimCurve->Evaluate(fbxTime);
-
-									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-										animationPart->scaleIsInterpolated[0] = true;
-								}
-								/*CAnimationPart defaultAnimationPart;
-								defaultAnimationPart.scale.x = pNode->LclScaling.Get().mData[0];
-
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								int previousKeyframeNumber = -1;
-								CAnimationPart* previousAnimationPart = &defaultAnimationPart;
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-
-									CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-
-									if (keyframeNumber == (previousKeyframeNumber + 1))
-									{
-										animationPart->scale.x = lKeyValue;
-									}
-									else
-									{
-										if (lCount == 0)
-										{
-											for (int y = 0; y < keyframeNumber; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->scale.x = lKeyValue;
-											}
-											animationPart->scale.x = lKeyValue;
-										}
-										else
-										{
-											int slices = keyframeNumber - (previousKeyframeNumber+1);
-											float deltaSlice = (lKeyValue - previousAnimationPart->scale.x) / (slices + 1);
-											for (int y = 0; y < slices; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->scale.x = previousAnimationPart->scale.x + (deltaSlice * (y + 1));
-												sliceAnimationPart->scaleIsInterpolated[0] = true;
-											}
-
-											animationPart->scale.x = lKeyValue;
-										}
-									}
-
-									previousKeyframeNumber = keyframeNumber;
-									previousAnimationPart = animationPart;
-								}
-
-								for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
-								{
-									CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-									CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-									sliceAnimationPart->scale.x = previousAnimationPart->scale.x;
-								}*/
-							}
-							lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y);
-							if (lAnimCurve)
-							{
-								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
-
-								for (int lCount = 0; lCount < numberKeyframes; lCount++)
-								{
-									FbxTime fbxTime;
-									fbxTime.SetFrame(lCount);
-									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-									animationPart->scale.y = lAnimCurve->Evaluate(fbxTime);
-
-									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-										animationPart->scaleIsInterpolated[1] = true;
-								}
-								/*CAnimationPart defaultAnimationPart;
-								defaultAnimationPart.scale.y = pNode->LclScaling.Get().mData[1];
-
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								int previousKeyframeNumber = -1;
-								CAnimationPart* previousAnimationPart = &defaultAnimationPart;
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-
-									CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-
-									if (keyframeNumber == (previousKeyframeNumber + 1))
-									{
-										animationPart->scale.y = lKeyValue;
-									}
-									else
-									{
-										if (lCount == 0)
-										{
-											for (int y = 0; y < keyframeNumber; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->scale.y = lKeyValue;
-											}
-											animationPart->scale.y = lKeyValue;
-										}
-										else
-										{
-											int slices = keyframeNumber - (previousKeyframeNumber+1);
-											float deltaSlice = (lKeyValue - previousAnimationPart->scale.y) / (slices + 1);
-											for (int y = 0; y < slices; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->scale.y = previousAnimationPart->scale.y + (deltaSlice * (y + 1));
-												sliceAnimationPart->scaleIsInterpolated[1] = true;
-											}
-
-											animationPart->scale.y = lKeyValue;
-										}
-									}
-
-									previousKeyframeNumber = keyframeNumber;
-									previousAnimationPart = animationPart;
-								}
-
-								for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
-								{
-									CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-									CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-									sliceAnimationPart->scale.y = previousAnimationPart->scale.y;
-								}*/
-							}
-							lAnimCurve = pNode->LclScaling.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z);
-							if (lAnimCurve)
-							{
-								std::vector<int> keyIndexes = GetKeyframeIndexes(lAnimCurve);
-
-								for (int lCount = 0; lCount < numberKeyframes; lCount++)
-								{
-									FbxTime fbxTime;
-									fbxTime.SetFrame(lCount);
-									CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-									animationPart->scale.z = lAnimCurve->Evaluate(fbxTime);
-
-									if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
-										animationPart->scaleIsInterpolated[2] = true;
-								}
-								/*CAnimationPart defaultAnimationPart;
-								defaultAnimationPart.scale.z = pNode->LclScaling.Get().mData[2];
-
-								int lKeyCount = lAnimCurve->KeyGetCount();
-
-								int previousKeyframeNumber = -1;
-								CAnimationPart* previousAnimationPart = &defaultAnimationPart;
-
-								for(int lCount = 0; lCount < lKeyCount; lCount++)
-								{
-									float lKeyValue = static_cast<float>(lAnimCurve->KeyGetValue(lCount));
-									FbxTime lKeyTime  = lAnimCurve->KeyGetTime(lCount);
-									int keyframeNumber = lKeyTime.GetFrameCount();
-
-									CKeyframe* keyframe = GetAddKeyframe(keyframeNumber, animation);
-									CAnimationPart* animationPart = GetAddPart(joints[x]->name, keyframe);
-
-									if (keyframeNumber == (previousKeyframeNumber + 1))
-									{
-										animationPart->scale.z = lKeyValue;
-									}
-									else
-									{
-										if (lCount == 0)
-										{
-											for (int y = 0; y < keyframeNumber; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->scale.z = lKeyValue;
-											}
-											animationPart->scale.z = lKeyValue;
-										}
-										else
-										{
-											int slices = keyframeNumber - (previousKeyframeNumber+1);
-											float deltaSlice = (lKeyValue - previousAnimationPart->scale.z) / (slices + 1);
-											for (int y = 0; y < slices; y++)
-											{
-												CKeyframe* sliceKeyframe = GetAddKeyframe(previousKeyframeNumber + (y + 1), animation);
-												CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-												sliceAnimationPart->scale.z = previousAnimationPart->scale.z + (deltaSlice * (y + 1));
-												sliceAnimationPart->scaleIsInterpolated[2] = true;
-											}
-
-											animationPart->scale.z = lKeyValue;
-										}
-									}
-
-									previousKeyframeNumber = keyframeNumber;
-									previousAnimationPart = animationPart;
-								}
-
-								for (int y = (previousKeyframeNumber + 1); y < numberKeyframes; y++)
-								{
-									CKeyframe* sliceKeyframe = GetAddKeyframe(y, animation);
-									CAnimationPart* sliceAnimationPart = GetAddPart(joints[x]->name, sliceKeyframe);
-
-									sliceAnimationPart->scale.z = previousAnimationPart->scale.z;
-								}*/
-							}
-							break;
-						}
-					}
+					break;
 				}
 			}
 		}
@@ -14448,113 +14440,112 @@ void CObjToAn8Dlg::ParseFbxSkeletonRecursive(FbxNode* pNode, std::vector<CJoint*
 	if (nodeName.Find("_") == 0)
 		nodeName = nodeName.Mid(1);
 
+	FbxNodeAttribute::EType attributeType = FbxNodeAttribute::eNull;
 	if (pNode->GetNodeAttribute() != NULL)
+		attributeType = pNode->GetNodeAttribute()->GetAttributeType();
+
+	if ((attributeType == FbxNodeAttribute::eSkeleton) || (attributeType == FbxNodeAttribute::eNull)) // eNull is from XSI for some reason
 	{
-		FbxNodeAttribute::EType attributeType = pNode->GetNodeAttribute()->GetAttributeType();
-		if ((attributeType == FbxNodeAttribute::eSkeleton) || (attributeType == FbxNodeAttribute::eNull)) // eNull is from XSI for some reason
+		//FbxSkeleton* lSkeleton = (FbxSkeleton*) pNode->GetNodeAttribute();
+
+		//int skeletonType = lSkeleton->GetSkeletonType();
+		//if (lSkeleton->GetSkeletonType() == FbxSkeleton::eLimb)
 		{
-			//FbxSkeleton* lSkeleton = (FbxSkeleton*) pNode->GetNodeAttribute();
+			CString skeletonName;
+			if (pNode->GetNodeAttribute() != NULL)
+				skeletonName = pNode->GetNodeAttribute()->GetName();
 
-			//int skeletonType = lSkeleton->GetSkeletonType();
-			//if (lSkeleton->GetSkeletonType() == FbxSkeleton::eLimb)
+			FbxNode* parentNode = pNode->GetParent();
+			if ((nodeName == "TopJoint") || (parentNode != NULL))
 			{
-				CString skeletonName = pNode->GetNodeAttribute()->GetName();
-
-				FbxNode* parentNode = pNode->GetParent();
-				if ((nodeName == "TopJoint") || (parentNode != NULL))
+				if (nodeName.Find("TopJoint") == -1)
 				{
-					if ((nodeName == "TopJoint") || (parentNode->GetNodeAttribute() != NULL))
+					CJoint* joint = new CJoint();
+					joint->name = nodeName;
+
+					if (jointType == Absolute)
 					{
-						if (nodeName.Find("TopJoint") == -1)
+						joint->jointType = Absolute;
+						if (skeletalOverrides.find(nodeName) == skeletalOverrides.end())
 						{
-							CJoint* joint = new CJoint();
-							joint->name = nodeName;
-
-							if (jointType == Absolute)
-							{
-								joint->jointType = Absolute;
-								if (skeletalOverrides.find(nodeName) == skeletalOverrides.end())
-								{
-									position.x += lclTranslation[0];
-									position.y += lclTranslation[1];
-									position.z += lclTranslation[2];
-									
-									joint->positionAbsolute.x = position.x;
-									joint->positionAbsolute.y = position.y;
-									joint->positionAbsolute.z = position.z;
-								}
-								else
-								{
-									position.x = skeletalOverrides[nodeName].x;
-									position.y = skeletalOverrides[nodeName].y;
-									position.z = skeletalOverrides[nodeName].z;
-									
-									joint->positionAbsolute.x = position.x;
-									joint->positionAbsolute.y = position.y;
-									joint->positionAbsolute.z = position.z;
-								}
-							}
-							else if (jointType == Relative)
-							{
-								joint->jointType = Relative;
-								if (skeletalOverridesRelativeScale.find(nodeName) == skeletalOverridesRelativeScale.end())
-								{
-									joint->scaleRelative.x = lclScaling[0];
-									joint->scaleRelative.y = lclScaling[1];
-									joint->scaleRelative.z = lclScaling[2];
-
-									joint->rotationRelative.x = lclRotation[0];
-									joint->rotationRelative.y = lclRotation[1];
-									joint->rotationRelative.z = lclRotation[2];
-
-									joint->positionRelative.x = lclTranslation[0];
-									joint->positionRelative.y = lclTranslation[1];
-									joint->positionRelative.z = lclTranslation[2];
-								}
-								else
-								{
-									joint->scaleRelative.x = skeletalOverridesRelativeScale[nodeName].x;
-									joint->scaleRelative.y = skeletalOverridesRelativeScale[nodeName].y;
-									joint->scaleRelative.z = skeletalOverridesRelativeScale[nodeName].z;
-
-									joint->rotationRelative.x = skeletalOverridesRelativeRotation[nodeName].x;
-									joint->rotationRelative.y = skeletalOverridesRelativeRotation[nodeName].y;
-									joint->rotationRelative.z = skeletalOverridesRelativeRotation[nodeName].z;
-
-									joint->positionRelative.x = skeletalOverridesRelativePosition[nodeName].x;
-									joint->positionRelative.y = skeletalOverridesRelativePosition[nodeName].y;
-									joint->positionRelative.z = skeletalOverridesRelativePosition[nodeName].z;
-								}
-							}
-
-							joint->parent = parent;
-
-							if (parent != NULL)
-							{
-								parent->children.push_back(joint);
-							}
-
-							parent = joint;
-
-							joints.push_back(joint);
+							position.x += lclTranslation[0];
+							position.y += lclTranslation[1];
+							position.z += lclTranslation[2];
+							
+							joint->positionAbsolute.x = position.x;
+							joint->positionAbsolute.y = position.y;
+							joint->positionAbsolute.z = position.z;
 						}
-						/*else
+						else
 						{
-							if (skeletalOverrides.find(nodeName) == skeletalOverrides.end())
-							{
-								position.x += lclTranslation[0];
-								position.y += lclTranslation[1];
-								position.z += lclTranslation[2];
-							}
-							else
-							{
-								position.x = skeletalOverrides[nodeName].x;
-								position.y = skeletalOverrides[nodeName].y;
-								position.z = skeletalOverrides[nodeName].z;
-							}
-						}*/
+							position.x = skeletalOverrides[nodeName].x;
+							position.y = skeletalOverrides[nodeName].y;
+							position.z = skeletalOverrides[nodeName].z;
+							
+							joint->positionAbsolute.x = position.x;
+							joint->positionAbsolute.y = position.y;
+							joint->positionAbsolute.z = position.z;
+						}
 					}
+					else if (jointType == Relative)
+					{
+						joint->jointType = Relative;
+						if (skeletalOverridesRelativeScale.find(nodeName) == skeletalOverridesRelativeScale.end())
+						{
+							joint->scaleRelative.x = lclScaling[0];
+							joint->scaleRelative.y = lclScaling[1];
+							joint->scaleRelative.z = lclScaling[2];
+
+							joint->rotationRelative.x = lclRotation[0];
+							joint->rotationRelative.y = lclRotation[1];
+							joint->rotationRelative.z = lclRotation[2];
+
+							joint->positionRelative.x = lclTranslation[0];
+							joint->positionRelative.y = lclTranslation[1];
+							joint->positionRelative.z = lclTranslation[2];
+						}
+						else
+						{
+							joint->scaleRelative.x = skeletalOverridesRelativeScale[nodeName].x;
+							joint->scaleRelative.y = skeletalOverridesRelativeScale[nodeName].y;
+							joint->scaleRelative.z = skeletalOverridesRelativeScale[nodeName].z;
+
+							joint->rotationRelative.x = skeletalOverridesRelativeRotation[nodeName].x;
+							joint->rotationRelative.y = skeletalOverridesRelativeRotation[nodeName].y;
+							joint->rotationRelative.z = skeletalOverridesRelativeRotation[nodeName].z;
+
+							joint->positionRelative.x = skeletalOverridesRelativePosition[nodeName].x;
+							joint->positionRelative.y = skeletalOverridesRelativePosition[nodeName].y;
+							joint->positionRelative.z = skeletalOverridesRelativePosition[nodeName].z;
+						}
+					}
+
+					joint->parent = parent;
+
+					if (parent != NULL)
+					{
+						parent->children.push_back(joint);
+					}
+
+					parent = joint;
+
+					joints.push_back(joint);
 				}
+				/*else
+				{
+					if (skeletalOverrides.find(nodeName) == skeletalOverrides.end())
+					{
+						position.x += lclTranslation[0];
+						position.y += lclTranslation[1];
+						position.z += lclTranslation[2];
+					}
+					else
+					{
+						position.x = skeletalOverrides[nodeName].x;
+						position.y = skeletalOverrides[nodeName].y;
+						position.z = skeletalOverrides[nodeName].z;
+					}
+				}*/
 			}
 		}
 	}
@@ -15088,7 +15079,38 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 							float nz;
 							FbxVector4 tempVector;
 
-							if(leNormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+							if(leNormal->GetMappingMode() == FbxGeometryElement::eByControlPoint)
+							{
+								switch (leNormal->GetReferenceMode())
+								{
+								case FbxGeometryElement::eDirect:
+									nx = leNormal->GetDirectArray().GetAt(lControlPointIndex)[0];
+									ny = leNormal->GetDirectArray().GetAt(lControlPointIndex)[1];
+									nz = leNormal->GetDirectArray().GetAt(lControlPointIndex)[2];
+
+									tempVector = leNormal->GetDirectArray().GetAt(lControlPointIndex);
+									tempVector = matrix.MultR(tempVector);
+
+									polygonPoint->normalIndex = GetAddNormalIndex(normals, tempVector[0], tempVector[1], tempVector[2]);
+									break;
+								case FbxGeometryElement::eIndexToDirect:
+									{
+										int id = leNormal->GetIndexArray().GetAt(lControlPointIndex);
+										nx = leNormal->GetDirectArray().GetAt(id)[0];
+										ny = leNormal->GetDirectArray().GetAt(id)[1];
+										nz = leNormal->GetDirectArray().GetAt(id)[2];
+
+										tempVector = leNormal->GetDirectArray().GetAt(id);
+										tempVector = matrix.MultR(tempVector);
+
+										polygonPoint->normalIndex = GetAddNormalIndex(normals, tempVector[0], tempVector[1], tempVector[2]);
+									}
+									break;
+								default:
+									break; // other reference modes not shown here!
+								}
+							}
+							else if(leNormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
 							{
 								switch (leNormal->GetReferenceMode())
 								{
