@@ -14567,6 +14567,8 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 	if (pNode->GetNodeAttribute() != NULL)
 	{
 		CString nodeName = pNode->GetName();
+		if (nodeName == "Room0C")
+			nodeName = nodeName;
 
 		FbxNodeAttribute::EType attributeType = pNode->GetNodeAttribute()->GetAttributeType();
 		if (attributeType == FbxNodeAttribute::eMesh)
@@ -14575,10 +14577,6 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 			// scaling -> rotation -> translation
 			
 			FbxAMatrix matrix = pNode->EvaluateGlobalTransform();
-
-			FbxDouble3 scaling = matrix.GetS();
-			FbxDouble3 rotation = matrix.GetR();
-			FbxDouble3 translation = matrix.GetT();
 
 			// Apply geometric transformation (from 3ds max)
 			FbxAMatrix matrixGeo;
@@ -14590,6 +14588,10 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 			matrixGeo.SetS(lS);
 
 			matrix  = matrix  * matrixGeo;
+
+			FbxDouble3 scaling = matrix.GetS();
+			FbxDouble3 rotation = matrix.GetR();
+			FbxDouble3 translation = matrix.GetT();
 
 
 			if (pMesh->GetNode())
@@ -15078,6 +15080,8 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 							float ny;
 							float nz;
 							FbxVector4 tempVector;
+							FbxVector4 zeroVector;
+							FbxVector4 deltaNormal;
 
 							if(leNormal->GetMappingMode() == FbxGeometryElement::eByControlPoint)
 							{
@@ -15089,9 +15093,15 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 									nz = leNormal->GetDirectArray().GetAt(lControlPointIndex)[2];
 
 									tempVector = leNormal->GetDirectArray().GetAt(lControlPointIndex);
-									tempVector = matrix.MultR(tempVector);
+									tempVector = matrix.MultT(tempVector);
 
-									polygonPoint->normalIndex = GetAddNormalIndex(normals, tempVector[0], tempVector[1], tempVector[2]);
+									zeroVector = FbxVector4(0, 0, 0);
+									zeroVector = matrix.MultT(zeroVector);
+
+									deltaNormal = tempVector - zeroVector;
+									deltaNormal.Normalize();
+
+									polygonPoint->normalIndex = GetAddNormalIndex(normals, deltaNormal[0], deltaNormal[1], deltaNormal[2]);
 									break;
 								case FbxGeometryElement::eIndexToDirect:
 									{
@@ -15101,9 +15111,15 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 										nz = leNormal->GetDirectArray().GetAt(id)[2];
 
 										tempVector = leNormal->GetDirectArray().GetAt(id);
-										tempVector = matrix.MultR(tempVector);
+										tempVector = matrix.MultT(tempVector);
 
-										polygonPoint->normalIndex = GetAddNormalIndex(normals, tempVector[0], tempVector[1], tempVector[2]);
+										zeroVector = FbxVector4(0, 0, 0);
+										zeroVector = matrix.MultT(zeroVector);
+
+										deltaNormal = tempVector - zeroVector;
+										deltaNormal.Normalize();
+
+										polygonPoint->normalIndex = GetAddNormalIndex(normals, deltaNormal[0], deltaNormal[1], deltaNormal[2]);
 									}
 									break;
 								default:
@@ -15120,9 +15136,15 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 									nz = leNormal->GetDirectArray().GetAt(vertexId)[2];
 
 									tempVector = leNormal->GetDirectArray().GetAt(vertexId);
-									tempVector = matrix.MultR(tempVector);
+									tempVector = matrix.MultT(tempVector);
 
-									polygonPoint->normalIndex = GetAddNormalIndex(normals, tempVector[0], tempVector[1], tempVector[2]);
+									zeroVector = FbxVector4(0, 0, 0);
+									zeroVector = matrix.MultT(zeroVector);
+
+									deltaNormal = tempVector - zeroVector;
+									deltaNormal.Normalize();
+
+									polygonPoint->normalIndex = GetAddNormalIndex(normals, deltaNormal[0], deltaNormal[1], deltaNormal[2]);
 									break;
 								case FbxGeometryElement::eIndexToDirect:
 									{
@@ -15132,9 +15154,15 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 										nz = leNormal->GetDirectArray().GetAt(id)[2];
 
 										tempVector = leNormal->GetDirectArray().GetAt(id);
-										tempVector = matrix.MultR(tempVector);
+										tempVector = matrix.MultT(tempVector);
 
-										polygonPoint->normalIndex = GetAddNormalIndex(normals, tempVector[0], tempVector[1], tempVector[2]);
+										zeroVector = FbxVector4(0, 0, 0);
+										zeroVector = matrix.MultT(zeroVector);
+
+										deltaNormal = tempVector - zeroVector;
+										deltaNormal.Normalize();
+
+										polygonPoint->normalIndex = GetAddNormalIndex(normals, deltaNormal[0], deltaNormal[1], deltaNormal[2]);
 									}
 									break;
 								default:
