@@ -6173,12 +6173,9 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 					if ((animationPart->rotationIsInterpolated[0]) || (animationPart->rotationIsInterpolated[1]) || (animationPart->rotationIsInterpolated[2]))
 						fprintf(outFile, "#partisinterpolatedrotation %d %d %d\n", animationPart->rotationIsInterpolated[0], animationPart->rotationIsInterpolated[1], animationPart->rotationIsInterpolated[2]);
 
-					if ((animationPart->scale.x != 1) || (animationPart->scale.y != 1) || (animationPart->scale.z != 1))
-					{
-						fprintf(outFile, "#partscale %f %f %f\n", animationPart->scale.x, animationPart->scale.y, animationPart->scale.z);
-						if ((animationPart->scaleIsInterpolated[0]) || (animationPart->scaleIsInterpolated[1]) || (animationPart->scaleIsInterpolated[2]))
-							fprintf(outFile, "#partisinterpolatedscale %d %d %d\n", animationPart->scaleIsInterpolated[0], animationPart->scaleIsInterpolated[1], animationPart->scaleIsInterpolated[2]);
-					}
+					fprintf(outFile, "#partscale %f %f %f\n", animationPart->scale.x, animationPart->scale.y, animationPart->scale.z);
+					if ((animationPart->scaleIsInterpolated[0]) || (animationPart->scaleIsInterpolated[1]) || (animationPart->scaleIsInterpolated[2]))
+						fprintf(outFile, "#partisinterpolatedscale %d %d %d\n", animationPart->scaleIsInterpolated[0], animationPart->scaleIsInterpolated[1], animationPart->scaleIsInterpolated[2]);
 				}
 			}
 		}
@@ -14567,8 +14564,6 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 	if (pNode->GetNodeAttribute() != NULL)
 	{
 		CString nodeName = pNode->GetName();
-		if (nodeName == "Room0C")
-			nodeName = nodeName;
 
 		FbxNodeAttribute::EType attributeType = pNode->GetNodeAttribute()->GetAttributeType();
 		if (attributeType == FbxNodeAttribute::eMesh)
