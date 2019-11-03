@@ -190,12 +190,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "GoldenEyeVault.com"
             VALUE "FileDescription", "Obj2An8 Convertor"
-            VALUE "FileVersion", "1.0.0.4"
+            VALUE "FileVersion", "1.0.0.5"
             VALUE "InternalName", "ObjToAn8.exe"
             VALUE "LegalCopyright", "(c) GoldenEyeVault.com  All rights reserved."
             VALUE "OriginalFilename", "ObjToAn8.exe"
             VALUE "ProductName", "ObjToAn8"
-            VALUE "ProductVersion", "1.0.0.4"
+            VALUE "ProductVersion", "1.0.0.5"
         END
     END
     BLOCK "VarFileInfo"
