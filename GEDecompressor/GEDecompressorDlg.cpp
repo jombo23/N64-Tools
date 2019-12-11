@@ -4376,6 +4376,8 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 					ToUpdateProgressBar(dlg, x, romSize);
 					if ((GameBuffer[x] == 0x52) && (GameBuffer[x+1] == 0x4E) && (GameBuffer[x+2] == 0x43) && (GameBuffer[x+3] == 0x02))
 					{
+						if (x == 0x00090f1c)
+							continue;
 						CString tempLocation;
 						int fileSizeCompressed = -1;
 						CString type = "";
@@ -4468,72 +4470,79 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 			if (ReadROM(gameNameStr, strROMPath, GameBuffer, romSize, folderPath))
 			{
 				ReceivedNewROM(dlg, strROMPath, GameBuffer, romSize);
-				for (unsigned long x = 0x0; x < (romSize - 0x100); x++)
-				{	
+					
+				int totalSize = (0x0002EFD8 - 0x0002C794) + (0x00038B64 - 0x0003889C);
+
+				for (int x = 0x0003889C; x < 0x00038B64; x+=4)
+				{
 					if (dlg->killThread)
 						break;
-					ToUpdateProgressBar(dlg, x, romSize);
-					
-					for (int x = 0x0003889C; x < 0x00038B64; x+=4)
+
+					ToUpdateProgressBar(dlg, (x - 0x00038B64), totalSize);
+
+					unsigned long address = CharArrayToLong(&GameBuffer[x]);
+					unsigned long addressNext = CharArrayToLong(&GameBuffer[x+4]);
+					CString tempLocation;
+					int fileSizeCompressed = addressNext - address;
+					CString type = "Nagano";
+					int fileSizeUncompressed = DecompressNaganoSpot(&naganocompressed, genText, address, GameBuffer, romSize, game, folderPath, "", -1, tempLocation, fileSizeCompressed, type);
+					if (fileSizeUncompressed > 0)
 					{
-						unsigned long address = CharArrayToLong(&GameBuffer[x]);
-						unsigned long addressNext = CharArrayToLong(&GameBuffer[x+4]);
-						CString tempLocation;
-						int fileSizeCompressed = addressNext - address;
-						CString type = "Nagano";
-						int fileSizeUncompressed = DecompressNaganoSpot(&naganocompressed, genText, address, GameBuffer, romSize, game, folderPath, "", -1, tempLocation, fileSizeCompressed, type);
-						if (fileSizeUncompressed > 0)
-						{
-							AddRowData(dlg, x, fileSizeCompressed, fileSizeUncompressed, "", tempLocation, type);
-						}
+						AddRowData(dlg, address, fileSizeCompressed, fileSizeUncompressed, "", tempLocation, type);
 					}
+				}
 
-					GECompression compressed;
-					compressed.SetPath(dlg->directory);
-					compressed.SetGame(RESIDENTEVIL2);
-					for (int x = 0x0002C794; x < 0x0002EFD8; x+=4)
+				GECompression compressed;
+				compressed.SetPath(dlg->directory);
+				compressed.SetGame(RESIDENTEVIL2);
+
+				for (int x = 0x0002C794; x < 0x0002EFD8; x+=4)
+				{
+					if (dlg->killThread)
+						break;
+
+					ToUpdateProgressBar(dlg, ((x - 0x0002C794) + (0x00038B64 - 0x0003889C)), totalSize);
+
+					unsigned char iscompressed = GameBuffer[x];
+					unsigned long address = CharArrayToLong(&GameBuffer[x]) & 0xFFFFFF;
+					unsigned long addressNext = CharArrayToLong(&GameBuffer[x+4]) & 0xFFFFFF;
+
+					if (iscompressed == 0x00)
 					{
-						unsigned char iscompressed = GameBuffer[x];
-						unsigned long address = CharArrayToLong(&GameBuffer[x]) & 0xFFFFFF;
-						unsigned long addressNext = CharArrayToLong(&GameBuffer[x+4]) & 0xFFFFFF;
+						CString tempLocation;
+						CString type = "bin";
 
-						if (iscompressed == 0x00)
+						tempLocation.Format("%s%06X.bin", folderPath, address);
+
+						int decompressedSize = addressNext - address;
+						WriteResult(genText, tempLocation, &GameBuffer[address], decompressedSize, false);
+
+						
+						AddRowData(dlg, address, decompressedSize, decompressedSize, "", tempLocation, type);
+					}
+					else if (iscompressed == 0x80)
+					{
+						if (GameBuffer[address] == 0x00)
 						{
 							CString tempLocation;
-							CString type = "bin";
-
-							tempLocation.Format("%s%06X.bin", folderPath, address);
-
-							int decompressedSize = addressNext - address;
-							WriteResult(genText, tempLocation, &GameBuffer[address], decompressedSize, false);
-
-							
-							AddRowData(dlg, address, decompressedSize, decompressedSize, "", tempLocation, type);
-						}
-						else if (iscompressed == 0x80)
-						{
-							if (GameBuffer[address] == 0x00)
+							int fileSizeCompressed = -1;
+							CString type = "Nagano";
+							int fileSizeUncompressed = DecompressNaganoSpot(&naganocompressed, genText, address, GameBuffer, romSize, game, folderPath, "", -1, tempLocation, fileSizeCompressed, type);
+							if (fileSizeUncompressed > 0)
 							{
-								CString tempLocation;
-								int fileSizeCompressed = -1;
-								CString type = "Nagano";
-								int fileSizeUncompressed = DecompressNaganoSpot(&naganocompressed, genText, address, GameBuffer, romSize, game, folderPath, "", -1, tempLocation, fileSizeCompressed, type);
-								if (fileSizeUncompressed > 0)
-								{
-									AddRowData(dlg, x, fileSizeCompressed, fileSizeUncompressed, "", tempLocation, type);
-								}
+								AddRowData(dlg, address, fileSizeCompressed, fileSizeUncompressed, "", tempLocation, type);
 							}
-							else if (GameBuffer[address] == 0x80)
+						}
+						else if (GameBuffer[address] == 0x80)
+						{
+							CString tempLocation;
+							int fileSizeCompressed = -1;
+							CString type = "zlb";
+							int fileSizeUncompressed = 0;
+							fileSizeUncompressed = DecompressZLibSpot(&compressed, genText, address+4, GameBuffer, romSize, RESIDENTEVIL2, folderPath, "", -1, tempLocation, fileSizeCompressed, type, address, false, 0);
+							if (fileSizeUncompressed > 0)
 							{
-								CString tempLocation;
-								int fileSizeCompressed = -1;
-								CString type = "zlb";
-								int fileSizeUncompressed = 0;
-								fileSizeUncompressed = DecompressZLibSpot(&compressed, genText, address+4, GameBuffer, romSize, RESIDENTEVIL2, folderPath, "", -1, tempLocation, fileSizeCompressed, type, address, false, 0);
-								if (fileSizeUncompressed > 0)
-								{
-									AddRowData(dlg, x, fileSizeCompressed, fileSizeUncompressed, "", tempLocation, type);
-								}
+								AddRowData(dlg, address, fileSizeCompressed, fileSizeUncompressed, "", tempLocation, type);
 							}
 						}
 					}
@@ -4779,6 +4788,8 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 
 				for (int x = start; x < end; x+=0xC)
 				{
+					CString internalName;
+					internalName.Format("%04X", (x - start) / 0xC);
 					/*# Entry format:	0xC each 
 					# 0x0	4	offset to data from end of table [1B2C6C]; compressed if negative 
 					# 0x4	2	-1 if not present 
@@ -4805,10 +4816,10 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 
 						unsigned long expectedSize = CharArrayToLong(&GameBuffer[offset+4]);
 
-						int fileSizeUncompressed = DecompressVPK0Spot(&vpk0compressed, genText, offset+8, GameBuffer, romSize, game, folderPath, "", decompressedSize, tempLocation, compressedSize, type);
+						int fileSizeUncompressed = DecompressVPK0Spot(&vpk0compressed, genText, offset+8, GameBuffer, romSize, game, folderPath, internalName, decompressedSize, tempLocation, compressedSize, type);
 						if (fileSizeUncompressed > 0)
 						{
-							AddRowData(dlg, offset, compressedSize, decompressedSize, "", tempLocation, type);
+							AddRowData(dlg, offset, compressedSize, decompressedSize, internalName, tempLocation, type);
 						}
 					}
 					else
@@ -4821,11 +4832,11 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 						CString tempLocation;
 						CString type = "bin";
 
-						tempLocation.Format("%s%06X.bin", folderPath, offset);
+						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
 
 						WriteResult(genText, tempLocation, &GameBuffer[offset], decompressedSize, false);
 
-						AddRowData(dlg, offset, compressedSize, decompressedSize, "", tempLocation, type);
+						AddRowData(dlg, offset, compressedSize, decompressedSize, internalName, tempLocation, type);
 					}
 				}
 				
