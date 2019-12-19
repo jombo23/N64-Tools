@@ -1,0 +1,741 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\CxImage">
+      <UniqueIdentifier>{efe91d2c-f3ad-4943-a6dc-3967557b4236}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\MathGeoLib">
+      <UniqueIdentifier>{2d1b5f99-86c4-4f1e-912d-6fbcda17fb33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\LibAn8">
+      <UniqueIdentifier>{a1bfc5b2-bb48-4f67-9228-19e33b79e211}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\CxImage">
+      <UniqueIdentifier>{5cc823c4-5a29-4a2e-a025-7440e0d9ff5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MathGeoLib">
+      <UniqueIdentifier>{2677d77d-ac55-488e-85dc-c04e16e3b010}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\LibAn8">
+      <UniqueIdentifier>{bcf62f89-e999-453f-b372-b9885e5c9ba8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Animation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationPart.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Bone.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorQuadruplet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorTriplet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CustomCommandLineInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Group.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Joint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="JointWeight.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Keyframe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MaterialFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Normal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NullableClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NullableFloat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NullableString.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjToAn8.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjToAn8Dlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PolygonPoint.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PolygonSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StartupParameters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UVCoordinate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VerticeColor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximabmp.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximadsp.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximaenc.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\xImage.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximagif.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximahist.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximainfo.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximaint.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximalpha.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximalyr.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximapal.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximapng.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximasel.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximath.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximatran.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\ximawnd.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="CxImage\xmemfile.cpp">
+      <Filter>Source Files\CxImage</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\AABB.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\BitOps.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\Capsule.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\Circle.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Time\Clock.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\float2.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\float3.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\float3x3.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\float3x4.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\float4.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\float4x4.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\Frustum.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Algorithm\Random\LCG.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\Line.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\LineSegment.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\MathFunc.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\MathLog.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\MathOps.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\OBB.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\Plane.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\Polygon.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\Polyhedron.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\Polynomial.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\Quat.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\Ray.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\Sphere.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\SSEMath.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Math\TransformOps.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\Triangle.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MathGeoLib\Geometry\TriangleMesh.cpp">
+      <Filter>Source Files\MathGeoLib</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Attribute.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Bone.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8BooleanKey.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Camera.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Controller.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Cube.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Cylinder.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Description.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Dof.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Element.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Environment.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Face.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8FaceIndice.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Figure.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8FigureElement.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8File.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Film.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8FloatKey.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Group.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Header.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Image.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Influence.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8JointAngle.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Light.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Lighting.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Material.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Mesh.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8MorphOffset.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8MorphOffsets.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8MorphTarget.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8NamedObject.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Null.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Object.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8ObjectElement.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8PointKey.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8QKey.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Scene.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Sequence.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Sphere.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8TexGen.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Texture.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Track.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8UtilVector.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8VertexWeight.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8Weights.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\An8WeightValue.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\AN8X.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\AN8X_Cube.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\AN8X_Cylinder.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\AN8X_Math.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\AN8X_SkinnedMeshHelper.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\AN8X_Sphere.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\AN8XMath_Matrix.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+    <ClCompile Include="liban8\AN8XMath_Quaternion.cpp">
+      <Filter>Source Files\LibAn8</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Animation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationPart.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Bone.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorQuadruplet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorTriplet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomCommandLineInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Group.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Joint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="JointWeight.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Keyframe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Normal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NullableClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NullableFloat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NullableString.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjToAn8.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjToAn8Dlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PolygonPoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PolygonSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StartupParameters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="UVCoordinate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VerticeColor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\stdint.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\xfile.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\ximabmp.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\ximacfg.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\ximadef.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\xImage.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\ximagif.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\ximaiter.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\ximapng.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\ximatga.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\ximath.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\xiofile.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="CxImage\xmemfile.h">
+      <Filter>Header Files\CxImage</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\AABB.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\AABB2D.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\assume.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\BitOps.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\Capsule.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\Circle.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Time\Clock.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\Complex.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\CoordinateAxisConvention.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\FixedPoint.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\float2.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\float3.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\float3x3.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\float3x4.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\float4.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\float4_neon.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\float4_sse.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\float4x4.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\float4x4_neon.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\float4x4_sse.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\FloatCmp.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\Frustum.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\GeometryAll.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\GeomType.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\HitInfo.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\KDTree.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Algorithm\Random\LCG.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\Line.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\LineSegment.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\MathAll.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\MathBuildConfig.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\MathConstants.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\MathFunc.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\MathGeoLib.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\MathGeoLibFwd.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\MathLog.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\MathNamespace.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\MathTypes.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\MatrixProxy.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\myassert.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\OBB.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\PBVolume.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\Plane.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\Polygon.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\Polyhedron.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\Polynomial.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\QuadTree.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\Quat.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\quat_simd.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\Ray.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\Rect.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\Reinterpret.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\Sphere.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\sse_mathfun.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\SSEMath.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Math\TransformOps.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\Triangle.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MathGeoLib\Geometry\TriangleMesh.h">
+      <Filter>Header Files\MathGeoLib</Filter>
+    </ClInclude>
+    <ClInclude Include="liban8\An8Loader.h">
+      <Filter>Header Files\LibAn8</Filter>
+    </ClInclude>
+    <ClInclude Include="liban8\AN8X.h">
+      <Filter>Header Files\LibAn8</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\ObjToAn8.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ObjToAn8.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\ObjToAn8.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+</Project>

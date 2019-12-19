@@ -7,6 +7,7 @@
 #include "ObjToAn8Dlg.h"
 #include "MathGeoLib.h"
 #include <regex>
+#include <functional>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -5224,7 +5225,7 @@ void CObjToAn8Dlg::WriteAssimpMesh(aiScene* scene, aiMesh* mesh, bool foundNorma
 }
 
 void CObjToAn8Dlg::WriteAssimpFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter)
+		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, CString extensionWrite)
 {
 	Assimp::Exporter exporter;
 
@@ -5235,11 +5236,11 @@ void CObjToAn8Dlg::WriteAssimpFile(CString outputFile, std::vector<CVerticeColor
 
 	for (int x = 0; x < exporterCount; x++)
 	{
-		exportFormatDesc = exporter.GetExportFormatDescription(0);
+		exportFormatDesc = exporter.GetExportFormatDescription(x);
 		CString extension;
 		extension = exportFormatDesc->fileExtension;
 
-		if (extension.MakeLower() == "dae")
+		if (extension.MakeLower() == extensionWrite)
 		{
 			break;
 		}
@@ -8179,7 +8180,7 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 		WriteOwnDaeFile(outputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
 			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter);
 		//WriteAssimpFile(outputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
-			//specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter);
+			//specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter, extensionWrite.MakeLower());
 	}
 	#ifdef FBXSDK_NEW_API
 	else if (extensionWrite.MakeLower() == "fbx")
@@ -8889,10 +8890,10 @@ const char* CObjToAn8Dlg::GetMaterialTextureName(const FbxSurfaceMaterial * pMat
 		const FbxProperty lProperty = pMaterial->FindProperty(pPropertyName);
         if (lProperty.IsValid())
         {
-            const int lTextureCount = lProperty.GetSrcObjectCount(FbxFileTexture::ClassId);
+            const int lTextureCount = lProperty.GetSrcObjectCount<FbxFileTexture>();
             if (lTextureCount)
             {
-                const FbxFileTexture* lTexture = lProperty.GetSrcObject(FBX_TYPE(FbxFileTexture), 0);
+                const FbxFileTexture* lTexture = lProperty.GetSrcObject<FbxFileTexture>(0);
 				const char* fileName = lTexture->GetFileName();
 				return fileName;
             }
@@ -9140,22 +9141,22 @@ bool CObjToAn8Dlg::ReadFbxFile(CString inputFile, std::vector<CVerticeColor*>& v
 				MessageBox(errorString);
 		}
 
-		int animationStackCount = pScene->GetSrcObjectCount(FBX_TYPE(FbxAnimStack));
+		int animationStackCount = pScene->GetSrcObjectCount<FbxAnimStack>();
 		//for (int i = 0; i < animationStackCount; i++)
 		if (animationStackCount > 0)
 		{
 			for (int stack = 0; stack < animationStackCount; stack++)
 			{
-				FbxAnimStack* lAnimStack = FbxCast<FbxAnimStack>(pScene->GetSrcObject(FBX_TYPE(FbxAnimStack), stack));
+				FbxAnimStack* lAnimStack = pScene->GetSrcObject<FbxAnimStack>(stack);
 
 				CString name = lAnimStack->GetName();
 
-				int nbAnimLayers = lAnimStack->GetMemberCount(FBX_TYPE(FbxAnimLayer));
+				int nbAnimLayers = lAnimStack->GetMemberCount<FbxAnimLayer>();
 
 				if (nbAnimLayers > 0)
 				{
 					// TODO maybe later do multi-layer
-					FbxAnimLayer* lAnimLayer = lAnimStack->GetMember(FBX_TYPE(FbxAnimLayer), 0);
+					FbxAnimLayer* lAnimLayer = lAnimStack->GetMember<FbxAnimLayer>(0);
 					CString animLayerName = lAnimLayer->GetName();
 					
 					ParseFbxCameraRecursive(lAnimLayer, pScene->GetRootNode(), joints, animations);

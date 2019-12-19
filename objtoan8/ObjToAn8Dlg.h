@@ -3,7 +3,9 @@
 //
 
 #pragma once
+#if (_MSC_VER == 1500)
 #include <vld.h> 
+#endif
 
 #include "afxwin.h"
 #include <vector>
@@ -126,7 +128,7 @@ public:
 	void WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles,  std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
 		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter);
 	void WriteAssimpFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles,  std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter);
+		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, CString extensionWrite);
 
 	CString GetRotationAndTruncateToEpsilonString(float rotation);
 	CString GetTranslationToEpsilonString(float translation);
