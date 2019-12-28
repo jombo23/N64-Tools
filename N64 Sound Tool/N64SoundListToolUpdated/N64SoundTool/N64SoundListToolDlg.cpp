@@ -1523,6 +1523,7 @@ void CN64SoundListToolDlg::UpdateSamplingRateSelection()
 
 void CN64SoundListToolDlg::UpdateSamplingRateKeyBaseList()
 {
+
 	CString tempStr;
 	mSamplingRate.GetWindowText(tempStr);
 	int samplingRate = atoi(tempStr);
@@ -7721,7 +7722,8 @@ void CN64SoundListToolDlg::OnBnClickedExportctltbl()
 		if (statusFileOpen2 == FALSE)
 			return;
 
-		n64AudioLibrary.WriteAudioToFile(alBankCurrent, m_svFileCtl.GetPathName(), m_svFileTbl.GetPathName());
+		std::vector<ALBank*> alBanks = GetCombinedActiveBanks();
+		n64AudioLibrary.WriteAudioToFile(alBanks, m_svFileCtl.GetPathName(), m_svFileTbl.GetPathName());
 
 		/*int sizeCtl = n64AudioLibrary.GetSizeFile(m_svFileCtl.GetPathName());
 		unsigned char* testCtl = new unsigned char[sizeCtl];
@@ -7757,6 +7759,89 @@ void CN64SoundListToolDlg::OnBnClickedExportctltbl()
 	}
 }
 
+std::vector<ALBank*> CN64SoundListToolDlg::GetCombinedActiveBanks()
+{
+	std::vector<ALBank*> alBanks;
+	if ((alBankCurrent->soundBankFormat == STANDARDFORMAT) || (alBankCurrent->soundBankFormat == STANDARDFORMATRAWALLOWED) || (alBankCurrent->soundBankFormat == KONAMICTL) || (alBankCurrent->soundBankFormat == KONAMI8CTL))
+	{
+		for (int x = 0; x < results.size(); x++)
+		{
+			if (results[x].bank == alBankCurrent)
+			{
+				bool isRun = false;
+				if (((x + 1) < results.size()) && (results[x + 1].bank != NULL))
+				{
+					if (results[x + 1].bank->subBank == (results[x].bank->subBank + 1))
+					{
+						isRun = true;
+					}
+				}
+
+				if ((x > 0) && (results[x - 1].bank != NULL))
+				{
+					if (results[x - 1].bank->subBank == (results[x].bank->subBank - 1))
+					{
+						isRun = true;
+					}
+				}
+
+				if (isRun)
+				{
+					int startRun = x;
+					int endRun = x;
+
+					int currentRunValue = results[x].bank->subBank;
+					while (startRun > 0)
+					{
+						int testSpot = startRun - 1;
+						if (results[testSpot].bank->subBank == NULL)
+							break;
+						else if (results[testSpot].bank->subBank == (currentRunValue - 1))
+						{
+							startRun = testSpot;
+							currentRunValue = results[testSpot].bank->subBank;
+						}
+						else
+							break;
+					}
+
+					currentRunValue = results[x].bank->subBank;
+					while ((endRun + 1) < results.size())
+					{
+						int testSpot = endRun + 1;
+						if (results[testSpot].bank->subBank == NULL)
+							break;
+						else if (results[testSpot].bank->subBank == (currentRunValue + 1))
+						{
+							endRun = testSpot;
+							currentRunValue = results[testSpot].bank->subBank;
+						}
+						else
+							break;
+					}
+
+					for (int y = startRun; y <= endRun; y++)
+					{
+						alBanks.push_back(results[y].bank);
+					}
+				}
+				else
+				{
+					alBanks.push_back(alBankCurrent);
+				}
+
+				break;
+			}
+		}
+	}
+	else
+	{
+		alBanks.push_back(alBankCurrent);
+	}
+
+	return alBanks;
+}
+
 void CN64SoundListToolDlg::OnBnClickedInjectplace()
 {
 	if ((alBankCurrent != NULL) && (romSize > 0))
@@ -7765,6 +7850,8 @@ void CN64SoundListToolDlg::OnBnClickedInjectplace()
 		if (bank == -1)
 			return;
 
+		std::vector<ALBank*> alBanks = GetCombinedActiveBanks();
+
 		unsigned char* ctl = NULL;
 		unsigned char* tbl = NULL;
 		unsigned char* ctl2 = NULL;
@@ -7772,7 +7859,22 @@ void CN64SoundListToolDlg::OnBnClickedInjectplace()
 		int tblSize = 0;
 		int ctlSize2 = 0;
 		if ((alBankCurrent->soundBankFormat == STANDARDFORMAT) || (alBankCurrent->soundBankFormat == STANDARDFORMATRAWALLOWED) || (alBankCurrent->soundBankFormat == KONAMICTL) || (alBankCurrent->soundBankFormat == KONAMI8CTL))
-			n64AudioLibrary.WriteAudio(alBankCurrent, ctl, ctlSize, tbl, tblSize);
+		{
+			n64AudioLibrary.WriteAudio(alBanks, ctl, ctlSize, tbl, tblSize);
+
+			/*ALBank* bank2 = n64AudioLibrary.ReadAudio(ctl, ctl, ctlSize, 0, tbl, 0, 0xFFFFFFFF, 0);
+			CString errors = n64AudioLibrary.CompareALBanks(alBanks[0], bank2);
+
+			ALBank* bank3 = n64AudioLibrary.ReadAudio(ctl, ctl, ctlSize, 0, tbl, 0, 0xFFFFFFFF, 1);
+			errors = n64AudioLibrary.CompareALBanks(alBanks[1], bank3);
+
+			ALBank* bank4 = n64AudioLibrary.ReadAudio(ctl, ctl, ctlSize, 0, tbl, 0, 0xFFFFFFFF, 2);
+			errors = n64AudioLibrary.CompareALBanks(alBanks[2], bank4);
+
+			ALBank* bank5 = n64AudioLibrary.ReadAudio(ctl, ctl, ctlSize, 0, tbl, 0, 0xFFFFFFFF, 3);
+			errors = n64AudioLibrary.CompareALBanks(alBanks[3], bank5);
+			errors = errors;*/
+		}
 		else if ((alBankCurrent->soundBankFormat == TUROKFORMAT)  || (alBankCurrent->soundBankFormat == STANDARDRNCCOMPRESSED)  || (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED)|| (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED))
 		{
 			MessageBox("Sorry, no encoding yet for MIO0 format");
@@ -7975,7 +8077,16 @@ void CN64SoundListToolDlg::OnBnClickedInjectplace()
 		}
 		else
 		{
-			if (n64AudioLibrary.InjectCtlTblIntoROMArrayInPlace(ROM, ctl, ctlSize, tbl, tblSize, results[bank].ctlOffset, results[bank].tblOffset, results[bank].ctlSize, results[bank].tblSize, NULL, 0, 0, 0))
+			ctlTblResult result;
+			for (int x = 0; x < results.size(); x++)
+			{
+				if (alBanks[0] == results[x].bank)
+				{
+					result = results[x];
+					break;
+				}
+			}
+			if (n64AudioLibrary.InjectCtlTblIntoROMArrayInPlace(ROM, ctl, ctlSize, tbl, tblSize, result.ctlOffset, result.tblOffset, result.ctlSize, result.tblSize, NULL, 0, 0, 0))
 			{
 				/*for (int x = (results[bank].ctlOffset + ctlSize); x < (results[bank].ctlOffset + results[bank].ctlSize); x++)
 				{

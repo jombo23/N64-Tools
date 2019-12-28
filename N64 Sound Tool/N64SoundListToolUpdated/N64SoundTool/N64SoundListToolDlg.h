@@ -301,4 +301,5 @@ public:
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	afx_msg void OnBnClickedButtonplaysnd2();
 	CButton m_playLoopedButton;
+	std::vector<ALBank*> GetCombinedActiveBanks();
 };

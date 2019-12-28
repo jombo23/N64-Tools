@@ -341,6 +341,8 @@ struct ALBank
 	unsigned long countSfx;
 	ALWave** alSfx;
 
+	int subBank;
+
 	ALBank()
 	{
 		count = 0;
@@ -355,6 +357,7 @@ struct ALBank
 		eadPercussion = NULL;
 		countSfx = 0;
 		alSfx = NULL;
+		subBank = 0;
 	}
 };
 
@@ -468,8 +471,9 @@ public:
 	static ALBank* ReadRNXAudio(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber);
 	static ALBank* ReadAudioN64PtrWavetableV1(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioTurok(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankTrueOffset, unsigned long mask, unsigned char* ROM, int bankNumber);
-	static void UpdateAudioOffsets(ALBank*& alBank);
-	static void WriteAudio(ALBank*& alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize);
+	static void UpdateAudioOffsets(ALBank* alBank);
+	static void UpdateAudioOffsets(std::vector<ALBank*> alBanks);
+	static void WriteAudio(std::vector<ALBank*>, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize);
 	static void WriteAudioConker(ALBank*& alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize, int ctlOffsetPartTwo, unsigned char*& ctl2, int& ctlSize2);
 	static void WriteKonamiADSR(unsigned char* ROM, ALBank*& alBank, unsigned long instrumentOffset, unsigned long endInstrumentOffset, unsigned long startDrumOffset, unsigned long endDrumOffset);
 	static void WriteKonami8ADSR(unsigned char* ROM, ALBank*& alBank, unsigned long instrumentOffset, unsigned long endInstrumentOffset, unsigned long startDrumOffset, unsigned long endDrumOffset);
@@ -483,7 +487,8 @@ public:
 	static void WriteAudioStarFox(unsigned char* ROM, int romSize, unsigned long offsetZeldaCtlTable, unsigned long offsetZeldaTblTable, unsigned long startZeldaCtlData, unsigned long startZeldaTblData, std::vector<ctlTblResult>& results, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize, bool isCompressedZeldaCtlTblTables, unsigned long compressedZeldaCtlTblTableStart, unsigned long compressedZeldaCtlTblTableEnd);
 	static void WriteAudioZelda(unsigned char* ROM, int romSize, unsigned long offsetZeldaCtlTable, unsigned long offsetZeldaTblTable, unsigned long startZeldaCtlData, unsigned long startZeldaTblData, std::vector<ctlTblResult>& results, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize, bool isCompressedZeldaCtlTblTables, unsigned long compressedZeldaCtlTblTableStart, unsigned long compressedZeldaCtlTblTableEnd);
 	static void WriteAudioSuperMario(std::vector<ctlTblResult>& results, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize);
-	static void WriteAudioToFile(ALBank*& alBank, CString outFileNameCtl, CString outFileNameTbl);
+	static void WriteAudioToFile(ALBank* alBank, CString outFileNameCtl, CString outFileNameTbl);
+	static void WriteAudioToFile(std::vector<ALBank*> alBanks, CString outFileNameCtl, CString outFileNameTbl);
 	static void WriteAudioN64PtrWavetableV2(ALBank*& alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize);
 	static void WriteAudioN64PtrWavetableV2Blitz(CString mainFolder, ALBank*& alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize);
 	static void WriteAudioN64PtrWavetableV2Yay0(CString mainFolder, ALBank*& alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize);
@@ -495,6 +500,13 @@ public:
 	static bool ReplaceSfxWithWavData(ALBank*& alBank, int sound, CString rawWavFileName, unsigned long& samplingRate, bool newType, bool decode8Only, bool samePred);
 	static CString CompareALBanks(ALBank* alBank1, ALBank* alBank2);
 	static CString CompareALInstrument(ALInst* alInst1, ALInst* alInst2);
+	static CString CompareALSound(ALSound* alSound1, ALSound* alSound2);
+	static CString CompareALEnv(ALEnv* alEnv1, ALEnv* alEnv2);
+	static CString CompareALKey(ALKey* alKey1, ALKey* alKey2);
+	static CString CompareALTbl(ALWave* alWave1, ALWave* alWave2, bool checkBase = false);
+	static CString CompareALWav(ALWave* alWave1, ALWave* alWave2);
+	static CString CompareALLoop(ALWave* alWave1, ALWave* alWave2);
+	static CString CompareALBook(ALWave* alWave1, ALWave* alWave2);
 	static bool ExtractRawSound(CString mainFolder, ALBank* alBank, int instrument, int sound, CString outputFile, unsigned long samplingRate, byte primSel, bool halfSamplingRate);
 	static bool ExtractLoopSound(CString mainFolder, ALBank* alBank, int instrument, int sound, CString outputFile, unsigned long samplingRate, byte primSel, bool halfSamplingRate);
 	static bool ExtractPercussion(CString mainFolder, ALBank* alBank, int sound, CString outputFile, unsigned long samplingRate, bool halfSamplingRate);
