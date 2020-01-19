@@ -4348,6 +4348,46 @@ void CObjToAn8Dlg::RenameMaterials(std::vector<CVerticeColor*>& verticeColors, s
 						if (material->name.Find("CullBoth") == -1) // handle if in bmp name
 							material->name += "CullBoth";
 					}
+					if (originalName.Find("CullFront") != -1)
+					{
+						if (material->name.Find("CullFront") == -1) // handle if in bmp name
+							material->name += "CullFront";
+					}
+					if (originalName.Find("MirrorS") != -1)
+					{
+						if (material->name.Find("MirrorS") == -1) // handle if in bmp name
+							material->name += "MirrorS";
+					}
+					if (originalName.Find("ClampS") != -1)
+					{
+						if (material->name.Find("ClampS") == -1) // handle if in bmp name
+							material->name += "ClampS";
+					}
+					if (originalName.Find("MirrorT") != -1)
+					{
+						if (material->name.Find("MirrorT") == -1) // handle if in bmp name
+							material->name += "MirrorT";
+					}
+					if (originalName.Find("ClampT") != -1)
+					{
+						if (material->name.Find("ClampT") == -1) // handle if in bmp name
+							material->name += "ClampT";
+					}
+					if (originalName.Find("TextureLOD") != -1)
+					{
+						if (material->name.Find("TextureLOD") == -1) // handle if in bmp name
+							material->name += "TextureLOD";
+					}
+					if (originalName.Find("TextureNoMipmap") != -1)
+					{
+						if (material->name.Find("TextureNoMipmap") == -1) // handle if in bmp name
+							material->name += "TextureNoMipmap";
+					}
+					if (originalName.Find("TexturePass") != -1)
+					{
+						if (material->name.Find("TexturePass") == -1) // handle if in bmp name
+							material->name += "TexturePass";
+					}
 					int texScaleSPosition = originalName.Find("TexScaleS", 0);
 					if ((texScaleSPosition != -1))
 					{
@@ -4948,6 +4988,30 @@ void CObjToAn8Dlg::MergeLikeMaterials(std::vector<CVerticeColor*>& verticeColors
 						break;
 
 					if ((material->name.Find("CullBoth") >= 0) != ((materialCheck->name.Find("CullBoth") >= 0)))
+						break;
+
+					if ((material->name.Find("CullFront") >= 0) != ((materialCheck->name.Find("CullFront") >= 0)))
+						break;
+
+					if ((material->name.Find("MirrorS") >= 0) != ((materialCheck->name.Find("MirrorS") >= 0)))
+						break;
+
+					if ((material->name.Find("ClampS") >= 0) != ((materialCheck->name.Find("ClampS") >= 0)))
+						break;
+
+					if ((material->name.Find("MirrorT") >= 0) != ((materialCheck->name.Find("MirrorT") >= 0)))
+						break;
+
+					if ((material->name.Find("ClampT") >= 0) != ((materialCheck->name.Find("ClampT") >= 0)))
+						break;
+
+					if ((material->name.Find("TextureLOD") >= 0) != ((materialCheck->name.Find("TextureLOD") >= 0)))
+						break;
+
+					if ((material->name.Find("TextureNoMipmap") >= 0) != ((materialCheck->name.Find("TextureNoMipmap") >= 0)))
+						break;
+
+					if ((material->name.Find("TexturePass") >= 0) != ((materialCheck->name.Find("TexturePass") >= 0)))
 						break;
 				}
 
