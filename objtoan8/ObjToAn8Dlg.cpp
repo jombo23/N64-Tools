@@ -4323,88 +4323,88 @@ void CObjToAn8Dlg::RenameMaterials(std::vector<CVerticeColor*>& verticeColors, s
 				material->name = material->diffuseTexture.stringValue.Mid(0, extensionSpot);
 				if (specialKeywordMode)
 				{
-					if (originalName.Find("Transparent") != -1)
+					if (FindCaseInsensitive(originalName, "Transparent") != -1)
 					{
-						if (material->name.Find("Transparent") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "Transparent") == -1) // handle if in bmp name
 							material->name += "Transparent";
 					}
-					if (originalName.Find("EnvMapping") != -1)
+					if (FindCaseInsensitive(originalName, "EnvMapping") != -1)
 					{
-						if (material->name.Find("EnvMapping") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "EnvMapping") == -1) // handle if in bmp name
 							material->name += "EnvMapping";
 					}
-					if (originalName.Find("TopFlag") != -1)
+					if (FindCaseInsensitive(originalName, "TopFlag") != -1)
 					{
-						if (material->name.Find("TopFlag") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "TopFlag") == -1) // handle if in bmp name
 							material->name += "TopFlag";
 					}
-					if (originalName.Find("Decal") != -1)
+					if (FindCaseInsensitive(originalName, "Decal") != -1)
 					{
-						if (material->name.Find("Decal") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "Decal") == -1) // handle if in bmp name
 							material->name += "Decal";
 					}
-					if (originalName.Find("CullBoth") != -1)
+					if (FindCaseInsensitive(originalName, "CullBoth") != -1)
 					{
-						if (material->name.Find("CullBoth") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "CullBoth") == -1) // handle if in bmp name
 							material->name += "CullBoth";
 					}
-					if (originalName.Find("CullFront") != -1)
+					if (FindCaseInsensitive(originalName, "CullFront") != -1)
 					{
-						if (material->name.Find("CullFront") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "CullFront") == -1) // handle if in bmp name
 							material->name += "CullFront";
 					}
-					if (originalName.Find("MirrorS") != -1)
+					if (FindCaseInsensitive(originalName, "MirrorS") != -1)
 					{
-						if (material->name.Find("MirrorS") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "MirrorS") == -1) // handle if in bmp name
 							material->name += "MirrorS";
 					}
-					if (originalName.Find("ClampS") != -1)
+					if (FindCaseInsensitive(originalName, "ClampS") != -1)
 					{
-						if (material->name.Find("ClampS") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "ClampS") == -1) // handle if in bmp name
 							material->name += "ClampS";
 					}
-					if (originalName.Find("MirrorT") != -1)
+					if (FindCaseInsensitive(originalName, "MirrorT") != -1)
 					{
-						if (material->name.Find("MirrorT") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "MirrorT") == -1) // handle if in bmp name
 							material->name += "MirrorT";
 					}
-					if (originalName.Find("ClampT") != -1)
+					if (FindCaseInsensitive(originalName, "ClampT") != -1)
 					{
-						if (material->name.Find("ClampT") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "ClampT") == -1) // handle if in bmp name
 							material->name += "ClampT";
 					}
-					if (originalName.Find("TextureLOD") != -1)
+					if (FindCaseInsensitive(originalName, "TextureLOD") != -1)
 					{
-						if (material->name.Find("TextureLOD") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "TextureLOD") == -1) // handle if in bmp name
 							material->name += "TextureLOD";
 					}
-					if (originalName.Find("TextureNoMipmap") != -1)
+					if (FindCaseInsensitive(originalName, "TextureNoMipmap") != -1)
 					{
-						if (material->name.Find("TextureNoMipmap") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "TextureNoMipmap") == -1) // handle if in bmp name
 							material->name += "TextureNoMipmap";
 					}
-					if (originalName.Find("TexturePass") != -1)
+					if (FindCaseInsensitive(originalName, "TexturePass") != -1)
 					{
-						if (material->name.Find("TexturePass") == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, "TexturePass") == -1) // handle if in bmp name
 							material->name += "TexturePass";
 					}
-					int texScaleSPosition = originalName.Find("TexScaleS", 0);
+					int texScaleSPosition = FindCaseInsensitive(originalName, "TexScaleS", 0);
 					if ((texScaleSPosition != -1))
 					{
 						float tempSFloatValue = atof(ReplaceStringInPlace(originalName.Mid(texScaleSPosition + 9), "_", "."));
 						CString tempStr;
 						tempStr.Format("TexScaleS%.6f", tempSFloatValue);
-						if (material->name.Find(tempStr) == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, tempStr) == -1) // handle if in bmp name
 							material->name += tempStr;
 					}
 
-					int texScaleTPosition = originalName.Find("TexScaleT", 0);
+					int texScaleTPosition = FindCaseInsensitive(originalName, "TexScaleT", 0);
 					if ((texScaleTPosition != -1))
 					{
 						float tempTFloatValue = atof(ReplaceStringInPlace(originalName.Mid(texScaleTPosition + 9), "_", "."));
 						CString tempStr;
 						tempStr.Format("TexScaleT%.6f", tempTFloatValue);
-						if (material->name.Find(tempStr) == -1) // handle if in bmp name
+						if (FindCaseInsensitive(material->name, tempStr) == -1) // handle if in bmp name
 							material->name += tempStr;
 					}
 				}
@@ -4969,49 +4969,49 @@ void CObjToAn8Dlg::MergeLikeMaterials(std::vector<CVerticeColor*>& verticeColors
 
 				if (specialKeywordMode)
 				{
-					if ((material->name.Find("Transparent") >= 0) != ((materialCheck->name.Find("Transparent") >= 0)))
+					if ((FindCaseInsensitive(material->name, "Transparent") >= 0) != (FindCaseInsensitive(materialCheck->name, "Transparent") >= 0))
 						break;
 
-					if ((material->name.Find("EnvMapping") >= 0) != ((materialCheck->name.Find("EnvMapping") >= 0)))
+					if ((FindCaseInsensitive(material->name, "EnvMapping") >= 0) != (FindCaseInsensitive(materialCheck->name, "EnvMapping") >= 0))
 						break;
 
-					if ((material->name.Find("TexScaleS") >= 0) != ((materialCheck->name.Find("TexScaleS") >= 0)))
+					if ((FindCaseInsensitive(material->name, "TexScaleS") >= 0) != (FindCaseInsensitive(materialCheck->name, "TexScaleS") >= 0))
 						break;
 
-					if ((material->name.Find("TexScaleT") >= 0) != ((materialCheck->name.Find("TexScaleT") >= 0)))
+					if ((FindCaseInsensitive(material->name, "TexScaleT") >= 0) != (FindCaseInsensitive(materialCheck->name, "TexScaleT") >= 0))
 						break;
 
-					if ((material->name.Find("Decal") >= 0) != ((materialCheck->name.Find("Decal") >= 0)))
+					if ((FindCaseInsensitive(material->name, "Decal") >= 0) != (FindCaseInsensitive(materialCheck->name, "Decal") >= 0))
 						break;
 
-					if ((material->name.Find("TopFlag") >= 0) != ((materialCheck->name.Find("TopFlag") >= 0)))
+					if ((FindCaseInsensitive(material->name, "TopFlag") >= 0) != (FindCaseInsensitive(materialCheck->name, "TopFlag") >= 0))
 						break;
 
-					if ((material->name.Find("CullBoth") >= 0) != ((materialCheck->name.Find("CullBoth") >= 0)))
+					if ((FindCaseInsensitive(material->name, "CullBoth") >= 0) != (FindCaseInsensitive(materialCheck->name, "CullBoth") >= 0))
 						break;
 
-					if ((material->name.Find("CullFront") >= 0) != ((materialCheck->name.Find("CullFront") >= 0)))
+					if ((FindCaseInsensitive(material->name, "CullFront") >= 0) != (FindCaseInsensitive(materialCheck->name, "CullFront") >= 0))
 						break;
 
-					if ((material->name.Find("MirrorS") >= 0) != ((materialCheck->name.Find("MirrorS") >= 0)))
+					if ((FindCaseInsensitive(material->name, "MirrorS") >= 0) != (FindCaseInsensitive(materialCheck->name, "MirrorS") >= 0))
 						break;
 
-					if ((material->name.Find("ClampS") >= 0) != ((materialCheck->name.Find("ClampS") >= 0)))
+					if ((FindCaseInsensitive(material->name, "ClampS") >= 0) != (FindCaseInsensitive(materialCheck->name, "ClampS") >= 0))
 						break;
 
-					if ((material->name.Find("MirrorT") >= 0) != ((materialCheck->name.Find("MirrorT") >= 0)))
+					if ((FindCaseInsensitive(material->name, "MirrorT") >= 0) != (FindCaseInsensitive(materialCheck->name, "MirrorT") >= 0))
 						break;
 
-					if ((material->name.Find("ClampT") >= 0) != ((materialCheck->name.Find("ClampT") >= 0)))
+					if ((FindCaseInsensitive(material->name, "ClampT") >= 0) != (FindCaseInsensitive(materialCheck->name, "ClampT") >= 0))
 						break;
 
-					if ((material->name.Find("TextureLOD") >= 0) != ((materialCheck->name.Find("TextureLOD") >= 0)))
+					if ((FindCaseInsensitive(material->name, "TextureLOD") >= 0) != (FindCaseInsensitive(materialCheck->name, "TextureLOD") >= 0))
 						break;
 
-					if ((material->name.Find("TextureNoMipmap") >= 0) != ((materialCheck->name.Find("TextureNoMipmap") >= 0)))
+					if ((FindCaseInsensitive(material->name, "TextureNoMipmap") >= 0) != (materialCheck->name.Find("TextureNoMipmap") >= 0))
 						break;
 
-					if ((material->name.Find("TexturePass") >= 0) != ((materialCheck->name.Find("TexturePass") >= 0)))
+					if ((FindCaseInsensitive(material->name, "TexturePass") >= 0) != (FindCaseInsensitive(materialCheck->name, "TexturePass") >= 0))
 						break;
 				}
 

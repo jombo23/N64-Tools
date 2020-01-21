@@ -256,7 +256,7 @@ public:
 	afx_msg void OnBnClickedCheckignoreshading2();
 	CButton mPrimarySecondaryGroups;
 	CButton mRecalculateUVs;
-	int FindCaseInsensitive(CString inputString, CString string, int start);
+	int FindCaseInsensitive(CString inputString, CString string, int start=0);
 	CEdit mScaleUVsEdit;
 	CButton mScaleUVs;
 	CButton mSpecifyTileSizeCheck;
