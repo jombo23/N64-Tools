@@ -9819,20 +9819,20 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 							lMaterial->SpecularFactor.Set(1.0);
 						}
 
-						/*if (materialFound->alpha.contains)
+						if (materialFound->alpha.contains)
 						{
 							lMaterial->TransparencyFactor = materialFound->alpha.floatValue;
 						}
 
-						if (materialFound->phongSpectral.contains)
+						/*if (materialFound->phongSpectral.contains)
 						{
 							lMaterial->Shininess = materialFound->alpha.floatValue;
-						}
+						}*/
 
 						if (materialFound->illum.contains)
 						{
 							lMaterial->ReflectionFactor = materialFound->illum.floatValue;
-						}*/
+						}
 					}
 
 					lNode->AddMaterial(lMaterial);
