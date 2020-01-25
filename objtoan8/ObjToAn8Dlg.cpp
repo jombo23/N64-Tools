@@ -5817,6 +5817,24 @@ void CObjToAn8Dlg::WriteAssimpFile(CString outputFile, std::vector<CVerticeColor
 	exporter.Export(&scene, exportFormatDesc->id, outputFile, 0);
 }
 
+struct less_than_CAnimationPart
+{
+	inline bool operator() (const CAnimationPart* struct1, const CAnimationPart* struct2)
+	{
+		return (atoi(struct1->name) < atoi(struct2->name));
+	}
+};
+
+struct less_than_CJoint
+{
+	inline bool operator() (const CJoint* struct1, const CJoint* struct2)
+	{
+		return (atoi(struct1->name) < atoi(struct2->name));
+	}
+};
+
+
+
 void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
 		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter)
 {
@@ -5896,6 +5914,8 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 				break;
 			}
 		}
+
+		std::sort(joints.begin(), joints.end(), less_than_CJoint());
 
 		for (int x = 0; x < joints.size(); x++)
 		{
@@ -6194,6 +6214,8 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 				{
 					fprintf(outFile, "#keyframecolor %f %f %f %f\n", keyframe->envColor.r, keyframe->envColor.g, keyframe->envColor.b, keyframe->envColor.a);
 				}
+				
+				std::sort(keyframe->animationParts.begin(), keyframe->animationParts.end(), less_than_CAnimationPart());
 				
 				for (int z = 0; z < keyframe->animationParts.size(); z++)
 				{

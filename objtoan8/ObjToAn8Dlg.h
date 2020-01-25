@@ -1,7 +1,6 @@
 
 // ObjToAn8Dlg.h : header file
 //
-
 #pragma once
 #if (_MSC_VER == 1500)
 #include <vld.h> 

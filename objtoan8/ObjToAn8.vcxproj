@@ -159,8 +159,8 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\utils;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\scene;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\fileio;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\core;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include;CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimp_5_0_0_64\include;assimp_5_0_0_64\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NO_WARN_MBCS_MFC_DEPRECATION;WIN32;_WINDOWS;_DEBUG;FBXSDK_NEW_API;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\utils;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\scene;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\fileio;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\core;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include;CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimpVS2013\include;assimpVS2013\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NO_WARN_MBCS_MFC_DEPRECATION;WIN32;_WINDOWS;NDEBUG;FBXSDK_NEW_API;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -174,8 +174,8 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>assimp-vc120-mtd.lib;IrrXMLd.lib;zlibstaticd.lib;libfbxsdk-md.lib;zlib-md.lib;libxml2-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\debug;assimp_5_0_0_64\lib\debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;libfbxsdk-md.lib;zlib-md.lib;libxml2-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\debug;assimpVS2013\lib\assimp_debug-noboost-st_x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
@@ -188,7 +188,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\utils;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\scene;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\fileio;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\core;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include;CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimp_5_0_0_32\include;assimp_5_0_0_32\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\utils;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\scene;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\fileio;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\core;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include;CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimpVS2013\include;assimpVS2013\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NO_WARN_MBCS_MFC_DEPRECATION;WIN32;_WINDOWS;_DEBUG;FBXSDK_NEW_API;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -203,8 +203,8 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>assimp-vc120-mtd.lib;IrrXMLd.lib;zlibstaticd.lib;libfbxsdk-md.lib;zlib-md.lib;libxml2-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x86\debug;assimp_5_0_0_32\lib\debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;libfbxsdk-md.lib;zlib-md.lib;libxml2-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x86\debug;assimpVS2013\lib\assimp_debug-noboost-st_Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
     </Link>
@@ -218,7 +218,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\utils;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\scene;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\fileio;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\core;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include;CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimp_5_0_0_64\include;assimp_5_0_0_64\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\utils;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\scene;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\fileio;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\core;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include;CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimpVS2013\include;assimpVS2013\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NO_WARN_MBCS_MFC_DEPRECATION;WIN32;_WINDOWS;NDEBUG;FBXSDK_NEW_API;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -233,8 +233,8 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>assimp-vc120-mt.lib;zlibstatic.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\release\libfbxsdk-md.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\release\libxml2-md.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\release\zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\release;assimp_5_0_0_64\lib\release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\release\libfbxsdk-md.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\release\libxml2-md.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\release\zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\release;assimpVS2013\lib\assimp_release-noboost-st_x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -250,7 +250,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\utils;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\scene;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\fileio;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\core;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include;CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimp_5_0_0_32\include;assimp_5_0_0_32\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\utils;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\scene;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\fileio;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk\core;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include\fbxsdk;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\include;CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimpVS2013\include;assimpVS2013\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NO_WARN_MBCS_MFC_DEPRECATION;WIN32;_WINDOWS;NDEBUG;FBXSDK_NEW_API;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -265,8 +265,8 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>assimp-vc120-mt.lib;zlibstatic.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x86\release\libfbxsdk-md.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x86\release\libxml2-md.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x86\release\zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x86\release;assimp_5_0_0_32\lib\release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x86\release\libfbxsdk-md.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x86\release\libxml2-md.lib;C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x86\release\zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x86\release;assimpVS2013\lib\assimp_release-noboost-st_Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -282,7 +282,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimp_5_0_0_64\include;assimp_5_0_0_64\include\assimp_5_0_0_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimpVS2013\include;assimpVS2013\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -297,8 +297,8 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>assimp-vc120-mt.lib;zlibstatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>assimp_5_0_0_64\lib\release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>assimpVS2013\lib\assimp_release-noboost-st_x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -314,7 +314,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimp_5_0_0_32\include;assimp_5_0_0_32\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>CxImage;MathGeoLib;MathGeoLib\Algorithm\Random;MathGeoLib\Geometry;MathGeoLib\Math;MathGeoLib\Time;assimpVS2013\include;assimpVS2013\include\assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -329,8 +329,8 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>assimp-vc120-mt.lib;zlibstatic.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>assimp_5_0_0_32\lib\release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>assimpVS2013\lib\assimp_release-noboost-st_Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
