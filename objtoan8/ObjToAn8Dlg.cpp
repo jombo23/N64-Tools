@@ -195,7 +195,7 @@ BOOL CObjToAn8Dlg::OnInitDialog()
 
 	char iniFile[8020];
 	strcpy(iniFile, tempFolder);
-	strcat(iniFile, "obj2an8.ini");
+	strcat(iniFile, "\\obj2an8.ini");
 
 	char returnStr[40000];
 	if (startupParameters.inputFile == "")
@@ -8289,7 +8289,7 @@ void CObjToAn8Dlg::OnBnClickedButton3()
 
 	char iniFile[8020];
 	strcpy(iniFile, tempFolder);
-	strcat(iniFile, "obj2an8.ini");
+	strcat(iniFile, "\\obj2an8.ini");
 
 	CString inputFile;
 	mInputFilename.GetWindowText(inputFile);
