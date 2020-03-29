@@ -19,6 +19,7 @@
 #include "..\N64MidiLibrary\ASMICDecoder.h"
 #include "..\N64MidiLibrary\NaganoDecoder.h"
 #include "..\N64MidiLibrary\QuakeDecoder.h"
+#include "..\N64MidiLibrary\ViewpointDecoder.h"
 
 CMidiParse CN64MidiToolReader::midiParse;
 GECompression CN64MidiToolReader::compress;
@@ -1684,6 +1685,34 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 				CVigilanteDecoder decode;
 				unsigned char* outputDecompressed = new unsigned char[0x50000];
 				int expectedSize = decode.dec(&buffer[gameConfig[gameNumber].midiBanks[x].start], fileSizeCompressed, outputDecompressed);
+
+				midiParse.SngToMidi(outputDecompressed, expectedSize, "asdasdaw43.mid", numberInstTemp, true, separateByInstrument, gameConfig[gameNumber].midiBanks[x].extra);
+
+				if (numberInstTemp > numberInstruments)
+					numberInstruments = numberInstTemp;
+				delete [] outputDecompressed;
+				::DeleteFile("asdasdaw43.mid");
+			}
+		}
+	}
+	else if (gameName.CompareNoCase("ViewpointSng") == 0)
+	{
+		compressed = true;
+
+		for (int x = 0; x < gameConfig[gameNumber].numberMidis; x++)
+		{
+			CString tempSpotStr;
+			tempSpotStr.Format("%08X:%08X:%08X", gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), gameConfig[gameNumber].midiBanks[x].extra);
+			addMidiStrings.push_back(tempSpotStr);
+			numberMidiStrings++;
+
+			if (calculateInstrumentCount)
+			{
+				int numberInstTemp = 0;
+				int fileSizeCompressed = (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start);
+				CViewpointDecoder decode;
+				unsigned char* outputDecompressed = new unsigned char[gameConfig[gameNumber].midiBanks[x].extra];
+				int expectedSize = decode.dec(&buffer[gameConfig[gameNumber].midiBanks[x].start], outputDecompressed, fileSizeCompressed, gameConfig[gameNumber].midiBanks[x].extra);
 
 				midiParse.SngToMidi(outputDecompressed, expectedSize, "asdasdaw43.mid", numberInstTemp, true, separateByInstrument, gameConfig[gameNumber].midiBanks[x].extra);
 
