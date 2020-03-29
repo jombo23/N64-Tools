@@ -198,6 +198,10 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm"
 			>
 			<File
+				RelativePath=".\AidynDecoder.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\BlitzDecoder.cpp"
 				>
 			</File>
@@ -298,7 +302,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\QuakeDecoder.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\rnc_deco.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SnowboardKidsDecoder.cpp"
 				>
 			</File>
 			<File
@@ -334,6 +346,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ViewpointDecoder.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\VPK0Decoder.cpp"
 				>
 			</File>
@@ -354,6 +370,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc"
 			>
+			<File
+				RelativePath=".\AidynDecoder.h"
+				>
+			</File>
 			<File
 				RelativePath=".\BlitzDecoder.h"
 				>
@@ -463,6 +483,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\QuakeDecoder.h"
+				>
+			</File>
+			<File
 				RelativePath=".\r3400i.h"
 				>
 			</File>
@@ -472,6 +496,10 @@
 			</File>
 			<File
 				RelativePath=".\rnc_deco.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SnowboardKidsDecoder.h"
 				>
 			</File>
 			<File
@@ -488,6 +516,10 @@
 			</File>
 			<File
 				RelativePath=".\TigDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ViewpointDecoder.h"
 				>
 			</File>
 			<File

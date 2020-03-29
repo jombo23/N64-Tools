@@ -760,6 +760,41 @@ BOOL CGEDecompressorDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
+	/*FILE* inTemp = fopen("C:\\temp\\SE0924.PTR", "rb");
+	unsigned char* tempChar = new unsigned char[0x00004FDC];
+	fread(tempChar, 1, 0x00004FDC, inTemp);
+	fclose(inTemp);
+
+	unsigned char* output = new unsigned char[0x100000];
+
+	CViewpointDecoder midDec;
+
+	int encSize = midDec.encode(tempChar, 0x00004FDC, output, true);
+
+	FILE* outTest = fopen("C:\\temp\\test.bin", "wb");
+	fwrite(output, 1, encSize, outTest);
+	fclose(outTest);
+
+	delete [] output;
+	delete [] tempChar;
+
+	inTemp = fopen("C:\\temp\\test.bin", "rb");
+	int sizeInput = GetSizeFile("C:\\temp\\test.bin");
+	tempChar = new unsigned char[sizeInput];
+	fread(tempChar, 1, sizeInput, inTemp);
+	fclose(inTemp);
+
+	output = new unsigned char[0x100000];
+	int decSize = 0x00004FDC;
+	decSize = midDec.dec(tempChar, output, sizeInput, decSize);
+
+	outTest = fopen("C:\\temp\\test2.bin", "wb");
+	fwrite(output, 1, decSize, outTest);
+	fclose(outTest);
+
+	delete [] output;
+	delete [] tempChar;*/
+
 	/*FILE* inTemp = fopen("C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\Resident Evil 2 (U) (V1.1) [!].z64", "rb");
 	unsigned char* tempChar = new unsigned char[0x4000000];
 	fread(tempChar, 1, 0x4000000, inTemp);

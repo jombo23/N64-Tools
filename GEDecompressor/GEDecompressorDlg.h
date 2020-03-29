@@ -31,6 +31,7 @@
 #include "MarioTennisDecoder.h"
 #include "NintendoEncoder.h"
 #include "NaganoDecoder.h"
+#include "ViewpointDecoder.h"
 
 #include <algorithm>
 
