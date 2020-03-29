@@ -8,6 +8,7 @@
 #include "..\N64SoundLibrary\Kobe2ADPCMDecoder.h"
 #include "..\N64SoundLibrary\QuakeDecoder.h"
 #include "..\N64SoundLibrary\SnowboardKidsDecoder.h"
+#include "..\N64SoundLibrary\ViewpointDecoder.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -8110,6 +8111,11 @@ void CN64AIFCAudio::WriteAudioToFile(std::vector<ALBank*> alBanks, CString outFi
 			MessageBox(NULL, "Sorry, no encoding yet for Snowboard Kids N64Wave format", "Error", NULL);
 			return;
 		}
+		else if (alBank->soundBankFormat == N64PTRWAVETABLEVIEWPOINT)
+		{
+			MessageBox(NULL, "Sorry, no encoding yet for Viewpoint 2064 N64Wave format", "Error", NULL);
+			return;
+		}
 		else if (alBank->soundBankFormat == N64PTRWAVETABLETABLEV2ZLIB)
 		{
 			MessageBox(NULL, "Sorry, no encoding yet for ZLib N64Wave format", "Error", NULL);
@@ -16163,7 +16169,6 @@ ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableQuake2(unsigned char* ctl, unsign
 	delete [] outputDecompressed;
 	return alBank;
 }
-
 ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableSnowboardKids(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
 {
 	unsigned char* outputDecompressed = new unsigned char[0x2000000];
@@ -16175,6 +16180,19 @@ ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableSnowboardKids(unsigned char* ctl,
 	delete [] outputDecompressed;
 	return alBank;
 }
+
+ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableV2Viewpoints(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int fileSizeDecompressed)
+{
+	unsigned char* outputDecompressed = new unsigned char[fileSizeDecompressed];
+	int fileSizeCompressed = -1;
+	CViewpointDecoder viewpointDecoder;
+	viewpointDecoder.dec(&ctl[ctlOffset], outputDecompressed, fileSizeCompressed, fileSizeDecompressed);
+	ALBank* alBank = ReadAudioN64PtrWavetableV2(&outputDecompressed[0], ctlSize, 0, tbl);
+	alBank->soundBankFormat = N64PTRWAVETABLEVIEWPOINT;
+	delete [] outputDecompressed;
+	return alBank;
+}
+
 
 ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableV2YAY0(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
 {

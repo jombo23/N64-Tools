@@ -24,6 +24,7 @@
 #include "MidwayDecoder.h"
 #include "NintendoEncoder.h"
 #include "flzh_rn.h"
+#include "ViewpointDecoder.h"
 
 #define STANDARDFORMAT 0
 #define STARFOX64FORMAT 1
@@ -75,6 +76,7 @@
 #define KOBE2 48
 #define N64PTRWAVETABLETABLEQUAKE2 49
 #define N64PTRWAVETABLETABLESNOWBOARDKIDS 50
+#define N64PTRWAVETABLEVIEWPOINT 51
 
 #pragma once
 
@@ -456,6 +458,7 @@ public:
 	static ALBank* ReadAudioN64PtrWavetableV2YAY0(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioN64PtrWavetableQuake2(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioN64PtrWavetableSnowboardKids(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
+	static ALBank* ReadAudioN64PtrWavetableV2Viewpoints(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int fileSizeDecompressed);
 	static ALBank* ReadAudioN64Titus(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioN64MKMythologies(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, unsigned long uncompressedSize);
 	static ALBank* ReadAudioN64PtrWavetableBlitz(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);

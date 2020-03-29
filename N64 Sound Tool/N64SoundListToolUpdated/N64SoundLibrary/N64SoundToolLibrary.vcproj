@@ -285,6 +285,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ViewpointDecoder.cpp"
+				>
+			</File>
+			<File
 				RelativePath="yay0.cpp"
 				>
 			</File>
@@ -416,6 +420,10 @@
 			</File>
 			<File
 				RelativePath="TigDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ViewpointDecoder.h"
 				>
 			</File>
 			<File
