@@ -766,6 +766,10 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioN64PtrWavetableSnowboardKids(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
 			}
+			else if (gameConfig.gameType.CompareNoCase("ViewpointN64WavePtrTableV2") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioN64PtrWavetableV2Viewpoints(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments);
+			}
 			else if (gameConfig.gameType.CompareNoCase("Titus") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioN64Titus(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
