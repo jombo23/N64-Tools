@@ -495,6 +495,7 @@ void CN64MidiToolDlg::OnBnClickedButtonloadrom()
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("LZSS_0BSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("AVL_0Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("VigilanteSng") == 0)
+			|| (gameConfig[gameNumber].gameType.CompareNoCase("ViewpointSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("RugratsSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("MultiPartTigSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("ZLibSng") == 0)
@@ -624,6 +625,7 @@ void CN64MidiToolDlg::OnBnClickedButtonloadrom()
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("LZSS_0BSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("AVL_0Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("VigilanteSng") == 0)
+			|| (gameConfig[gameNumber].gameType.CompareNoCase("ViewpointSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("RugratsSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("MultiPartTigSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("ZLibSng") == 0)
@@ -1029,7 +1031,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportbin()
 			return;
 		}
 
-		CN64MidiToolReader::midiParse.ExportToBin(gameConfig[gameNumber].gameType, buffer, address, size, fileName, compressed);
+		CN64MidiToolReader::midiParse.ExportToBin(gameConfig[gameNumber].gameType, buffer, address, size, fileName, compressed, extra);
 	}
 }
 
@@ -1573,6 +1575,7 @@ void CN64MidiToolDlg::ConvertIntoSpot(CString inputFile)
 			(gameConfig[gameNumber].gameType == "LZSS_0BSng") ||
 			(gameConfig[gameNumber].gameType == "AVL_0Sng") ||
 			(gameConfig[gameNumber].gameType == "VigilanteSng") ||
+			(gameConfig[gameNumber].gameType == "ViewpointSng") ||
 			(gameConfig[gameNumber].gameType == "RugratsSng") ||
 			(gameConfig[gameNumber].gameType == "MidiLZSSWilliams") ||
 			(gameConfig[gameNumber].gameType == "TitusMidi") ||
@@ -2075,6 +2078,11 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("VigilanteSng") == 0)
 	{
 		MessageBox("Unsupported VigilanteSng import");
+		return;
+	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("ViewpointSng") == 0)
+	{
+		MessageBox("Unsupported ViewpointSng import");
 		return;
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("RugratsSng") == 0)
@@ -2753,7 +2761,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportalltorawbin()
 		else
 		{
 			outputName.Format("%s%s %08X %08X.bin", tempPath, gameName, x, address);
-			CN64MidiToolReader::midiParse.ExportToBin(gameConfig[gameNumber].gameType, buffer, address, size, outputName, compressed);
+			CN64MidiToolReader::midiParse.ExportToBin(gameConfig[gameNumber].gameType, buffer, address, size, outputName, compressed, extra);
 		}
 	}
 }
