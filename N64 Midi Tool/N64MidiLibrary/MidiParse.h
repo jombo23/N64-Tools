@@ -276,7 +276,7 @@ public:
 	void GEMidiToDebugTextFile(CString midiFile, CString textFileOut, bool extendTracksToHighest);
 	void GEMidiToDebugTextFile(byte* inputMID, int inputSize, CString textFileOut, bool extendTracksToHighest);
 	void MidiToDebugTextFile(CString midiFile, CString textFileOut);
-	void ExportToBin(CString gameName, unsigned char* buffer, unsigned long address, unsigned long size, CString fileName, bool& compressed);
+	void ExportToBin(CString gameName, unsigned char* buffer, unsigned long address, unsigned long size, CString fileName, bool& compressed, unsigned long extra);
 	void ExportToMidi(CString gameName, unsigned char* gamebuffer, int gamebufferSize, unsigned long address, unsigned long size, CString fileName, CString gameType, int& numberInstruments, unsigned long division, bool& compressed, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool calculateInstrumentCountOnly, bool separateByInstrument, bool generateDebugTextFile, unsigned long extra, unsigned long extra2, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo);
 	void ExportToMidi(CString gameName, unsigned char* gamebuffer, int gamebufferSize, unsigned long address, unsigned long size, CString fileName, CString gameType, int& numberInstruments, unsigned long division, bool& compressed, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool calculateInstrumentCountOnly, bool separateByInstrument, bool generateDebugTextFile, unsigned long extra, unsigned long extra2, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, bool usePitchBendSensitity, int pitchBendSensitity);
 	byte* Decompress(unsigned char* Buffer, unsigned long size, int& fileSize, int& compressedSize);

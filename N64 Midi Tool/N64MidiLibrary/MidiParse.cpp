@@ -25,6 +25,7 @@
 #include "AidynDecoder.h"
 #include "AidynToDCMConvertor.h"
 #include "QuakeDecoder.h"
+#include "ViewpointDecoder.h"
 
 #include <algorithm>
 #include <map>
@@ -15670,7 +15671,7 @@ unsigned short CMidiParse::Flip16Bit(unsigned short ShortValue)
 	return ((ShortValue >> 8) | ((ShortValue << 8)));
 }
 
-void CMidiParse::ExportToBin(CString gameName, unsigned char* buffer, unsigned long address, unsigned long size, CString fileName, bool& compressed)
+void CMidiParse::ExportToBin(CString gameName, unsigned char* buffer, unsigned long address, unsigned long size, CString fileName, bool& compressed, unsigned long extra)
 {
 	gameName.Trim();
 
@@ -15747,6 +15748,27 @@ void CMidiParse::ExportToBin(CString gameName, unsigned char* buffer, unsigned l
 			CVigilanteDecoder decode;
 			unsigned char* outputDecompressed = new unsigned char[0x50000];
 			int expectedSize = decode.dec(&buffer[address], fileSizeCompressed, outputDecompressed);
+			
+			FILE* outFile = fopen(fileName, "wb");
+			if (outFile == NULL)
+			{
+				MessageBox(NULL, "Cannot Write File", "Error", NULL);
+				return;
+			}
+			for (int x = 0; x < expectedSize; x++)
+			{
+				fwrite(&outputDecompressed[x], 1, 1, outFile);
+			}
+			fclose(outFile);
+
+			delete [] outputDecompressed;
+		}
+		else if (gameName.CompareNoCase("ViewpointSng") == 0)
+		{
+			int fileSizeCompressed = size;
+			CViewpointDecoder decode;
+			unsigned char* outputDecompressed = new unsigned char[0x50000];
+			int expectedSize = decode.dec(&buffer[address], outputDecompressed, fileSizeCompressed, extra);
 			
 			FILE* outFile = fopen(fileName, "wb");
 			if (outFile == NULL)
@@ -16991,6 +17013,26 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			CVigilanteDecoder decode;
 			unsigned char* outputDecompressed = new unsigned char[0x50000];
 			int expectedSize = decode.dec(&gamebuffer[address], fileSizeCompressed, outputDecompressed);
+			
+			SngToMidi(outputDecompressed, expectedSize, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra);
+			if (generateDebugTextFile)
+				SngToDebugTextFile(gameName, address, outputDecompressed, expectedSize, fileName + " TrackParseDebug.txt", extra);
+
+			delete [] outputDecompressed;
+		}
+		else
+		{
+			
+		}
+	}
+	else if (gameType.CompareNoCase("ViewpointSng") == 0)
+	{
+		if (compressed)
+		{
+			int fileSizeCompressed = size;
+			CViewpointDecoder decode;
+			unsigned char* outputDecompressed = new unsigned char[extra];
+			int expectedSize = decode.dec(&gamebuffer[address], outputDecompressed, fileSizeCompressed, extra);
 			
 			SngToMidi(outputDecompressed, expectedSize, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra);
 			if (generateDebugTextFile)
