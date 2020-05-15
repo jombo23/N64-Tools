@@ -1,0 +1,6 @@
+Mode,FileNumberHex,NewFilePath,Compressed,InternalFileTableOffsetBytes,InternalFileResourceOffsetBytes,ReqFilesFile,CompressionLevel
+MODIFY,00D1,C:\temp\00D1.bin,1,0140,0000,C:\temp\00D1reqlist.txt,1
+MODIFY,0139,C:\temp\0139.bin,1,0004,6364,C:\temp\0139reqlist.txt,2
+ADD,,C:\temp\0139.bin,1,1234,4567,,2
+ADD,,C:\temp\0139.bin,0,1238,4568,C:\temp\0139reqlist.txt,2
+END,,,,,,,
