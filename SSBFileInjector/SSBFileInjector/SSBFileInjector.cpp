@@ -537,13 +537,13 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					if (lineSplit.size() > 4)
 					{
 						if (lineSplit[4] != "")
-							internalFileTableBytes = StringToUnsignedShort(lineSplit[4]);
+							internalFileTableBytes = StringHexToLong(lineSplit[4]);
 					}
 					
 					if (lineSplit.size() > 5)
 					{
 						if (lineSplit[5] != "")
-							internalFileResourceOffsetBytes = StringToUnsignedShort(lineSplit[5]);
+							internalFileResourceOffsetBytes = StringHexToLong(lineSplit[5]);
 					}
 					if (lineSplit.size() > 6)
 					{
