@@ -22440,3 +22440,17 @@ bool CN64AIFCAudio::WriteWavStereo(CString wavFilename, float samplingRate, std:
 	
 	return true;
 }
+
+unsigned long CN64AIFCAudio::ReadAddiuAddress(unsigned char* GEROM, unsigned long upperLocation, unsigned long lowerLocation)
+{
+	unsigned short upper = CharArrayToShort(&GEROM[upperLocation+2]);
+	unsigned short lower = CharArrayToShort(&GEROM[lowerLocation+2]);
+	if (lower > 0x7FFF)
+	{
+		return ((upper - 1) << 16) | lower;
+	}
+	else
+	{
+		return ((upper) << 16) | lower;
+	}
+}

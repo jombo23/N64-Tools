@@ -806,6 +806,28 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioRawAllowed(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments, gameConfig.soundBanks[x].mask, 0);
 			}
+			else if (gameConfig.gameType.CompareNoCase("ASMStandardRawAllowed") == 0)
+			{
+				unsigned long ctlOffset = n64AudioLibrary.ReadAddiuAddress(ROM, results[numberResults].ctlOffset, results[numberResults].tblOffset);
+				unsigned long tblOffset = n64AudioLibrary.ReadAddiuAddress(ROM, gameConfig.soundBanks[x].numberInstruments, gameConfig.soundBanks[x].mask);
+				unsigned long ctlSize = tblOffset - ctlOffset;
+
+				results[numberResults].ctlOffset = ctlOffset;
+				results[numberResults].tblOffset = tblOffset;
+				results[numberResults].ctlSize = tblOffset - ctlOffset;
+				
+				if (numberResults < (gameConfig.numberSoundBanks - 1))
+				{
+					unsigned long ctlOffsetNext = n64AudioLibrary.ReadAddiuAddress(ROM, gameConfig.soundBanks[x+1].ctl, gameConfig.soundBanks[x+1].tbl);
+					results[numberResults].tblSize = ctlOffsetNext - tblOffset;
+				}
+				else
+				{
+					results[numberResults].tblSize = romSize - tblOffset;
+				}
+
+				results[numberResults].bank = n64AudioLibrary.ReadAudioRawAllowed(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], 0, 0, 0);
+			}
 			else if (gameConfig.gameType.CompareNoCase("KonamiCtl") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioKonami(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments, gameConfig.soundBanks[x].mask, gameConfig.soundBanks[x].extra, gameConfig.soundBanks[x].extra2);

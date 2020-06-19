@@ -567,6 +567,7 @@ public:
 	static float encode_half(signed short* inPCMSamples, int numberSamplesIn, unsigned char* outVADPCM, unsigned long& lenOut, ALADPCMBook *book);
 	static int GetSizeFile(CString filename);
 	static float keyTable[0x100];
+	static unsigned long ReadAddiuAddress(unsigned char* GEROM, unsigned long upperLocation, unsigned long lowerLocation);
 private:
 	static unsigned long CharArrayToLong(unsigned char* currentSpot);
 	static unsigned long Flip32Bit(unsigned long inLong);
