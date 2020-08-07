@@ -461,10 +461,10 @@ int CObjToAn8Dlg::GetAddVerticeColorIndex(std::vector<CVerticeColor*>& verticeCo
 	}
 
 	CVerticeColor* newVerticeColor = new CVerticeColor();
-	newVerticeColor->color.r = r * 255.0f;
-	newVerticeColor->color.g = g * 255.0f;
-	newVerticeColor->color.b = b * 255.0f;
-	newVerticeColor->color.a = a * 255.0f;
+	newVerticeColor->color.r = Round(r * 255.0f);
+	newVerticeColor->color.g = Round(g * 255.0f);
+	newVerticeColor->color.b = Round(b * 255.0f);
+	newVerticeColor->color.a = Round(a * 255.0f);
 	newVerticeColor->contains = true;
 	verticeColors.push_back(newVerticeColor);
 	return (verticeColors.size() - 1);
@@ -1625,10 +1625,10 @@ void CObjToAn8Dlg::ParseAssimpNodesRecursive(CString extension, const aiScene* s
 				{
 					CVerticeColor* newVerticeColor = new CVerticeColor();
 
-					newVerticeColor->color.r = paiMesh->mColors[0][x].r * 255.0f;
-					newVerticeColor->color.g = paiMesh->mColors[0][x].g * 255.0f;
-					newVerticeColor->color.b = paiMesh->mColors[0][x].b * 255.0f;
-					newVerticeColor->color.a = paiMesh->mColors[0][x].a * 255.0f;
+					newVerticeColor->color.r = Round(paiMesh->mColors[0][x].r * 255.0f);
+					newVerticeColor->color.g = Round(paiMesh->mColors[0][x].g * 255.0f);
+					newVerticeColor->color.b = Round(paiMesh->mColors[0][x].b * 255.0f);
+					newVerticeColor->color.a = Round(paiMesh->mColors[0][x].a * 255.0f);
 					newVerticeColor->contains = true;
 
 					verticeColors.push_back(newVerticeColor);
@@ -4372,6 +4372,9 @@ void CObjToAn8Dlg::RenameMaterials(std::vector<CVerticeColor*>& verticeColors, s
 		std::map<CString, CString> replacementStrings;
 
 		std::vector<CMaterial*>::iterator	itermaterial;
+		std::vector<CMaterial*> doneMaterials;
+		std::vector<CMaterial*> dupeMaterials;
+
 		for (itermaterial = materialFile->materials.begin(); itermaterial != materialFile->materials.end(); itermaterial++)
 		{
 			CMaterial* material = (CMaterial*)*itermaterial;
@@ -4488,8 +4491,32 @@ void CObjToAn8Dlg::RenameMaterials(std::vector<CVerticeColor*>& verticeColors, s
 					material->name += tempStr;
 				}
 			}
+
+			bool dupe = false;
+			for (int m = 0; m < doneMaterials.size(); m++)
+			{
+				if (doneMaterials[m]->name == material->name)
+				{
+					dupe = true;
+					break;
+				}
+			}
+
 			replacementStrings[originalName] = material->name;
-			
+
+			if (dupe)
+			{
+				dupeMaterials.push_back(material);
+			}
+			else
+			{
+				doneMaterials.push_back(material);
+			}
+		}
+
+		for (int m = 0; m < dupeMaterials.size(); m++)
+		{
+			materialFile->materials.erase(std::remove(materialFile->materials.begin(), materialFile->materials.end(), dupeMaterials[m]), materialFile->materials.end());
 		}
 
 		std::vector<CGroup*>::iterator	itergroups;
@@ -8982,7 +9009,7 @@ unsigned char CObjToAn8Dlg::ColorFloatToHex(float color)
 		return 0xFF;
 	else if (result <= 0)
 		return 0;
-	else return ((unsigned char)(color * 255.0f));
+	else return ((unsigned char)(Round(color * 255.0f)));
 }
 
 bool CObjToAn8Dlg::IsSpecialKeywordEnvMapping(bool specialKeywordMode, CMaterial* material)
@@ -16861,6 +16888,11 @@ void CObjToAn8Dlg::OnBnClickedButtonchooseoverrideskeleton()
 
 bool CObjToAn8Dlg::SortPolygonGroupByTexture(CGroup* group)
 {
+	CString groupLowerName = group->name;
+	groupLowerName.MakeLower();
+	if (groupLowerName.Find("secondary") != -1)
+		return true;
+
 	std::vector<CPolygon*> polygonsPrimary;
 	std::vector<CPolygon*> polygonsSecondary;
 
