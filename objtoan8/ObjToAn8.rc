@@ -16,13 +16,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -132,7 +130,7 @@ BEGIN
     EDITTEXT        IDC_EDITSCALEAMBIENTFACTOR,304,241,44,12,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDITSCALEDIFFUSEFACTOR,304,254,44,12,ES_AUTOHSCROLL
     GROUPBOX        "Materials",IDC_STATIC,16,100,173,108
-    GROUPBOX        "Mesh",IDC_STATIC,16,209,173,114
+    GROUPBOX        "Mesh",IDC_STATIC,16,209,173,130
     GROUPBOX        "Shading",IDC_STATIC,195,100,173,108
     GROUPBOX        "Anim8or .an8 Output",IDC_STATIC,195,209,173,60
     GROUPBOX        "Sketchup .obj input",IDC_STATIC,195,276,173,25
@@ -163,6 +161,8 @@ BEGIN
     LTEXT           "Joint Type",IDC_JOINTMODELABEL,200,368,34,8,NOT WS_VISIBLE
     LTEXT           "FPS",IDC_LABELFBXEXPORTTYPE2,201,381,14,8,NOT WS_VISIBLE
     EDITTEXT        IDC_EDIT3,239,380,125,14,ES_AUTOHSCROLL | NOT WS_VISIBLE
+    CONTROL         "Sort Textures Within Group",IDC_CHECKSORTTEXTURESWITHINGROUP,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,320,105,10
 END
 
 
@@ -172,8 +172,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,4
- PRODUCTVERSION 1,0,0,4
+ FILEVERSION 1,0,0,5
+ PRODUCTVERSION 1,0,0,5
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -211,7 +211,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_OBJTOAN8_DIALOG, DIALOG
     BEGIN
@@ -238,7 +238,7 @@ BEGIN
     0
 END
 
-#endif    // English (U.S.) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

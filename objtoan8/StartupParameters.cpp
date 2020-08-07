@@ -65,6 +65,7 @@ CStartupParameters::CStartupParameters(void)
 	jointMode = "absolute";
 
 	fps = 30.0;
+	sortTexturesWithinGroup = false;
 }
 
 CStartupParameters::~CStartupParameters(void)

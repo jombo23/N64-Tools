@@ -13,6 +13,16 @@ CKeyframe::CKeyframe(void)
 		translationIsInterpolated[x] = false;
 		scaleIsInterpolated[x] = false;
 	}
+
+	rotationDerivativeValue = float3(0, 0, 0);
+	scaleDerivativeValue = float3(1, 1, 1);
+	translationDerivativeValue = float3(0, 0, 0);
+	for (int x = 0; x < 3; x++)
+	{
+		rotationHasDerivative[x] = false;
+		translationHasDerivative[x] = false;
+		scaleHasDerivative[x] = false;
+	}
 }
 
 CKeyframe::~CKeyframe(void)

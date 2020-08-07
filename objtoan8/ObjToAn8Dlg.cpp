@@ -84,6 +84,7 @@ void CObjToAn8Dlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBOJOINTSRT, mJointMode);
 	DDX_Control(pDX, IDC_LABELFBXEXPORTTYPE2, mFBXFPSLabel);
 	DDX_Control(pDX, IDC_EDIT3, mFBXFPS);
+	DDX_Control(pDX, IDC_CHECKSORTTEXTURESWITHINGROUP, mSortTexturesWithinGroup);
 }
 
 BEGIN_MESSAGE_MAP(CObjToAn8Dlg, CDialog)
@@ -103,6 +104,62 @@ BEGIN_MESSAGE_MAP(CObjToAn8Dlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTONCHOOSEOVERRIDESKELETON, &CObjToAn8Dlg::OnBnClickedButtonchooseoverrideskeleton)
 END_MESSAGE_MAP()
 
+struct less_than_CAnimationPart
+{
+	inline bool operator() (const CAnimationPart* struct1, const CAnimationPart* struct2)
+	{
+		return (atoi(struct1->name) < atoi(struct2->name));
+	}
+};
+
+struct less_than_CJoint
+{
+	inline bool operator() (const CJoint* struct1, const CJoint* struct2)
+	{
+		return (atoi(struct1->name) < atoi(struct2->name));
+	}
+};
+
+struct less_than_PolygonMaterial
+{
+	inline bool operator() (const CPolygon* polygon1, const CPolygon* polygon2)
+	{
+		if (polygon1->materialName.Find("Untextured") == 0)
+		{
+			if (polygon2->materialName.Find("Untextured") == 0)
+			{
+				return (polygon1->materialName < polygon2->materialName);
+			}
+			else
+			{
+				return true;
+			}
+		}
+		else if (polygon2->materialName.Find("Untextured") == 0)
+		{
+			return false;
+		}
+		else if ((polygon1->materialName.Find("Transparent") != -1) || (polygon1->materialName.Find("TopFlag") != -1) || (polygon1->materialName.Find("Decal") != -1))
+		{
+			if ((polygon2->materialName.Find("Transparent") != -1) || (polygon2->materialName.Find("TopFlag") != -1) || (polygon2->materialName.Find("Decal") != -1))
+			{
+				return (polygon1->materialName < polygon2->materialName);
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else if ((polygon2->materialName.Find("Transparent") != -1) || (polygon2->materialName.Find("TopFlag") != -1) || (polygon2->materialName.Find("Decal") != -1))
+		{
+			return true;
+		}
+		else
+		{
+			return (polygon1->materialName < polygon2->materialName);
+		}
+	}
+};
 
 // CObjToAn8Dlg message handlers
 const float CObjToAn8Dlg::EPSILONVALUES = 0.001;
@@ -639,7 +696,10 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 				{
 					char* pch = strtok (currentCharLineTempSub," ");
 					pch = strtok (NULL, " ");
-					currentMaterial->alpha.floatValue = (atof(pch));
+					if (currentCharLineTempSub[0] == 'd')
+						currentMaterial->alpha.floatValue = (atof(pch));
+					else if ((currentCharLineTempSub[0] == 'T') && (currentCharLineTempSub[1] == 'r'))
+						currentMaterial->alpha.floatValue = 1.0 - (atof(pch));
 					currentMaterial->alpha.contains = true;
 				}
 				else if ((currentCharLineTempSub[0] == 'N') && (currentCharLineTempSub[1] == 's'))
@@ -5289,7 +5349,7 @@ void CObjToAn8Dlg::WriteAssimpMesh(aiScene* scene, aiMesh* mesh, bool foundNorma
 }
 
 void CObjToAn8Dlg::WriteAssimpFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, CString extensionWrite)
+	bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, CString extensionWrite, bool sortByTextureWithinGroup)
 {
 	Assimp::Exporter exporter;
 
@@ -5543,6 +5603,11 @@ void CObjToAn8Dlg::WriteAssimpFile(CString outputFile, std::vector<CVerticeColor
 
 		int materialIndex = -2;
 		aiMesh* mesh = NULL;
+
+		if (sortByTextureWithinGroup)
+		{
+			SortPolygonGroupByTexture(group);
+		}
 
 		std::vector<CPolygon*>::iterator	iterpolygon;
 		for (iterpolygon = group->polygons.begin(); iterpolygon != group->polygons.end(); iterpolygon++)
@@ -5817,26 +5882,8 @@ void CObjToAn8Dlg::WriteAssimpFile(CString outputFile, std::vector<CVerticeColor
 	exporter.Export(&scene, exportFormatDesc->id, outputFile, 0);
 }
 
-struct less_than_CAnimationPart
-{
-	inline bool operator() (const CAnimationPart* struct1, const CAnimationPart* struct2)
-	{
-		return (atoi(struct1->name) < atoi(struct2->name));
-	}
-};
-
-struct less_than_CJoint
-{
-	inline bool operator() (const CJoint* struct1, const CJoint* struct2)
-	{
-		return (atoi(struct1->name) < atoi(struct2->name));
-	}
-};
-
-
-
 void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter)
+	bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, bool sortByTextureWithinGroup)
 {
 	CString lastGroup = "NOT A REAL GROUP";
 	FILE* outFile = fopen(outputFile, "w");
@@ -6037,6 +6084,12 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 				}
 			}
 
+
+			if (sortByTextureWithinGroup)
+			{
+				SortPolygonGroupByTexture(group);
+			}
+
 			bool initialMtl = false;
 			CString prevMtlName = "";
 
@@ -6092,6 +6145,7 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 					initialMtl = true;
 					prevMtlName = polygon->materialName;
 				}
+
 
 				int numPolyPointsExpected = polygon->polygonPoints.size();
 
@@ -6205,6 +6259,13 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 				if ((keyframe->scaleIsInterpolated[0]) || (keyframe->scaleIsInterpolated[1]) || (keyframe->scaleIsInterpolated[2]))
 					fprintf(outFile, "#keyframeisinterpolatedscale %d %d %d\n", keyframe->scaleIsInterpolated[0], keyframe->scaleIsInterpolated[1], keyframe->scaleIsInterpolated[2]);
 
+				if ((keyframe->rotationHasDerivative[0]) || (keyframe->rotationHasDerivative[1]) || (keyframe->rotationHasDerivative[2]))
+					fprintf(outFile, "#keyframederivativerotation %f %f %f\n", keyframe->rotationDerivativeValue.x, keyframe->rotationDerivativeValue.y, keyframe->rotationDerivativeValue.z);
+				if ((keyframe->translationHasDerivative[0]) || (keyframe->translationHasDerivative[1]) || (keyframe->translationHasDerivative[2]))
+					fprintf(outFile, "#keyframederivativetranslation %f %f %f\n", keyframe->translationDerivativeValue.x, keyframe->translationDerivativeValue.y, keyframe->translationDerivativeValue.z);
+				if ((keyframe->scaleHasDerivative[0]) || (keyframe->scaleHasDerivative[1]) || (keyframe->scaleHasDerivative[2]))
+					fprintf(outFile, "#keyframederivativescale %f %f %f\n", keyframe->scaleDerivativeValue.x, keyframe->scaleDerivativeValue.y, keyframe->scaleDerivativeValue.z);
+
 				if (keyframe->fieldOfView.contains)
 				{
 					fprintf(outFile, "#keyframefieldofview %f\n", keyframe->fieldOfView.floatValue);
@@ -6263,6 +6324,13 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 					fprintf(outFile, "#partscale %f %f %f\n", animationPart->scale.x, animationPart->scale.y, animationPart->scale.z);
 					if ((animationPart->scaleIsInterpolated[0]) || (animationPart->scaleIsInterpolated[1]) || (animationPart->scaleIsInterpolated[2]))
 						fprintf(outFile, "#partisinterpolatedscale %d %d %d\n", animationPart->scaleIsInterpolated[0], animationPart->scaleIsInterpolated[1], animationPart->scaleIsInterpolated[2]);
+
+					if ((animationPart->rotationHasDerivative[0]) || (animationPart->rotationHasDerivative[1]) || (animationPart->rotationHasDerivative[2]))
+						fprintf(outFile, "#partderivativerotation %f %f %f\n", animationPart->rotationDerivativeValue.x, animationPart->rotationDerivativeValue.y, animationPart->rotationDerivativeValue.z);
+					if ((animationPart->translationHasDerivative[0]) || (animationPart->translationHasDerivative[1]) || (animationPart->translationHasDerivative[2]))
+						fprintf(outFile, "#partderivativetranslation %f %f %f\n", animationPart->translationDerivativeValue.x, animationPart->translationDerivativeValue.y, animationPart->translationDerivativeValue.z);
+					if ((animationPart->scaleHasDerivative[0]) || (animationPart->scaleHasDerivative[1]) || (animationPart->scaleHasDerivative[2]))
+						fprintf(outFile, "#partderivativescale %f %f %f\n", animationPart->scaleDerivativeValue.x, animationPart->scaleDerivativeValue.y, animationPart->scaleDerivativeValue.z);
 				}
 			}
 		}
@@ -6576,7 +6644,7 @@ void CObjToAn8Dlg::WriteAn8BoneDeclaration(CBone* parentBone, std::vector<CBone*
 }
 
 void CObjToAn8Dlg::WriteAn8File(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool roundVertices, bool roundVerticesTenths, bool roundVerticesHundredths, bool recenterObjects, bool scaleAmbientFactor, float scaleAmbientFactorValue, bool scaleDiffuseFactor, float scaleDiffuseFactorValue, bool disableAutoshading, bool defaultShading, bool regexFilterCheck, CString regexFilter)
+	bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool roundVertices, bool roundVerticesTenths, bool roundVerticesHundredths, bool recenterObjects, bool scaleAmbientFactor, float scaleAmbientFactorValue, bool scaleDiffuseFactor, float scaleDiffuseFactorValue, bool disableAutoshading, bool defaultShading, bool regexFilterCheck, CString regexFilter, bool sortByTextureWithinGroup)
 {
 	// Write an8
 	FILE* outFile = fopen(outputFile, "w");
@@ -6865,6 +6933,11 @@ void CObjToAn8Dlg::WriteAn8File(CString outputFile, std::vector<CVerticeColor*> 
 				CPolygon* polygon = ((CPolygon*)(*iterpolygon));
 				defaultMaterial = polygon->materialName;
 				break;
+			}
+
+			if (sortByTextureWithinGroup)
+			{
+				SortPolygonGroupByTexture(group);
 			}
 
 			std::vector<CVertice*> subVerticeList;
@@ -8023,7 +8096,7 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 		float scaleDiffuseFactor, float scaleAmbientFactor, float scaleSpecularFactor, float xMove, float yMove, float zMove, 
 		float scaleVerticesFactor, float texelSizeU, float texelSizeV, float scaleUVsFactor, 
 		float scaleAmbientFactorAn8Value, float scaleDiffuseFactorAn8Value, bool regexFilterCheck, CString regexFilter, 
-		CString inputFile, CString outputFile, CString replaceFile, CString fbxExportType, bool overrideSkeleton, CString overrideSkeletonFile, bool doMessageBoxes, CString jointMode, float fps)
+		CString inputFile, CString outputFile, CString replaceFile, CString fbxExportType, bool overrideSkeleton, CString overrideSkeletonFile, bool doMessageBoxes, CString jointMode, float fps, bool sortByTextureWithinGroup)
 {
 	JointType jointType = Absolute;
 	jointMode = jointMode.MakeLower();
@@ -8249,12 +8322,12 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 	if (extensionWrite.MakeLower() == "an8")
 	{
 		WriteAn8File(outputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
-			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, roundVertices, roundVerticesTenths, roundVerticesHundredths, recenterObjects, scaleAmbientFactorAn8, scaleAmbientFactorAn8Value, scaleDiffuseFactorAn8, scaleDiffuseFactorAn8Value, disableAutoshading, defaultShading, regexFilterCheck, regexFilter);
+			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, roundVertices, roundVerticesTenths, roundVerticesHundredths, recenterObjects, scaleAmbientFactorAn8, scaleAmbientFactorAn8Value, scaleDiffuseFactorAn8, scaleDiffuseFactorAn8Value, disableAutoshading, defaultShading, regexFilterCheck, regexFilter, sortByTextureWithinGroup);
 	}
 	else if (extensionWrite.MakeLower() == "obj")
 	{
 		WriteObjFile(outputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
-			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter);
+			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter, sortByTextureWithinGroup);
 	}
 	else if (extensionWrite.MakeLower() == "bvh")
 	{
@@ -8264,7 +8337,7 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 	else if (extensionWrite.MakeLower() == "dae")
 	{
 		WriteOwnDaeFile(outputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
-			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter);
+			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter, sortByTextureWithinGroup);
 		//WriteAssimpFile(outputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
 			//specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter, extensionWrite.MakeLower());
 	}
@@ -8272,7 +8345,7 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 	else if (extensionWrite.MakeLower() == "fbx")
 	{
 		WriteFbxFile(outputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
-			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, inputPath, regexFilterCheck, regexFilter, fbxExportType, fps);
+			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, inputPath, regexFilterCheck, regexFilter, fbxExportType, fps, sortByTextureWithinGroup);
 	}
 	#endif
 
@@ -8352,6 +8425,7 @@ void CObjToAn8Dlg::OnBnClickedButton3()
 	bool scaleUVs = mScaleUVs.GetCheck();
 	bool specifyUVTileSize = mSpecifyTileSizeCheck.GetCheck();
 	bool regexFilterCheck = mRegexGroupFilterCheck.GetCheck();
+	bool sortTexturesWithinGroup = mSortTexturesWithinGroup.GetCheck();
 
 	CString tempStr;
 	mScaleDiffuseShade.GetWindowText(tempStr);
@@ -8410,7 +8484,7 @@ void CObjToAn8Dlg::OnBnClickedButton3()
 		scaleDiffuseFactor, scaleAmbientFactor, scaleSpecularFactor, xMove, yMove, zMove, 
 		scaleVerticesFactor, texelSizeU, texelSizeV, scaleUVsFactor, 
 		scaleAmbientFactorAn8Value, scaleDiffuseFactorAn8Value, regexFilterCheck, regexFilter,
-		inputFile, outputFile, replaceFile, fbxExportType, overrideSkeleton, overrideSkeletonFile, true, jointMode, fps);
+		inputFile, outputFile, replaceFile, fbxExportType, overrideSkeleton, overrideSkeletonFile, true, jointMode, fps, sortTexturesWithinGroup);
 }
 
 void CObjToAn8Dlg::ReadMaterialOverridesFile(std::vector<CMaterial*>& replacementMaterialOverrides, CString replaceFile)
@@ -8493,7 +8567,10 @@ void CObjToAn8Dlg::ReadMaterialOverridesFile(std::vector<CMaterial*>& replacemen
 		{
 			char* pch = strtok (currentCharLineTempSub," ");
 			pch = strtok (NULL, " ");
-			currentMaterial->alpha.floatValue = (atof(pch));
+			if (currentCharLineTempSub[0] == 'd')
+				currentMaterial->alpha.floatValue = (atof(pch));
+			else if ((currentCharLineTempSub[0] == 'T') && (currentCharLineTempSub[1] == 'r'))
+				currentMaterial->alpha.floatValue = 1.0 - (atof(pch));
 			currentMaterial->alpha.contains = true;
 		}
 		else if ((currentCharLineTempSub[0] == 'N') && (currentCharLineTempSub[1] == 's'))
@@ -9424,7 +9501,7 @@ void CObjToAn8Dlg::WriteFbxSkeleton(std::map<CString, FbxCluster*>& jointCluster
 }
 
 void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, CString inputPath, bool regexFilterCheck, CString regexFilter, CString fbxExportType, float fps)
+	bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, CString inputPath, bool regexFilterCheck, CString regexFilter, CString fbxExportType, float fps, bool sortByTextureWithinGroup)
 {
 	FbxManager* pSdkManager = FbxManager::Create();
 
@@ -9701,6 +9778,11 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 			CPolygon* polygon = ((CPolygon*)(*iterpolygon));
 			defaultMaterial = polygon->materialName;
 			break;
+		}
+
+		if (sortByTextureWithinGroup)
+		{
+			SortPolygonGroupByTexture(group);
 		}
 
 		FbxMesh* lMesh = FbxMesh::Create(pSdkManager, group->name);
@@ -11694,6 +11776,76 @@ std::vector<int> CObjToAn8Dlg::GetKeyframeIndexes(FbxAnimCurve* lAnimCurve)
 	return keyIndexes;
 }
 
+float CObjToAn8Dlg::CalculateDerivative(int lCount, int numberKeyframes, FbxAnimCurve* lAnimCurve)
+{
+	float derivateValue = 0;
+	if ((lCount > 1) && ((numberKeyframes - lCount - 1) > 1))
+	{
+		// 2d derivative
+		FbxTime fbxTimePrev;
+		fbxTimePrev.SetFrame(lCount - 1);
+		float prevValue = lAnimCurve->Evaluate(fbxTimePrev);
+
+		FbxTime fbxTimeNext;
+		fbxTimeNext.SetFrame(lCount + 1);
+		float nextValue = lAnimCurve->Evaluate(fbxTimeNext);
+
+		
+		FbxTime fbxTimePrev2;
+		fbxTimePrev.SetFrame(lCount - 2);
+		float prevValue2 = lAnimCurve->Evaluate(fbxTimePrev2);
+
+		FbxTime fbxTimeNext2;
+		fbxTimeNext.SetFrame(lCount + 2);
+		float nextValue2 = lAnimCurve->Evaluate(fbxTimeNext2);
+
+		derivateValue = ((4.0/3.0) * ((nextValue - prevValue) / (2 * lCount))) - ((1/3) * ((nextValue2 - prevValue2) / (4 * lCount)));
+	}
+	else if ((lCount > 0) && ((numberKeyframes - lCount - 1) > 0))
+	{
+		// 1d derivative
+		FbxTime fbxTimePrev;
+		fbxTimePrev.SetFrame(lCount - 1);
+		float prevValue = lAnimCurve->Evaluate(fbxTimePrev);
+
+		FbxTime fbxTimeNext;
+		fbxTimeNext.SetFrame(lCount + 1);
+		float nextValue = lAnimCurve->Evaluate(fbxTimeNext);
+
+		derivateValue = (nextValue - prevValue) / (2 * lCount);
+	}
+	else if ((lCount == 0) && (numberKeyframes > 1))
+	{
+		FbxTime fbxTimeCurrent;
+		fbxTimeCurrent.SetFrame(lCount);
+		float currentValue = lAnimCurve->Evaluate(fbxTimeCurrent);
+
+		FbxTime fbxTimeNext;
+		fbxTimeNext.SetFrame(lCount + 1);
+		float nextValue = lAnimCurve->Evaluate(fbxTimeNext);
+
+		derivateValue = (nextValue - currentValue);
+	}
+	else if ((lCount == (numberKeyframes - 1)) && (numberKeyframes > 1))
+	{
+		FbxTime fbxTimeCurrent;
+		fbxTimeCurrent.SetFrame(lCount);
+		float currentValue = lAnimCurve->Evaluate(fbxTimeCurrent);
+
+		FbxTime fbxTimePrev;
+		fbxTimePrev.SetFrame(lCount - 1);
+		float prevValue = lAnimCurve->Evaluate(fbxTimePrev);
+
+		derivateValue = (currentValue - prevValue);
+	}
+	else
+	{
+		derivateValue = 0;
+	}
+
+	return derivateValue;
+}
+
 void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pNode, std::vector<CJoint*>& joints, CAnimation* animation, int numberKeyframes)
 {
 	if (pNode == NULL)
@@ -11735,6 +11887,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 						keyframe->translationIsInterpolated[0] = true;
+					
+					keyframe->translationHasDerivative[0] = true;
+					keyframe->translationDerivativeValue.x = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 				}
 
 				/*CKeyframe defaultKeyframe;
@@ -11810,6 +11965,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 						keyframe->translationIsInterpolated[1] = true;
+
+					keyframe->translationHasDerivative[1] = true;
+					keyframe->translationDerivativeValue.y = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 				}
 
 				/*CKeyframe defaultKeyframe;
@@ -11885,6 +12043,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 						keyframe->translationIsInterpolated[2] = true;
+
+					keyframe->translationHasDerivative[2] = true;
+					keyframe->translationDerivativeValue.z = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 				}
 
 				/*CKeyframe defaultKeyframe;
@@ -11966,6 +12127,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 						keyframe->rotationIsInterpolated[0] = true;
+
+					keyframe->rotationHasDerivative[0] = true;
+					keyframe->rotationDerivativeValue.x = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 				}
 
 				/*CKeyframe defaultKeyframe;
@@ -12071,6 +12235,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 						keyframe->rotationIsInterpolated[1] = true;
+
+					keyframe->rotationHasDerivative[1] = true;
+					keyframe->rotationDerivativeValue.y = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 				}
 				/*CKeyframe defaultKeyframe;
 				defaultKeyframe.rotation.y = pNode->LclRotation.Get().mData[1];
@@ -12176,6 +12343,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 						keyframe->rotationIsInterpolated[2] = true;
+
+					keyframe->rotationHasDerivative[2] = true;
+					keyframe->rotationDerivativeValue.z = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 				}
 
 				/*CKeyframe defaultKeyframe;
@@ -12277,6 +12447,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 						keyframe->scaleIsInterpolated[0] = true;
+
+					keyframe->scaleHasDerivative[0] = true;
+					keyframe->scaleDerivativeValue.x = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 				}
 
 				/*CKeyframe defaultKeyframe;
@@ -12352,6 +12525,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 						keyframe->scaleIsInterpolated[1] = true;
+
+					keyframe->scaleHasDerivative[1] = true;
+					keyframe->scaleDerivativeValue.y = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 				}
 
 				/*CKeyframe defaultKeyframe;
@@ -12427,6 +12603,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 					if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 						keyframe->scaleIsInterpolated[2] = true;
+
+					keyframe->scaleHasDerivative[2] = true;
+					keyframe->scaleDerivativeValue.z = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 				}
 
 				/*CKeyframe defaultKeyframe;
@@ -12608,6 +12787,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 								animationPart->translationIsInterpolated[0] = true;
+
+							animationPart->translationHasDerivative[0] = true;
+							animationPart->translationDerivativeValue.x = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 						}
 						/*CAnimationPart defaultAnimationPart;
 						defaultAnimationPart.translation.x = pNode->LclTranslation.Get().mData[0];
@@ -12697,6 +12879,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 								animationPart->translationIsInterpolated[1] = true;
+
+							animationPart->translationHasDerivative[1] = true;
+							animationPart->translationDerivativeValue.y = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 						}
 						/*CAnimationPart defaultAnimationPart;
 						defaultAnimationPart.translation.y = pNode->LclTranslation.Get().mData[1];
@@ -12786,6 +12971,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 								animationPart->translationIsInterpolated[2] = true;
+
+							animationPart->translationHasDerivative[2] = true;
+							animationPart->translationDerivativeValue.z = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 						}
 						/*CAnimationPart defaultAnimationPart;
 						defaultAnimationPart.translation.z = pNode->LclTranslation.Get().mData[2];
@@ -12876,6 +13064,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 								animationPart->rotationIsInterpolated[0] = true;
+
+							animationPart->rotationHasDerivative[0] = true;
+							animationPart->rotationDerivativeValue.x = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 						}
 						/*CAnimationPart defaultPart;
 						defaultPart.rotation.x = pNode->LclRotation.Get().mData[0];
@@ -12985,6 +13176,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 								animationPart->rotationIsInterpolated[1] = true;
+
+							animationPart->rotationHasDerivative[1] = true;
+							animationPart->rotationDerivativeValue.y = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 						}
 
 						/*CAnimationPart defaultPart;
@@ -13095,6 +13289,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 								animationPart->rotationIsInterpolated[2] = true;
+
+							animationPart->rotationHasDerivative[2] = true;
+							animationPart->rotationDerivativeValue.z = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 						}
 						/*CAnimationPart defaultPart;
 						defaultPart.rotation.z = pNode->LclRotation.Get().mData[2];
@@ -13200,6 +13397,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 								animationPart->scaleIsInterpolated[0] = true;
+
+							animationPart->scaleHasDerivative[0] = true;
+							animationPart->scaleDerivativeValue.x = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 						}
 						/*CAnimationPart defaultAnimationPart;
 						defaultAnimationPart.scale.x = pNode->LclScaling.Get().mData[0];
@@ -13279,6 +13479,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 								animationPart->scaleIsInterpolated[1] = true;
+
+							animationPart->scaleHasDerivative[1] = true;
+							animationPart->scaleDerivativeValue.y = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 						}
 						/*CAnimationPart defaultAnimationPart;
 						defaultAnimationPart.scale.y = pNode->LclScaling.Get().mData[1];
@@ -13358,6 +13561,9 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 
 							if (std::find(keyIndexes.begin(), keyIndexes.end(), lCount) == keyIndexes.end())
 								animationPart->scaleIsInterpolated[2] = true;
+
+							animationPart->scaleHasDerivative[2] = true;
+							animationPart->scaleDerivativeValue.z = CalculateDerivative(lCount, numberKeyframes, lAnimCurve);
 						}
 						/*CAnimationPart defaultAnimationPart;
 						defaultAnimationPart.scale.z = pNode->LclScaling.Get().mData[2];
@@ -15300,7 +15506,7 @@ void CObjToAn8Dlg::WriteOwnDaeSkeleton(CString& libraryVisualScenes, CJoint* joi
 }
 
 void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles,  std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter)
+	bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, bool sortByTextureWithinGroup)
 {
 	// Remove .s
 	std::vector<CMaterialFile*>::iterator	itermaterialFiles;
@@ -15545,6 +15751,11 @@ void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor
 		//lNode->AddMaterial(defaultMaterialDefinition);
 
 		subMaterialList.push_back("DefaultMaterial");
+
+		if (sortByTextureWithinGroup)
+		{
+			SortPolygonGroupByTexture(group);
+		}
 
 		int totalCountPolygonIndexes = 0;
 		for (iterpolygon = group->polygons.begin(); iterpolygon != group->polygons.end(); iterpolygon++)
@@ -16646,4 +16857,42 @@ void CObjToAn8Dlg::OnBnClickedButtonchooseoverrideskeleton()
 	{
 		mOverrideSkeletonFilename.SetWindowText(m_ldFile.GetPathName());
 	}
+}
+
+bool CObjToAn8Dlg::SortPolygonGroupByTexture(CGroup* group)
+{
+	std::vector<CPolygon*> polygonsPrimary;
+	std::vector<CPolygon*> polygonsSecondary;
+
+	std::vector<CPolygon*>::iterator	iterpolygon;
+	for (iterpolygon = group->polygons.begin(); iterpolygon != group->polygons.end(); iterpolygon++)
+	{
+		CPolygon* polygon = ((CPolygon*)(*iterpolygon));
+
+		if ((polygon->materialName.Find("Transparent") != -1) || (polygon->materialName.Find("TopFlag") != -1) || (polygon->materialName.Find("Decal") != -1))
+		{
+			polygonsSecondary.push_back(polygon);
+		} 
+		else
+		{
+			polygonsPrimary.push_back(polygon);
+		}
+	}
+
+	std::sort(polygonsPrimary.begin(), polygonsPrimary.end(), less_than_PolygonMaterial());
+
+	group->polygons.clear();
+	for (iterpolygon = polygonsPrimary.begin(); iterpolygon != polygonsPrimary.end(); iterpolygon++)
+	{
+		CPolygon* polygon = ((CPolygon*)(*iterpolygon));
+		group->polygons.push_back(polygon);
+	}
+
+	for (iterpolygon = polygonsSecondary.begin(); iterpolygon != polygonsSecondary.end(); iterpolygon++)
+	{
+		CPolygon* polygon = ((CPolygon*)(*iterpolygon));
+		group->polygons.push_back(polygon);
+	}
+
+	return true;
 }

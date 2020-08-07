@@ -96,7 +96,7 @@ public:
 		float scaleVerticesFactor, float texelSizeU, float texelSizeV, float scaleUVsFactor, 
 		float scaleAmbientFactorAn8Value, float scaleDiffuseFactorAn8Value, bool regexFilterCheck, CString regexFilter, 
 		CString inputFile, CString outputFile, CString replaceFile, CString fbxExportType, bool overrideSkeleton, CString overrideSkeletonFile, bool doMessageBoxes, CString jointMode,
-		float fps);
+		float fps, bool sortByTextureWithinGroup);
 
 	CStartupParameters startupParameters;
 
@@ -121,13 +121,13 @@ public:
 		bool noGroups);
 
 	void WriteAn8File(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool roundVertices, bool roundVerticesTenths, bool roundVerticesHundredths, bool recenterObjects, bool scaleAmbientFactor, float scaleAmbientFactorValue, bool scaleDiffuseFactor, float scaleDiffuseFactorValue, bool disableAutoshading, bool defaultShading, bool regexFilterCheck, CString regexFilter);
+		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool roundVertices, bool roundVerticesTenths, bool roundVerticesHundredths, bool recenterObjects, bool scaleAmbientFactor, float scaleAmbientFactorValue, bool scaleDiffuseFactor, float scaleDiffuseFactorValue, bool disableAutoshading, bool defaultShading, bool regexFilterCheck, CString regexFilter, bool sortByTextureWithinGroup);
 	void WriteObjFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles,  std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter);
+		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, bool sortByTextureWithinGroup);
 	void WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles,  std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
 		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter);
 	void WriteAssimpFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles,  std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, CString extensionWrite);
+		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, CString extensionWrite, bool sortByTextureWithinGroup);
 
 	CString GetRotationAndTruncateToEpsilonString(float rotation);
 	CString GetTranslationToEpsilonString(float translation);
@@ -189,6 +189,8 @@ public:
 	CButton mIgnoreShading;
 	CButton mRoundTenths;
 
+	bool SortPolygonGroupByTexture(CGroup* group);
+
 	std::vector<CJoint*> FindRootJoints(std::vector<CJoint*>& joints);
 
 	#ifdef FBXSDK_NEW_API
@@ -209,16 +211,17 @@ public:
 	void ParseFbxSkeletonRecursive(FbxNode* pNode, std::vector<CJoint*>& joints, float3 position, CJoint* parent, map<CString, float3> skeletalOverrides, map<CString, float3> skeletalOverridesRelativeScale, map<CString, float3> skeletalOverridesRelativeRotation, map<CString, float3> skeletalOverridesRelativePosition, JointType jointType);
 	void WriteFbxSkeleton(std::map<CString, FbxCluster*>& jointCluster, std::map<CString, FbxNode*>& skeletonCluster, FbxScene* pScene, CJoint* joint, FbxNode* skeletonNode);
 	void WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, CString inputPath, bool regexFilterCheck, CString regexFilter, CString fbxExportType, float fps);
+		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, CString inputPath, bool regexFilterCheck, CString regexFilter, CString fbxExportType, float fps, bool sortByTextureWithinGroup);
 
 	FbxDouble3 GetMaterialColor(const FbxSurfaceMaterial * pMaterial, const char * pPropertyName, const char * pFactorPropertyName);
 	const char* GetMaterialTextureName(const FbxSurfaceMaterial * pMaterial, const char * pPropertyName);
 	FbxSurfacePhong* CreateMaterial(FbxManager* pSdkManager, CString textureName);
 	FbxTexture* CreateTexture(FbxManager* pSdkManager, CString texturePath);
+	float CalculateDerivative(int lCount, int numberKeyframes, FbxAnimCurve* lAnimCurve);
 	#endif
 	void WriteOwnDaeSkeleton(CString& libraryVisualScenes, CJoint* joint, int indent);
 	void WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles,  std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter);
+		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, bool sortByTextureWithinGroup);
 	CKeyframe* GetAddKeyframe(int keyframeNumber, CAnimation* animation);
 	CAnimationPart* GetAddPart(CString partName, CKeyframe* keyframe);
 	void ReadMaterialOverridesFile(std::vector<CMaterial*>& replacementMaterialOverrides, CString replaceFile);
@@ -289,4 +292,5 @@ public:
 	CComboBox mJointMode;
 	CStatic mFBXFPSLabel;
 	CEdit mFBXFPS;
+	CButton mSortTexturesWithinGroup;
 };

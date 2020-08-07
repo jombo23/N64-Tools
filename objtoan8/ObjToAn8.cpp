@@ -81,7 +81,7 @@ BOOL CObjToAn8App::InitInstance()
 			oInfo.startupParameters.xMove, oInfo.startupParameters.yMove, oInfo.startupParameters.zMove, 
 			oInfo.startupParameters.scaleVerticesFactor, oInfo.startupParameters.texelSizeU, oInfo.startupParameters.texelSizeV, oInfo.startupParameters.scaleUVsFactor, 
 			oInfo.startupParameters.scaleAmbientFactorAn8Value, oInfo.startupParameters.scaleDiffuseFactorAn8Value, oInfo.startupParameters.regexFilterCheck, oInfo.startupParameters.regexFilter, 
-			oInfo.startupParameters.inputFile, oInfo.startupParameters.outputFile, oInfo.startupParameters.replaceFile, oInfo.startupParameters.fbxExportType, oInfo.startupParameters.overrideSkeleton, oInfo.startupParameters.overrideSkeletonFile, oInfo.startupParameters.doMessageBoxes, oInfo.startupParameters.jointMode, oInfo.startupParameters.fps))
+			oInfo.startupParameters.inputFile, oInfo.startupParameters.outputFile, oInfo.startupParameters.replaceFile, oInfo.startupParameters.fbxExportType, oInfo.startupParameters.overrideSkeleton, oInfo.startupParameters.overrideSkeletonFile, oInfo.startupParameters.doMessageBoxes, oInfo.startupParameters.jointMode, oInfo.startupParameters.fps, oInfo.startupParameters.sortTexturesWithinGroup))
 		{
 			returnExitCode = 99;
 			return FALSE;

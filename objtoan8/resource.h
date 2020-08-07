@@ -67,6 +67,8 @@
 #define IDC_JOINTMODELABEL              1057
 #define IDC_LABELFBXEXPORTTYPE2         1058
 #define IDC_EDIT3                       1059
+#define IDC_CHECKSORTTEXTURESWITHINGROUP 1060
+#define IDC_CHECKMERGELIKEMATERIALS6    1060
 
 // Next default values for new objects
 // 

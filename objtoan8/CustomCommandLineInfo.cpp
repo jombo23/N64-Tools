@@ -420,4 +420,13 @@ void CCustomCommandLineInfo::ParseParam(const char* pszParam, BOOL bFlag, BOOL b
 		if (startupParameters.fps < 0)
 			startupParameters.fps = 30;
 	}
+
+	if (paramString.Find("+sortTexturesWithinGroup") == 0)
+	{
+		startupParameters.sortTexturesWithinGroup = true;
+	}
+	if (paramString.Find("-sortTexturesWithinGroup") == 0)
+	{
+		startupParameters.sortTexturesWithinGroup = false;
+	}
 }

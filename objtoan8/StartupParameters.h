@@ -68,5 +68,5 @@ public:
 	CString jointMode;
 	float fps;
 
-	bool noValueEveryKeyframe;
+	bool sortTexturesWithinGroup;
 };
