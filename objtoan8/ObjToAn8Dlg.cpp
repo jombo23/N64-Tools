@@ -10120,19 +10120,23 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 		//we must update the size of the index array.
 		lUVDiffuseElement->GetIndexArray().SetCount(totalCountPolygonIndexes);
 
-		FbxGeometryElementVertexColor* lVertexColorElement = lMesh->CreateElementVertexColor();
-		lVertexColorElement->SetMappingMode(FbxGeometryElement::eByPolygonVertex);
-		lVertexColorElement->SetReferenceMode(FbxGeometryElement::eIndexToDirect);
-
-		std::vector<CVerticeColor*>::iterator	iterVertexColorList;
-		for (iterVertexColorList = subVertexColorList.begin(); iterVertexColorList != subVertexColorList.end(); iterVertexColorList++)
+		FbxGeometryElementVertexColor* lVertexColorElement = NULL;
+		if (foundVerticeColors)
 		{
-			CVerticeColor* verticeColor = (CVerticeColor*)*iterVertexColorList;
+			lVertexColorElement = lMesh->CreateElementVertexColor();
+			lVertexColorElement->SetMappingMode(FbxGeometryElement::eByPolygonVertex);
+			lVertexColorElement->SetReferenceMode(FbxGeometryElement::eIndexToDirect);
 
-			lVertexColorElement->GetDirectArray().Add(FbxVector4(verticeColor->color.r / 255.0f, verticeColor->color.g / 255.0f, verticeColor->color.b / 255.0f, verticeColor->color.a / 255.0f));
+			std::vector<CVerticeColor*>::iterator	iterVertexColorList;
+			for (iterVertexColorList = subVertexColorList.begin(); iterVertexColorList != subVertexColorList.end(); iterVertexColorList++)
+			{
+				CVerticeColor* verticeColor = (CVerticeColor*)*iterVertexColorList;
+
+				lVertexColorElement->GetDirectArray().Add(FbxVector4(verticeColor->color.r / 255.0f, verticeColor->color.g / 255.0f, verticeColor->color.b / 255.0f, verticeColor->color.a / 255.0f));
+			}
+
+			lVertexColorElement->GetIndexArray().SetCount(totalCountPolygonIndexes);
 		}
-
-		lVertexColorElement->GetIndexArray().SetCount(totalCountPolygonIndexes);
 
 		FbxGeometryElementMaterial* lMaterialElement = lMesh->CreateElementMaterial();
 		lMaterialElement->SetMappingMode(FbxGeometryElement::eByPolygon);
@@ -10333,14 +10337,20 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 							foundVertColor++;
 						}
 
-						if (foundVertColor < subVertexColorList.size())
-							lVertexColorElement->GetIndexArray().SetAt(pointNum, foundVertColor);
-						else
-							lVertexColorElement->GetIndexArray().SetAt(pointNum, 0);
+						if (lVertexColorElement != NULL)
+						{
+							if (foundVertColor < subVertexColorList.size())
+								lVertexColorElement->GetIndexArray().SetAt(pointNum, foundVertColor);
+							else
+								lVertexColorElement->GetIndexArray().SetAt(pointNum, 0);
+						}
 					}
 					else
 					{
-						lVertexColorElement->GetIndexArray().SetAt(pointNum, -1);
+						if (lVertexColorElement != NULL)
+						{
+							lVertexColorElement->GetIndexArray().SetAt(pointNum, -1);
+						}
 					}
 				}
 
