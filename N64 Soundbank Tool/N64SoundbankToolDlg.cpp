@@ -5515,7 +5515,7 @@ void CN64SoundbankToolDlg::OnBnClickedButtonpreviewmidi()
 		int loopStart = 0;
 		int loopEnd = 0;
 
-		midiParse.ExportToMidi(gameConfigMidi[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.mid", gameConfigMidi[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfigMidi[gameNumber].extraGameMidiInfo);
+		midiParse.ExportToMidi(gameConfigMidi[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.mid", gameConfigMidi[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfigMidi[gameNumber].extraGameMidiInfo, true);
 
 		if (numberInstruments > alBankCurrent->count)
 		{
@@ -6036,7 +6036,7 @@ void CN64SoundbankToolDlg::OnBnClickedButtonwritemidistofolder()
 				bool hasLoopPoint = false;
 				int loopStart = 0;
 				int loopEnd = 0;
-				midiParse.ExportToMidi(gameConfigMidi[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfigMidi[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfigMidi[gameNumber].extraGameMidiInfo);
+				midiParse.ExportToMidi(gameConfigMidi[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfigMidi[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebug.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfigMidi[gameNumber].extraGameMidiInfo, true);
 			}
 			catch (...)
 			{
@@ -6150,7 +6150,7 @@ void CN64SoundbankToolDlg::OnBnClickedButtonexportmidi()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		midiParse.ExportToMidi(gameConfigMidi[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfigMidi[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfigMidi[gameNumber].extraGameMidiInfo);
+		midiParse.ExportToMidi(gameConfigMidi[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfigMidi[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebug.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfigMidi[gameNumber].extraGameMidiInfo, false);
 	}
 	else if (gameConfigMidi[gameNumber].gameType.CompareNoCase("DCM") == 0)
 	{
@@ -6178,7 +6178,7 @@ void CN64SoundbankToolDlg::OnBnClickedButtonexportmidi()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		midiParse.ExportToMidi(gameConfigMidi[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfigMidi[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfigMidi[gameNumber].extraGameMidiInfo);
+		midiParse.ExportToMidi(gameConfigMidi[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfigMidi[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebug.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfigMidi[gameNumber].extraGameMidiInfo, false);
 	}
 	else
 	{
@@ -6233,7 +6233,7 @@ void CN64SoundbankToolDlg::OnBnClickedButtonexportmidi()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		midiParse.ExportToMidi(gameConfigMidi[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfigMidi[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfigMidi[gameNumber].extraGameMidiInfo);
+		midiParse.ExportToMidi(gameConfigMidi[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfigMidi[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebug.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfigMidi[gameNumber].extraGameMidiInfo, false);
 	}
 }
 

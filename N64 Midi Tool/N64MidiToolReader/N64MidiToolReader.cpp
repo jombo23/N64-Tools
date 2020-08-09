@@ -510,7 +510,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 					bool hasLoopPoint = false;
 					int loopStart = 0;
 					int loopEnd = 0;
-					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, musicOffset, compressedSize, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, musicOffset, compressedSize, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 					if (numberInstTemp > numberInstruments)
 						numberInstruments = numberInstTemp;
 					::DeleteFile("asdasdaw43.mid");
@@ -549,7 +549,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 					bool hasLoopPoint = false;
 					int loopStart = 0;
 					int loopEnd = 0;
-					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, musicOffset, size, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, musicOffset, size, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 					if (numberInstTemp > numberInstruments)
 						numberInstruments = numberInstTemp;
 					::DeleteFile("asdasdaw43.mid");
@@ -588,7 +588,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 					bool hasLoopPoint = false;
 					int loopStart = 0;
 					int loopEnd = 0;
-					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, musicOffset, size, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, musicOffset, size, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 					if (numberInstTemp > numberInstruments)
 						numberInstruments = numberInstTemp;
 					::DeleteFile("asdasdaw43.mid");
@@ -629,7 +629,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 					bool hasLoopPoint = false;
 					int loopStart = 0;
 					int loopEnd = 0;
-					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, (start + midiLocation), (midiEnd - midiLocation), "asdasdaw43.mid", gameName, numberInstTemp, midiDivison, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, (start + midiLocation), (midiEnd - midiLocation), "asdasdaw43.mid", gameName, numberInstTemp, midiDivison, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 					if (numberInstTemp > numberInstruments)
 						numberInstruments = numberInstTemp;
 					::DeleteFile("asdasdaw43.mid");
@@ -666,7 +666,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 					bool hasLoopPoint = false;
 					int loopStart = 0;
 					int loopEnd = 0;
-					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, musicOffset, compressedSize, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, musicOffset, compressedSize, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 					if (numberInstTemp > numberInstruments)
 						numberInstruments = numberInstTemp;
 					::DeleteFile("asdasdaw43.mid");
@@ -697,7 +697,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 				bool hasLoopPoint = false;
 				int loopStart = 0;
 				int loopEnd = 0;
-				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 				if (numberInstTemp > numberInstruments)
 					numberInstruments = numberInstTemp;
 				::DeleteFile("asdasdaw43.mid");
@@ -721,7 +721,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 				bool hasLoopPoint = false;
 				int loopStart = 0;
 				int loopEnd = 0;
-				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 				if (numberInstTemp > numberInstruments)
 					numberInstruments = numberInstTemp;
 				::DeleteFile("asdasdaw43.mid");
@@ -748,7 +748,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 				bool hasLoopPoint = false;
 				int loopStart = 0;
 				int loopEnd = 0;
-				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 				if (numberInstTemp > numberInstruments)
 					numberInstruments = numberInstTemp;
 				::DeleteFile("asdasdaw43.mid");
@@ -856,7 +856,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 					bool hasLoopPoint = false;
 					int loopStart = 0;
 					int loopEnd = 0;
-					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, offsetData, lengthData, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, offsetData, lengthData, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 					if (numberInstTemp > numberInstruments)
 						numberInstruments = numberInstTemp;
 					::DeleteFile("asdasdaw43.mid");
@@ -898,7 +898,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 					bool hasLoopPoint = false;
 					int loopStart = 0;
 					int loopEnd = 0;
-					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, offsetData, lengthData, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, offsetData, lengthData, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 					if (numberInstTemp > numberInstruments)
 						numberInstruments = numberInstTemp;
 					::DeleteFile("asdasdaw43.mid");
@@ -930,7 +930,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 				bool hasLoopPoint = false;
 				int loopStart = 0;
 				int loopEnd = 0;
-				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 				if (numberInstTemp > numberInstruments)
 					numberInstruments = numberInstTemp;
 				::DeleteFile("asdasdaw43.mid");
@@ -959,7 +959,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 				bool hasLoopPoint = false;
 				int loopStart = 0;
 				int loopEnd = 0;
-				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 				if (numberInstTemp > numberInstruments)
 					numberInstruments = numberInstTemp;
 				::DeleteFile("asdasdaw43.mid");
@@ -1018,7 +1018,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 					bool hasLoopPoint = false;
 					int loopStart = 0;
 					int loopEnd = 0;
-					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, startCurrentSpot, (currentSpot - startCurrentSpot), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, startCurrentSpot, (currentSpot - startCurrentSpot), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 					if (numberInstTemp > numberInstruments)
 						numberInstruments = numberInstTemp;
 					::DeleteFile("asdasdaw43.mid");
@@ -1531,7 +1531,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 				bool hasLoopPoint = false;
 				int loopStart = 0;
 				int loopEnd = 0;
-				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 				if (numberInstTemp > numberInstruments)
 					numberInstruments = numberInstTemp;
 				::DeleteFile("asdasdaw43.mid");
@@ -1556,7 +1556,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 				bool hasLoopPoint = false;
 				int loopStart = 0;
 				int loopEnd = 0;
-				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+				midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 				if (numberInstTemp > numberInstruments)
 					numberInstruments = numberInstTemp;
 				::DeleteFile("asdasdaw43.mid");
@@ -2112,7 +2112,7 @@ void CN64MidiToolReader::ParseUncompressedType(unsigned char* gamebuffer, int ga
 				int loopEnd = 0;
 				unsigned long extra = 0;
 				unsigned long extra2 = 0;
-				midiParse.ExportToMidi("Unknown", gamebuffer, gamebufferSize, startCurrentSpot, (currentSpot - startCurrentSpot), "asdasdaw43.mid", "Uncompressed", numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, separateByInstrument, false, extra, extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);
+				midiParse.ExportToMidi("Unknown", gamebuffer, gamebufferSize, startCurrentSpot, (currentSpot - startCurrentSpot), "asdasdaw43.mid", "Uncompressed", numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, separateByInstrument, false, extra, extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
 				if (numberInstTemp > numberInstruments)
 					numberInstruments = numberInstTemp;
 				::DeleteFile("asdasdaw43.mid");

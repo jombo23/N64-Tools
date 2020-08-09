@@ -16248,12 +16248,12 @@ void CMidiParse::ExportToBin(CString gameName, unsigned char* buffer, unsigned l
 	}
 }
 
-void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int gamebufferSize, unsigned long address, unsigned long size, CString fileName, CString gameType, int& numberInstruments, unsigned long division, bool& compressed, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool calculateInstrumentCountOnly, bool separateByInstrument, bool generateDebugTextFile, unsigned long extra, unsigned long extra2, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo)
+void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int gamebufferSize, unsigned long address, unsigned long size, CString fileName, CString gameType, int& numberInstruments, unsigned long division, bool& compressed, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool calculateInstrumentCountOnly, bool separateByInstrument, bool generateDebugTextFile, unsigned long extra, unsigned long extra2, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, bool isPreview)
 {
-	ExportToMidi(gameName, gamebuffer, gamebufferSize, address, size, fileName, gameType, numberInstruments, division, compressed, hasLoopPoint, loopStart, loopEnd, calculateInstrumentCountOnly, separateByInstrument, generateDebugTextFile, extra, extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false, 4);
+	ExportToMidi(gameName, gamebuffer, gamebufferSize, address, size, fileName, gameType, numberInstruments, division, compressed, hasLoopPoint, loopStart, loopEnd, calculateInstrumentCountOnly, separateByInstrument, generateDebugTextFile, extra, extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false, 4, isPreview);
 }
 
-void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int gamebufferSize, unsigned long address, unsigned long size, CString fileName, CString gameType, int& numberInstruments, unsigned long division, bool& compressed, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool calculateInstrumentCountOnly, bool separateByInstrument, bool generateDebugTextFile, unsigned long extra, unsigned long extra2, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, bool usePitchBendSensitity, int pitchBendSensitity)
+void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int gamebufferSize, unsigned long address, unsigned long size, CString fileName, CString gameType, int& numberInstruments, unsigned long division, bool& compressed, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool calculateInstrumentCountOnly, bool separateByInstrument, bool generateDebugTextFile, unsigned long extra, unsigned long extra2, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, bool usePitchBendSensitity, int pitchBendSensitity, bool isPreview)
 {
 	gameName.Trim();
 	gameType.Trim();
@@ -17134,7 +17134,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 
 		int pitchBendRange = outputDecompressed[audioSeqIndex + 0x10 + (extra * 0x10) + 9] * 6;
 
-		EADMusicToMidi(gameName, EADMUSICSTYLEZELDA, gamebuffer, audioSeqOffset + start, length, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra, generateDebugTextFile, fileName + " TrackParseDebug.txt", pitchBendRange);
+		EADMusicToMidi(gameName, EADMUSICSTYLEZELDA, gamebuffer, audioSeqOffset + start, length, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra, generateDebugTextFile, fileName + " TrackParseDebug.txt", pitchBendRange, isPreview);
 
 		delete [] outputDecompressed;
 	}
@@ -17165,7 +17165,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 
 		int pitchBendRange = outputDecompressed[audioSeqIndex + 0x10 + (extra * 0x10) + 9] * 6;
 
-		EADMusicToMidi(gameName, EADMUSICSTYLEZELDA, gamebuffer, audioSeqOffset + start, length, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra, generateDebugTextFile, fileName + " TrackParseDebug.txt", pitchBendRange);
+		EADMusicToMidi(gameName, EADMUSICSTYLEZELDA, gamebuffer, audioSeqOffset + start, length, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra, generateDebugTextFile, fileName + " TrackParseDebug.txt", pitchBendRange, isPreview);
 
 		delete [] outputDecompressed;
 	}
@@ -17191,7 +17191,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 
 			int pitchBendRange = gamebuffer[audioSeqIndex + 0x10 + (extra * 0x10) + 9] * 6;
 
-			EADMusicToMidi(gameName, EADMUSICSTYLEZELDA, gamebuffer, audioSeqOffset + start, length, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra, generateDebugTextFile, fileName + " TrackParseDebug.txt", pitchBendRange);
+			EADMusicToMidi(gameName, EADMUSICSTYLEZELDA, gamebuffer, audioSeqOffset + start, length, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra, generateDebugTextFile, fileName + " TrackParseDebug.txt", pitchBendRange, isPreview);
 		}
 	}
 	else if (
@@ -17214,7 +17214,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			unsigned long start = CharArrayToLong(&gamebuffer[audioSeqIndex + 4 + (extra * 8)]);
 			unsigned long length = CharArrayToLong(&gamebuffer[audioSeqIndex + 4 + (extra * 8) + 4]);
 
-			EADMusicToMidi(gameName, EADMUSICSTYLEMARIO, gamebuffer, audioSeqOffset + start, length, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra, generateDebugTextFile, fileName + " TrackParseDebug.txt", 6);
+			EADMusicToMidi(gameName, EADMUSICSTYLEMARIO, gamebuffer, audioSeqOffset + start, length, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra, generateDebugTextFile, fileName + " TrackParseDebug.txt", 6, isPreview);
 		}
 	}
 	else if (gameType.CompareNoCase("EADStarFox") == 0)
@@ -17235,7 +17235,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 
 			int pitchBendRange = gamebuffer[audioSeqIndex + 0x10 + (extra * 0x10) + 9] * 6;
 
-			EADMusicToMidi(gameName, EADMUSICSTYLESTARFOX, gamebuffer, audioSeqOffset + start, length, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra, generateDebugTextFile, fileName + " TrackParseDebug.txt", pitchBendRange);
+			EADMusicToMidi(gameName, EADMUSICSTYLESTARFOX, gamebuffer, audioSeqOffset + start, length, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra, generateDebugTextFile, fileName + " TrackParseDebug.txt", pitchBendRange, isPreview);
 		}
 	}
 	else if (gameType.CompareNoCase("Seq64Mario") == 0)
@@ -24001,7 +24001,7 @@ int CMidiParse::WriteEADMusicTimeValue(unsigned char* outputMID, int& offset, in
 void CMidiParse::ParseEADMusicTrackLayer(int gameStyle, FILE* outFileDebug, unsigned char* inputMID, int end, int offset, int channel, int layer, unsigned long absoluteTime,
 							   int& numberInstruments, std::vector<TimeAndValue>& tempoPositions, std::vector<SngNoteInfo>& trackOutputNotes,
 							   int& noteUniqueId,
-							   std::vector<unsigned long>& jumpStarts, std::vector<unsigned long>& jumpsTaken, bool attemptJumps, unsigned char* coverage, bool channelStarted)
+							   std::vector<unsigned long>& jumpStarts, std::vector<unsigned long>& jumpsTaken, bool attemptJumps, unsigned char* coverage, bool channelStarted, bool isPreview)
 {
 	fprintfIfDebug(outFileDebug, "-------------------Track Chn %X Layer %X-------------------\n", channel, layer);
 
@@ -24726,7 +24726,7 @@ void CMidiParse::ParseEADMusicChannel(int gameStyle, FILE* outFileDebug, unsigne
 							int& numberInstruments, std::vector<TimeAndValue>& tempoPositions, std::vector<SngNoteInfo>& outputNotes,
 							int& noteUniqueId, int currentInstrument[0x10], int currentPan[0x10], int currentVolume[0x10], int currentPitchBend[0x10], int currentEffect[0x10],
 							std::vector<unsigned long>& jumpStarts, std::vector<unsigned long>& jumpsTaken, bool attemptJumps, unsigned char* coverage, bool channelStarted[0x10],
-							int currentVibrato[0x10])
+							int currentVibrato[0x10], bool isPreview)
 {
 	fprintfIfDebug(outFileDebug, "-------------------Channel %X-------------------\n", channel);
 	unsigned long startAbsoluteTime = absoluteTime;
@@ -24795,7 +24795,7 @@ loopAgain:
 			int callChannel = command & 0xF;
 
 			fprintfIfDebug(outFileDebug, "\n");
-			ParseEADMusicChannel(gameStyle, outFileDebug, inputMID, end, offset, callChannel, absoluteTime, numberInstruments, tempoPositions, outputNotes, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentEffect, jumpStarts, jumpsTaken, attemptJumps, coverage, channelStarted, currentVibrato);
+			ParseEADMusicChannel(gameStyle, outFileDebug, inputMID, end, offset, callChannel, absoluteTime, numberInstruments, tempoPositions, outputNotes, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentEffect, jumpStarts, jumpsTaken, attemptJumps, coverage, channelStarted, currentVibrato, isPreview);
 		}
 		else if ((command >= 0x30) && (command < 0x40))
 		{
@@ -24843,7 +24843,7 @@ loopAgain:
 				std::vector<unsigned long> jumpStartsTrack;
 				std::vector<unsigned long> jumpsTakenTrack;
 
-				ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, spot + offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel]);
+				ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, spot + offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel], isPreview);
 			}
 		}
 		else if ((command >= 0x7C) && (command < 0x80))
@@ -24863,7 +24863,7 @@ loopAgain:
 				std::vector<unsigned long> jumpStartsTrack;
 				std::vector<unsigned long> jumpsTakenTrack;
 
-				ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, spot + offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel]);
+				ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, spot + offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel], isPreview);
 			}
 		}
 		else if ((command >= 0x80) && (command < 0x84))
@@ -24888,7 +24888,7 @@ loopAgain:
 			std::vector<unsigned long> jumpStartsTrack;
 			std::vector<unsigned long> jumpsTakenTrack;
 
-			ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel]);
+			ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel], isPreview);
 
 			IncrementSpot(spot, 2, coverage);
 		}
@@ -24904,7 +24904,7 @@ loopAgain:
 			std::vector<unsigned long> jumpStartsTrack;
 			std::vector<unsigned long> jumpsTakenTrack;
 
-			ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel]);
+			ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel], isPreview);
 
 			IncrementSpot(spot, 2, coverage);
 		}
@@ -24941,7 +24941,7 @@ loopAgain:
 			std::vector<unsigned long> jumpStartsTrack;
 			std::vector<unsigned long> jumpsTakenTrack;
 
-			ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel]);
+			ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel], isPreview);
 
 			IncrementSpot(spot, 2, coverage);
 		}
@@ -24982,7 +24982,7 @@ loopAgain:
 			std::vector<unsigned long> jumpStartsTrack;
 			std::vector<unsigned long> jumpsTakenTrack;
 
-			ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel]);
+			ParseEADMusicTrackLayer(gameStyle, outFileDebug, inputMID, end, offset, channel, layer, absoluteTime, numberInstruments, tempoPositions, pendingChannelNotes, noteUniqueId, jumpStartsTrack, jumpsTakenTrack, attemptJumps, coverage, channelStarted[channel], isPreview);
 
 			IncrementSpot(spot, 2, coverage);
 		}
@@ -25090,6 +25090,15 @@ loopAgain:
 			fprintfIfDebug(outFileDebug, " Instrument");
 			fprintfIfDebug(outFileDebug, " %02X (%d)", inputMID[spot], inputMID[spot]);
 
+			if (isPreview)
+			{
+				if (inputMID[spot] >= 0x7F)
+				{
+					// Prevent preview issues with soundfont in soundbank tool
+					break;
+				}
+			}
+
 			currentInstrument[channel] = inputMID[spot];
 
 			SngTimeValue pair;
@@ -25142,7 +25151,7 @@ loopAgain:
 					coverage[offset + (v * 2)] = 0x00;
 					coverage[offset + (v * 2) + 1] = 0x00;
 
-					ParseEADMusicChannel(gameStyle, outFileDebug, inputMID, end, values[v], channel, absoluteTime, numberInstruments, tempoPositions, outputNotes, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentEffect, jumpStarts, jumpsTaken, attemptJumps, coverage, channelStarted, currentVibrato);
+					ParseEADMusicChannel(gameStyle, outFileDebug, inputMID, end, values[v], channel, absoluteTime, numberInstruments, tempoPositions, outputNotes, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentEffect, jumpStarts, jumpsTaken, attemptJumps, coverage, channelStarted, currentVibrato, isPreview);
 				}
 			}
 		}
@@ -26565,7 +26574,7 @@ void CMidiParse::ParseEADMusicSequence(int gameStyle, FILE* outFileDebug, unsign
 							 int& numberInstruments, std::vector<TimeAndValue>& tempoPositions, std::vector<SngNoteInfo>& outputNotes,
 							 int& noteUniqueId,
 							int currentInstrument[0x10], int currentPan[0x10], int currentVolume[0x10], int currentPitchBend[0x10], int currentReverb[0x10], bool& hitConditional, unsigned char* coverage, bool channelStarted[0x10],
-							int currentVibrato[0x10]
+							int currentVibrato[0x10], bool isPreview
 							 )
 {
 	unsigned char command = 0x00;
@@ -26642,7 +26651,7 @@ loopAgain:
 			std::vector<unsigned long> jumpStartsChannel;
 			std::vector<unsigned long> jumpsTakenChannel;
 
-			ParseEADMusicChannel(gameStyle, outFileDebug, inputMID, end, offset, channel, absoluteTime, numberInstruments, tempoPositions, outputNotes, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentReverb, jumpStartsChannel, jumpsTakenChannel, attemptJumps, coverage, channelStarted, currentVibrato);
+			ParseEADMusicChannel(gameStyle, outFileDebug, inputMID, end, offset, channel, absoluteTime, numberInstruments, tempoPositions, outputNotes, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentReverb, jumpStartsChannel, jumpsTakenChannel, attemptJumps, coverage, channelStarted, currentVibrato, isPreview);
 		}
 		else if ((command >= 0xA0) && (command < 0xB0))
 		{
@@ -26659,7 +26668,7 @@ loopAgain:
 			std::vector<unsigned long> jumpStartsChannel;
 			std::vector<unsigned long> jumpsTakenChannel;
 
-			ParseEADMusicChannel(gameStyle, outFileDebug, inputMID, end, spot + offset, channel, absoluteTime, numberInstruments, tempoPositions, outputNotes, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentReverb, jumpStartsChannel, jumpsTakenChannel, attemptJumps, coverage, channelStarted, currentVibrato);
+			ParseEADMusicChannel(gameStyle, outFileDebug, inputMID, end, spot + offset, channel, absoluteTime, numberInstruments, tempoPositions, outputNotes, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentReverb, jumpStartsChannel, jumpsTakenChannel, attemptJumps, coverage, channelStarted, currentVibrato, isPreview);
 		}
 		else if ((command >= 0xB0) && (command < 0xC0))
 		{
@@ -26721,7 +26730,7 @@ loopAgain:
 					coverage[offset + (v * 2)] = 0x00;
 					coverage[offset + (v * 2) + 1] = 0x00;
 
-					ParseEADMusicSequence(gameStyle, outFileDebug, inputMID, values[v], end, absoluteTime, jumpStarts, jumpsTaken, attemptJumps, numberInstruments, tempoPositions, outputNotes, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentReverb, hitConditional, coverage, channelStarted, currentVibrato);
+					ParseEADMusicSequence(gameStyle, outFileDebug, inputMID, values[v], end, absoluteTime, jumpStarts, jumpsTaken, attemptJumps, numberInstruments, tempoPositions, outputNotes, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentReverb, hitConditional, coverage, channelStarted, currentVibrato, isPreview);
 				}
 			}
 		}
@@ -27331,7 +27340,7 @@ loopAgain:
 
 void CMidiParse::EADMusicToMidi(CString gameName, int gameStyle, byte* inputMID, int address, int inputSize, CString outFileName, 
 				 int& numberInstruments, bool calculateInstrumentCountOnly, bool separateByInstrument, unsigned long extra,
-				 bool writeDebug, CString debugFilename, int pitchBendRange)
+				 bool writeDebug, CString debugFilename, int pitchBendRange, bool isPreview)
 {
 	numberInstruments = 1;
 	int noteUniqueId = 0;
@@ -27384,7 +27393,7 @@ void CMidiParse::EADMusicToMidi(CString gameName, int gameStyle, byte* inputMID,
 		unsigned char* coverage = new unsigned char[inputSize];
 		memcpy(coverage, &inputMID[address], inputSize);
 
-		ParseEADMusicSequence(gameStyle, outFileDebug, &inputMID[address], 0, inputSize, absoluteTime, jumpStarts, jumpsTaken, attemptJumps, numberInstruments, tempoPositions, sngNoteList, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentReverb, hitConditional, coverage, channelStarted, currentVibrato);
+		ParseEADMusicSequence(gameStyle, outFileDebug, &inputMID[address], 0, inputSize, absoluteTime, jumpStarts, jumpsTaken, attemptJumps, numberInstruments, tempoPositions, sngNoteList, noteUniqueId, currentInstrument, currentPan, currentVolume, currentPitchBend, currentReverb, hitConditional, coverage, channelStarted, currentVibrato, isPreview);
 
 		WriteSngList(sngNoteList, tempoPositions, outFileName, separateByInstrument, 0x0030, true, pitchBendRange);
 

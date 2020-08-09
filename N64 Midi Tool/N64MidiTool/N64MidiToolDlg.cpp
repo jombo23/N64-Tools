@@ -809,7 +809,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportbin()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("DCM") == 0)
 	{
@@ -837,7 +837,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportbin()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
 	{
@@ -865,7 +865,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportbin()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
 	{
@@ -893,7 +893,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportbin()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("LZSamplesDCM") == 0)
 	{
@@ -921,7 +921,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportbin()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 	}
 	else if ((gameConfig[gameNumber].gameType.CompareNoCase("RNCSeq") == 0) && compressed)
 	{
@@ -1143,7 +1143,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportmidi()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 	}
 	else if ((gameConfig[gameNumber].gameType.CompareNoCase("DCM") == 0) || (gameConfig[gameNumber].gameType.CompareNoCase("LZSamplesDCM") == 0))
 	{
@@ -1171,7 +1171,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportmidi()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
 	{
@@ -1199,7 +1199,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportmidi()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 	}
 	else
 	{
@@ -1272,7 +1272,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportmidi()
 		bool hasLoopPoint = false;
 		int loopStart = 0;
 		int loopEnd = 0;
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, usePitchBendSensitivity, pitchBendSensitivity);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, fileName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, usePitchBendSensitivity, pitchBendSensitivity, false);
 	}
 
 
@@ -2635,7 +2635,7 @@ void CN64MidiToolDlg::OnBnClickedButtonexportalltomidi()
 				bool hasLoopPoint = false;
 				int loopStart = 0;
 				int loopEnd = 0;
-				CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, usePitchBendSensitivity, pitchBendSensitivity);
+				CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, usePitchBendSensitivity, pitchBendSensitivity, false);
 			}
 			catch (...)
 			{
@@ -2709,25 +2709,25 @@ void CN64MidiToolDlg::OnBnClickedButtonexportalltorawbin()
 		{
 			outputName.Format("%s%s %08X %08X.xm", tempPath, gameName, x, address);
 			int numberInstruments;
-			CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+			CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 		}
 		else if (gameConfig[gameNumber].gameType.CompareNoCase("DCM") == 0)
 		{
 			outputName.Format("%s%s %08X %08X.dcm", tempPath, gameName, x, address);
 			int numberInstruments;
-			CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+			CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 		}
 		else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
 		{
 			outputName.Format("%s%s %08X %08X.dcm", tempPath, gameName, x, address);
 			int numberInstruments;
-			CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+			CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 		}
 		else if (gameConfig[gameNumber].gameType.CompareNoCase("LZSamplesDCM") == 0)
 		{
 			outputName.Format("%s%s %08X %08X.dcm", tempPath, gameName, x, address);
 			int numberInstruments;
-			CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+			CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, outputName, gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, false);
 		}
 		else if ((gameConfig[gameNumber].gameType.CompareNoCase("RNCSeq") == 0) && compressed)
 		{
@@ -2854,34 +2854,34 @@ void CN64MidiToolDlg::OnBnClickedButtonplaymidi()
 
 	if (gameConfig[gameNumber].gameType.CompareNoCase("MultipartZLibXMFastTracker2") == 0)
 	{
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.xm", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.xm", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, true);
 		CString sParameter;
 		ShellExecute( GetSafeHwnd(), "open", "explorer.exe", (mainFolder + "tempAS123123as.xm"), mainFolder, SW_SHOWNORMAL );
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("DCM") == 0)
 	{
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.dcm", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.dcm", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, true);
 		CString sParameter;
 		normalExec((mainFolder + "MikIT.exe " + (mainFolder + "tempAS123123as.dcm ") + (mainFolder + "tempAS123123as.wav ") + "300").GetBuffer(), mainFolder);
 		ShellExecute( GetSafeHwnd(), "open", "explorer.exe", (mainFolder + "tempAS123123as.wav"), mainFolder, SW_SHOWNORMAL );
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
 	{
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.dcm", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.dcm", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, true);
 		CString sParameter;
 		normalExec((mainFolder + "MikIT.exe " + (mainFolder + "tempAS123123as.dcm ") + (mainFolder + "tempAS123123as.wav ") + "300").GetBuffer(), mainFolder);
 		ShellExecute( GetSafeHwnd(), "open", "explorer.exe", (mainFolder + "tempAS123123as.wav"), mainFolder, SW_SHOWNORMAL );
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("LZSamplesDCM") == 0)
 	{
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.dcm", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.dcm", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, true);
 		CString sParameter;
 		normalExec((mainFolder + "MikIT.exe " + (mainFolder + "tempAS123123as.dcm ") + (mainFolder + "tempAS123123as.wav ") + "300").GetBuffer(), mainFolder);
 		ShellExecute( GetSafeHwnd(), "open", "explorer.exe", (mainFolder + "tempAS123123as.wav"), mainFolder, SW_SHOWNORMAL );
 	}
 	else
 	{
-		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.mid", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo);
+		CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, romSize, address, size, mainFolder + "tempAS123123as.mid", gameConfig[gameNumber].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), false, extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[gameNumber].extraGameMidiInfo, true);
 		CString sParameter;
 		ShellExecute( GetSafeHwnd(), "open", "explorer.exe", (mainFolder + "tempAS123123as.mid"), mainFolder, SW_SHOWNORMAL );
 	}
@@ -3436,7 +3436,7 @@ void CN64MidiToolDlg::OnBnClickedButtonriproms()
 				bool hasLoopPoint = false;
 				int loopStart = 0;
 				int loopEnd = 0;
-				CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[y].gameName, gamebuffer, gameROMSize, address, size, tempOutFileNameStr, gameConfig[y].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[y].extraGameMidiInfo);
+				CN64MidiToolReader::midiParse.ExportToMidi(gameConfig[y].gameName, gamebuffer, gameROMSize, address, size, tempOutFileNameStr, gameConfig[y].gameType, numberInstruments, 0, compressed, hasLoopPoint, loopStart, loopEnd, false, mSeparateByInstrument.GetCheck(), mDebugTextFile.GetCheck(), extra, extra2, mOutputLoop.GetCheck(), CEditControlToDecimalValue(&mOutputLoopCount), mExtendSmallerTracksToEnd.GetCheck(), gameConfig[y].extraGameMidiInfo, false);
 			}
 			
 
