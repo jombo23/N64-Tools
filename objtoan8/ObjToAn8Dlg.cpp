@@ -16878,6 +16878,7 @@ bool CObjToAn8Dlg::StringHasNumber(CString string)
 		return false;
 	}
 }
+
 void CObjToAn8Dlg::OnBnClickedButtonchooseoverrideskeleton()
 {
 	CFileDialog m_ldFile(TRUE, NULL, "skeleton.obj", OFN_HIDEREADONLY, "Skeleton File (*.obj)|*.obj||", this);
@@ -16896,12 +16897,151 @@ void CObjToAn8Dlg::OnBnClickedButtonchooseoverrideskeleton()
 	}
 }
 
+bool CObjToAn8Dlg::IsHexDigit(char inChar)
+{
+	if (inChar == '0')
+		return true;
+	else if (inChar == '1')
+		return true;
+	else if (inChar == '2')
+		return true;
+	else if (inChar == '3')
+		return true;
+	else if (inChar == '4')
+		return true;
+	else if (inChar == '5')
+		return true;
+	else if (inChar == '6')
+		return true;
+	else if (inChar == '7')
+		return true;
+	else if (inChar == '8')
+		return true;
+	else if (inChar == '9')
+		return true;
+	else if (inChar == 'A')
+		return true;
+	else if (inChar == 'a')
+		return true;
+	else if (inChar == 'B')
+		return true;
+	else if (inChar == 'b')
+		return true;
+	else if (inChar == 'C')
+		return true;
+	else if (inChar == 'c')
+		return true;
+	else if (inChar == 'D')
+		return true;
+	else if (inChar == 'd')
+		return true;
+	else if (inChar == 'E')
+		return true;
+	else if (inChar == 'e')
+		return true;
+	else if (inChar == 'F')
+		return true;
+	else if (inChar == 'f')
+		return true;
+	else
+		return false;
+}
+
+int CObjToAn8Dlg::HexToInt(CString inChar)
+{
+	if (inChar == "0")
+		return 0;
+	else if (inChar == "1")
+		return 1;
+	else if (inChar == "2")
+		return 2;
+	else if (inChar == "3")
+		return 3;
+	else if (inChar == "4")
+		return 4;
+	else if (inChar == "5")
+		return 5;
+	else if (inChar == "6")
+		return 6;
+	else if (inChar == "7")
+		return 7;
+	else if (inChar == "8")
+		return 8;
+	else if (inChar == "9")
+		return 9;
+	else if (inChar == "A")
+		return 10;
+	else if (inChar == "a")
+		return 10;
+	else if (inChar == "B")
+		return 11;
+	else if (inChar == "b")
+		return 11;
+	else if (inChar == "C")
+		return 12;
+	else if (inChar == "c")
+		return 12;
+	else if (inChar == "D")
+		return 13;
+	else if (inChar == "d")
+		return 13;
+	else if (inChar == "E")
+		return 14;
+	else if (inChar == "e")
+		return 14;
+	else if (inChar == "F")
+		return 15;
+	else if (inChar == "f")
+		return 15;
+	else
+		return 0;
+}
+
+int CObjToAn8Dlg::ReturnThreeDigitsFromCharArray(char* newChar)
+{
+	CString tempStr;
+	for (int x = 0; x < 3; x++)
+	{
+		if (IsHexDigit(newChar[x]))
+		{
+			CString tempCharStr;
+			tempCharStr.Format("%s", newChar);
+			tempStr += tempCharStr.Mid(x, 1);
+		}
+		else
+			break;
+	}
+
+	int length = tempStr.GetLength();
+	if (tempStr.GetLength() == 1)
+		tempStr = "000";
+	else if (tempStr.GetLength() == 1)
+		tempStr = "00" + tempStr;
+	else if (tempStr.GetLength() == 2)
+		tempStr = "0" + tempStr;
+	int tempShort = ((HexToInt(tempStr.Mid(0, 1)) << 0x8) | (HexToInt(tempStr.Mid(1, 1)) << 0x4) | HexToInt(tempStr.Mid(2, 1)));
+	return tempShort;
+}
+
 bool CObjToAn8Dlg::SortPolygonGroupByTexture(CGroup* group)
 {
-	CString groupLowerName = group->name;
-	groupLowerName.MakeLower();
-	if (groupLowerName.Find("secondary") != -1)
+	if (FindCaseInsensitive(group->name, "secondary") != -1)
 		return true;
+
+	int typePosition = FindCaseInsensitive(group->name, "Type", 0);
+	if (typePosition != -1)
+	{
+		char newChar[1000];
+		strcpy(newChar, group->name.Mid((typePosition + 4)));
+		for (int rrr = 0; rrr < (group->name.Mid((typePosition + 4)).GetLength()); rrr++)
+		{
+			if ((newChar[rrr] == 0x20) || (newChar[rrr] == 0xA))
+				newChar[rrr] = 0x0;
+		}
+		int ssbRoomType = ReturnThreeDigitsFromCharArray(newChar);
+		if (ssbRoomType != 1)
+			return true;
+	}
 
 	std::vector<CPolygon*> polygonsPrimary;
 	std::vector<CPolygon*> polygonsSecondary;

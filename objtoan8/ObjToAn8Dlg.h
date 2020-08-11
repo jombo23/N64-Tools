@@ -293,4 +293,7 @@ public:
 	CStatic mFBXFPSLabel;
 	CEdit mFBXFPS;
 	CButton mSortTexturesWithinGroup;
+	bool IsHexDigit(char inChar);
+	int HexToInt(CString inChar);
+	int ReturnThreeDigitsFromCharArray(char* newChar);
 };
