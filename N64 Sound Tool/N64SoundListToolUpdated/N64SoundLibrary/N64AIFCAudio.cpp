@@ -17026,7 +17026,7 @@ ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableV2(unsigned char* ctl, unsigned l
 	alBank->count = (unsigned short)CharArrayToLong(&ctl[ctlOffset+0x20]);
 	unsigned long endOffsets = ctlOffset + CharArrayToLong(&ctl[ctlOffset+0x24]);
 	unsigned long endExtraBytes = ctlOffset + CharArrayToLong(&ctl[ctlOffset + 0x28]);
-	ctlSize = CharArrayToLong(&ctl[ctlOffset + 0x28]);
+	ctlSize = CharArrayToLong(&ctl[ctlOffset + 0x28]) + (alBank->count * 4);
 	alBank->flags = 0x0000;
 	alBank->pad = 0x0;
 	alBank->samplerate = 22050;
