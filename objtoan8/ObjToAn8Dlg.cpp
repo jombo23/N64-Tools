@@ -4475,6 +4475,16 @@ void CObjToAn8Dlg::RenameMaterials(std::vector<CVerticeColor*>& verticeColors, s
 			else
 			{
 				material->name = "Untextured";
+				if (FindCaseInsensitive(originalName, "CullBoth") != -1)
+				{
+					if (FindCaseInsensitive(material->name, "CullBoth") == -1) // handle if in bmp name
+						material->name += "CullBoth";
+				}
+				if (FindCaseInsensitive(originalName, "CullFront") != -1)
+				{
+					if (FindCaseInsensitive(material->name, "CullFront") == -1) // handle if in bmp name
+						material->name += "CullFront";
+				}
 			}
 			if ((material->diffuseColor.contains) && ((material->diffuseColor.r < 1.0) || (material->diffuseColor.g < 1.0) || (material->diffuseColor.b < 1.0)))
 			{
@@ -6286,12 +6296,12 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 				if ((keyframe->scaleIsInterpolated[0]) || (keyframe->scaleIsInterpolated[1]) || (keyframe->scaleIsInterpolated[2]))
 					fprintf(outFile, "#keyframeisinterpolatedscale %d %d %d\n", keyframe->scaleIsInterpolated[0], keyframe->scaleIsInterpolated[1], keyframe->scaleIsInterpolated[2]);
 
-				if ((keyframe->rotationHasDerivative[0]) || (keyframe->rotationHasDerivative[1]) || (keyframe->rotationHasDerivative[2]))
+				/*if ((keyframe->rotationHasDerivative[0]) || (keyframe->rotationHasDerivative[1]) || (keyframe->rotationHasDerivative[2]))
 					fprintf(outFile, "#keyframederivativerotation %f %f %f\n", keyframe->rotationDerivativeValue.x, keyframe->rotationDerivativeValue.y, keyframe->rotationDerivativeValue.z);
 				if ((keyframe->translationHasDerivative[0]) || (keyframe->translationHasDerivative[1]) || (keyframe->translationHasDerivative[2]))
 					fprintf(outFile, "#keyframederivativetranslation %f %f %f\n", keyframe->translationDerivativeValue.x, keyframe->translationDerivativeValue.y, keyframe->translationDerivativeValue.z);
 				if ((keyframe->scaleHasDerivative[0]) || (keyframe->scaleHasDerivative[1]) || (keyframe->scaleHasDerivative[2]))
-					fprintf(outFile, "#keyframederivativescale %f %f %f\n", keyframe->scaleDerivativeValue.x, keyframe->scaleDerivativeValue.y, keyframe->scaleDerivativeValue.z);
+					fprintf(outFile, "#keyframederivativescale %f %f %f\n", keyframe->scaleDerivativeValue.x, keyframe->scaleDerivativeValue.y, keyframe->scaleDerivativeValue.z);*/
 
 				if (keyframe->fieldOfView.contains)
 				{
@@ -6352,12 +6362,12 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 					if ((animationPart->scaleIsInterpolated[0]) || (animationPart->scaleIsInterpolated[1]) || (animationPart->scaleIsInterpolated[2]))
 						fprintf(outFile, "#partisinterpolatedscale %d %d %d\n", animationPart->scaleIsInterpolated[0], animationPart->scaleIsInterpolated[1], animationPart->scaleIsInterpolated[2]);
 
-					if ((animationPart->rotationHasDerivative[0]) || (animationPart->rotationHasDerivative[1]) || (animationPart->rotationHasDerivative[2]))
+					/*if ((animationPart->rotationHasDerivative[0]) || (animationPart->rotationHasDerivative[1]) || (animationPart->rotationHasDerivative[2]))
 						fprintf(outFile, "#partderivativerotation %f %f %f\n", animationPart->rotationDerivativeValue.x, animationPart->rotationDerivativeValue.y, animationPart->rotationDerivativeValue.z);
 					if ((animationPart->translationHasDerivative[0]) || (animationPart->translationHasDerivative[1]) || (animationPart->translationHasDerivative[2]))
 						fprintf(outFile, "#partderivativetranslation %f %f %f\n", animationPart->translationDerivativeValue.x, animationPart->translationDerivativeValue.y, animationPart->translationDerivativeValue.z);
 					if ((animationPart->scaleHasDerivative[0]) || (animationPart->scaleHasDerivative[1]) || (animationPart->scaleHasDerivative[2]))
-						fprintf(outFile, "#partderivativescale %f %f %f\n", animationPart->scaleDerivativeValue.x, animationPart->scaleDerivativeValue.y, animationPart->scaleDerivativeValue.z);
+						fprintf(outFile, "#partderivativescale %f %f %f\n", animationPart->scaleDerivativeValue.x, animationPart->scaleDerivativeValue.y, animationPart->scaleDerivativeValue.z);*/
 				}
 			}
 		}
