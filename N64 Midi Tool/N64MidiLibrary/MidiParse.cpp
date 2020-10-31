@@ -19041,6 +19041,12 @@ void CMidiParse::WriteSngList(std::vector<SngNoteInfo> sngNoteList, std::vector<
 
 		for (int z = startChannel; z < MAXCHANNELS; z++)
 		{
+			if (separateByInstrument && (channels[z].size() > 0))
+			{
+				if (channels[z][0].instrument != overlappingNotes[x].instrument)
+					continue;
+			}
+
 			bool overlapped = false;
 			for (int y = 0; y < channels[z].size(); y++)
 			{
