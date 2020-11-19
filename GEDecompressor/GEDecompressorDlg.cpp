@@ -1029,6 +1029,44 @@ fclose(outComb);
 
 
 
+	/*FILE* inTemp = fopen("C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\Hamster Monogatari 64 (J) [!].z64", "rb");
+	unsigned char* temp Char = new unsigned char[0xC00000];
+	fread(tempChar, 1, 0xC00000, inTemp);
+	fclose(inTemp);
+
+	unsigned char* output = new unsigned char[0xC00000];
+
+	CNinDec ninDec;
+
+	int offset = 0x009A4DE0;
+
+	int expectedSize = ((((((tempChar[offset+3] << 8) | tempChar[offset+2]) << 8) | tempChar[offset+1]) << 8) | tempChar[offset+0]);
+
+	int decSize = ninDec.dec(&tempChar[offset], 0xC00000 - offset, output);
+
+	FILE* outTest = fopen("C:\\temp\\test.bin", "wb");
+	fwrite(output, 1, decSize, outTest);
+	fclose(outTest);
+
+	unsigned char* reCompressed = new unsigned char[expectedSize];
+	int reSize = ninDec.encode(output, decSize, reCompressed, 1000);
+
+	FILE* outTestre = fopen("C:\\temp\\testre.bin", "wb");
+	fwrite(reCompressed, 1, reSize, outTestre);
+	fclose(outTestre);
+
+	delete [] output;
+	output = new unsigned char[0xC00000];
+	decSize = ninDec.dec(reCompressed, reSize, output);
+
+	FILE* outTest2 = fopen("C:\\temp\\test2.bin", "wb");
+	fwrite(output, 1, decSize, outTest);
+	fclose(outTest);
+
+	delete [] reCompressed;
+	delete [] output;
+	delete [] tempChar;*/
+
 	
 	// TODO: Add extra initialization here
 	char tempFolder[8000];

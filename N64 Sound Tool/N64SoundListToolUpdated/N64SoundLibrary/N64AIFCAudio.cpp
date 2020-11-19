@@ -8133,8 +8133,7 @@ void CN64AIFCAudio::WriteAudioToFile(std::vector<ALBank*> alBanks, CString outFi
 		}
 		else if (alBank->soundBankFormat == NINDEC)
 		{
-			MessageBox(NULL, "Sorry, no encoding yet for NinDec format", "Error", NULL);
-			return;
+			WriteAudioNinDec(alBanks, ctl, ctlSize, tbl, tblSize);
 		}
 		else if (alBank->soundBankFormat == MKMYTHOLOGIES)
 		{
@@ -14230,6 +14229,34 @@ void CN64AIFCAudio::WriteAudio(std::vector<ALBank*> alBank, unsigned char*& ctl,
 
 	ctlSize = outputCtlCounter;
 	tblSize = outputTblCounter;
+}
+
+void CN64AIFCAudio::WriteAudioNinDec(std::vector<ALBank*> alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize)
+{
+	unsigned char* ctlTemp = NULL;
+	int ctlSizeTemp = 0;
+
+	WriteAudio(alBank, ctlTemp, ctlSizeTemp, tbl, tblSize);
+
+	unsigned char* outputBuffer = new unsigned char[0x800000];
+	CNinDec ninEnc;
+	int compSize = ninEnc.encode(ctlTemp, ctlSizeTemp, outputBuffer);
+
+	delete [] ctlTemp;
+
+	if (compSize > 0)
+	{
+		ctl = new unsigned char[compSize];
+		memcpy(ctl, outputBuffer, compSize);
+		ctlSize = compSize;
+
+		delete [] outputBuffer;
+	}
+	else
+	{
+		delete [] outputBuffer;
+		MessageBox(NULL, "Error writing output temp file to disk", "Error", NULL);
+	}
 }
 
 void CN64AIFCAudio::WriteAudioConker(ALBank*& alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize, int ctlOffsetPartTwo, unsigned char*& ctl2, int& ctlSize2)

@@ -3312,28 +3312,29 @@ void CN64SoundListToolDlg::ShowSoundBankControls()
 		mCheckUnknownEADFlag.ShowWindow(SW_HIDE);
 		mLabelTableIndex.ShowWindow(SW_HIDE);
 		mTableIndex.ShowWindow(SW_HIDE);
-		m_injectInPlaceButton.ShowWindow(SW_HIDE);
+		m_injectInPlaceButton.ShowWindow(SW_SHOW);
 		m_playButton.ShowWindow(SW_SHOW);
 		m_playLoopedButton.ShowWindow(SW_SHOW);
 		m_stopButton.ShowWindow(SW_SHOW);
 		m_saveButton.ShowWindow(SW_SHOW);
 		m_import16BitRaw.ShowWindow(SW_HIDE);
-		m_import16BitADPCM.ShowWindow(SW_HIDE);
-		m_import16BitADPCMSamePred.ShowWindow(SW_HIDE);
-		m_import16BitRawValues.ShowWindow(SW_HIDE);
-		m_importPredictors.ShowWindow(SW_HIDE);
-		mImportFromSDKTools.ShowWindow(SW_HIDE);
+		m_import16BitADPCM.ShowWindow(SW_SHOW);
+		m_import16BitADPCMSamePred.ShowWindow(SW_SHOW);
+		m_import16BitRawValues.ShowWindow(SW_SHOW);
+		m_importPredictors.ShowWindow(SW_SHOW);
+		ShowOfficialSDKImport();
 		m_add16BitRaw.ShowWindow(SW_HIDE);
-		m_add16BitADPCM.ShowWindow(SW_HIDE);
-		mAddInstrumentButton.ShowWindow(SW_HIDE);
-		mDeleteInstrumentButton.ShowWindow(SW_HIDE);
-		mDeletePercussionBank.ShowWindow(SW_HIDE);
-		mAddPercussionBank.ShowWindow(SW_HIDE);
+		m_add16BitADPCM.ShowWindow(SW_SHOW);
+		mAddInstrumentButton.ShowWindow(SW_SHOW);
+		mDeleteInstrumentButton.ShowWindow(SW_SHOW);
+		mDeletePercussionBank.ShowWindow(SW_SHOW);
+		mAddPercussionBank.ShowWindow(SW_SHOW);
 		mDeleteSfxBank.ShowWindow(SW_HIDE);
 		mAddSfxBank.ShowWindow(SW_HIDE);
-		m_importGroupBox.ShowWindow(SW_HIDE);
-		m_addToEndGroupBox.ShowWindow(SW_HIDE);
-		m_deleteButton.ShowWindow(SW_HIDE);
+		m_importGroupBox.ShowWindow(SW_SHOW);
+		m_addToEndGroupBox.ShowWindow(SW_SHOW);
+		m_deleteButton.ShowWindow(SW_SHOW);
+		m_miscGroupBox.ShowWindow(SW_SHOW);
 		m_tremGroupBox.ShowWindow(SW_SHOW);
 		m_vibrGroupBox.ShowWindow(SW_SHOW);
 		mVolume.ShowWindow(SW_SHOW);
@@ -7961,6 +7962,10 @@ void CN64SoundListToolDlg::OnBnClickedInjectplace()
 			errors = n64AudioLibrary.CompareALBanks(alBanks[3], bank5);
 			errors = errors;*/
 		}
+		else if (alBankCurrent->soundBankFormat == NINDEC)
+		{
+			n64AudioLibrary.WriteAudioNinDec(alBanks, ctl, ctlSize, tbl, tblSize);
+		}
 		else if ((alBankCurrent->soundBankFormat == TUROKFORMAT)  || (alBankCurrent->soundBankFormat == STANDARDRNCCOMPRESSED)  || (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED)|| (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED))
 		{
 			MessageBox("Sorry, no encoding yet for MIO0 format");
@@ -8947,6 +8952,7 @@ void CN64SoundListToolDlg::OpenROMSpecific(SoundGameConfig gameConfig)
 	CString tempGameName = gameConfig.gameName;
 	tempGameName.Replace(" Speech", "");
 	tempGameName.Replace(" Sfx", "");
+	tempGameName.Replace(" (Compressed Banks)", "");
 
 	if (!OpenROMPlusDlg(tempGameName + " [!].z64"))
 		return;

@@ -477,6 +477,7 @@ public:
 	static void UpdateAudioOffsets(ALBank* alBank);
 	static void UpdateAudioOffsets(std::vector<ALBank*> alBanks);
 	static void WriteAudio(std::vector<ALBank*>, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize);
+	static void WriteAudioNinDec(std::vector<ALBank*>, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize);
 	static void WriteAudioConker(ALBank*& alBank, unsigned char*& ctl, int& ctlSize, unsigned char*& tbl, int& tblSize, int ctlOffsetPartTwo, unsigned char*& ctl2, int& ctlSize2);
 	static void WriteKonamiADSR(unsigned char* ROM, ALBank*& alBank, unsigned long instrumentOffset, unsigned long endInstrumentOffset, unsigned long startDrumOffset, unsigned long endDrumOffset);
 	static void WriteKonami8ADSR(unsigned char* ROM, ALBank*& alBank, unsigned long instrumentOffset, unsigned long endInstrumentOffset, unsigned long startDrumOffset, unsigned long endDrumOffset);
