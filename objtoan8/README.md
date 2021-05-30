@@ -1,4 +1,4 @@
-Official release of objtoan8  
+***Official release of objtoan8***  
   
 Obj2an8 is a tool designed to allow for external programs such as the GoldenEye Setup Editor to support a simple, text-based import format that supports rigs and animation, compatible with obj, yet still allow export from sophisticated modeling tools using more modern formats such as FBX.  Obj2an8 converts between these formats: "geobj", fbx, bvh, and dae.  Note that dae support is not great due to the use of assimp library and the wide variation in dae format usage among modeling tools.  
   
@@ -17,18 +17,18 @@ Both use the same source files, just different version for assimp and FBX SDK.  
   
   
   
-.geobj format  
+***.geobj format***  
   
 Builds upon the existing obj format, fully supporting comments (\#), vertices (v), vertice normals (vn), vertice uvs (vt), faces (f), lines (l), groups (o or g), materials (mtllib and usemtl), and material file.  
 The additions to the format are all enclosed in \# comments, so that the obj file itself will be openable in existing modeling tools (though will not include the new features).  
   
   
-Additions:  
+*Additions:*  
   
-Vertex Coloring  
+***Vertex Coloring***  
 Add vertex coloring to obj format.  Vertex coloring should override material color, if present for a point, by any ingest tool.  
   
-Vertex Color Index  
+*Vertex Color Index*  
 Like v, vn, and vt, an indexed list of vertex colors, starting at index 1.  Values must appear before use (in an \#fvcolorindex command).  
 \#vcolor R G B A   
   
@@ -37,7 +37,7 @@ R G B A [0-255.0]
 Example:  
 \#vcolor 255.000000 255.000000 255.000000 255.000000  
   
-Vertex Color Face  
+*Vertex Color Face*  
 After each face command, maps the face to the vertex color index.  Should always have 1 entry matching each face point.  
   
 [After an f line]  
@@ -49,16 +49,16 @@ f 1/1/1 2/2/2 3/3/3
   
   
   
-Rigging  
+***Rigging***  
 Rigging should appear at the beginning of the geobj file.  It is a set of joints connected in a hierarchy.  There are two modes, relative, and absolute.  Absolute mode is the default, where all joints are specified as absolute coordinates.  Relative mode must be explicitly specified, and includes SRT for each joint, relative to parent joint.  Relative mode is not intended for animations, and just for model data.  Relative mode's vertice positions are defined relative to joint, and NOT absolute, like the obj format declares, so for relative mode geobj files, the groups will not appear in the right position in a model viewer if imported.    
   
-Joint mode  
+*Joint mode*  
 Before any joint data, include the type of joint data.  Absolute jointmode is the default if unspecified.  
 \#jointmode relative  
 \#jointmode absolute  
   
-Joints  
-Joints are specified as two commands in a row  
+*Joints*  
+Joints are specified as two commands in a row, joint, and then joint location  
 \#joint [Name]  
   
 For absolute joint mode  
@@ -81,7 +81,7 @@ Example:
 \#joint 1  
 \#jointsrt 1.000000 1.000000 1.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000  
   
-Joint Connections  
+*Joint Connections*  
 Hierarchy of joint connections.  Defined one connection at a time.  All joints do not need to be connected, but it is recommended.    
   
 \#connection [ParentName] [ChildName]  
@@ -91,7 +91,7 @@ Example:
 \#connection 1 3  
 \#connection 3 5  
   
-Vertex Joint Assignment  
+*Vertex Joint Assignment*  
 Assigns vertices to a joint defined in the rigging.    
   
 Two commands in a row, to define the joint, then assign one or more vertices assigned to the joint.  Must appear after the vertex index.  Multiple commands are additive to the same joint (may have more than one \#joint/\#vjoint command to the same joint).  Vertices may only be applied to one joint (vertex weighting not supported).  
