@@ -1,51 +1,51 @@
-Official release of objtoan8
+# Official release of objtoan8
 
-Obj2an8 is a tool designed to allow for external programs such as the GoldenEye Setup Editor to support a simple, text-based import format that supports rigs and animation, compatible with obj, yet still allow export from sophisticated modeling tools using more modern formats such as FBX.  Obj2an8 converts between these formats: "geobj", fbx, bvh, and dae.  Note that dae support is not great due to the use of assimp library and the wide variation in dae format usage among modeling tools.
+## Obj2an8 is a tool designed to allow for external programs such as the GoldenEye Setup Editor to support a simple, text-based import format that supports rigs and animation, compatible with obj, yet still allow export from sophisticated modeling tools using more modern formats such as FBX.  Obj2an8 converts between these formats: "geobj", fbx, bvh, and dae.  Note that dae support is not great due to the use of assimp library and the wide variation in dae format usage among modeling tools.
 
-Builds are located in /bin
+## Builds are located in /bin
 
-If building yourself - 
-The VS2008 Sln uses FBX 2014.1, and Assimp 3.  Unzip assimp.zip to build that version.
-FBX SDK 2014.1: http://images.autodesk.com/adsk/files/fbx20141_fbxsdk_vs2008_win.exe
-Copy C:\Program Files\Autodesk\FBX\FBX SDK\2014.1\lib\vs2008\x64\release\libfbxsdk.dll to obj2an8 folder. Or x86 folder if 32-bit.
+## If building yourself - 
+## The VS2008 Sln uses FBX 2014.1, and Assimp 3.  Unzip assimp.zip to build that version.
+## FBX SDK 2014.1: http://images.autodesk.com/adsk/files/fbx20141_fbxsdk_vs2008_win.exe
+## Copy C:\Program Files\Autodesk\FBX\FBX SDK\2014.1\lib\vs2008\x64\release\libfbxsdk.dll to obj2an8 folder. Or x86 folder if 32-bit.
 
-The VS2013 V12 Sln uses FBX 2020.0.1, and Assimp 5.0.0.  Unzip assimp5_0_0.zip to build that version.  All exe generated and folders will have a v12 appended to name.
-FBX SDK 2014.1: https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/2020-0-1/fbx202001_fbxsdk_vs2013_win.exe
-Copy C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\release\libfbxsdk.dll to obj2an8 folder. Or x86 folder if 32-bit.
+## The VS2013 V12 Sln uses FBX 2020.0.1, and Assimp 5.0.0.  Unzip assimp5_0_0.zip to build that version.  All exe generated and folders will have a v12 appended to name.
+## FBX SDK 2014.1: https://www.autodesk.com/content/dam/autodesk/www/adn/fbx/2020-0-1/fbx202001_fbxsdk_vs2013_win.exe
+## Copy C:\Program Files\Autodesk\FBX\FBX SDK\2020.0.1\lib\vs2013\x64\release\libfbxsdk.dll to obj2an8 folder. Or x86 folder if 32-bit.
 
-Both use the same source files, just different version for assimp and FBX SDK.  Only the VS2013 Binaries are released.
-
-
-
-.geobj format
-
-Builds upon the existing obj format, fully supporting comments (\#), vertices (v), vertice normals (vn), vertice uvs (vt), faces (f), lines (l), groups (o or g), materials (mtllib and usemtl), and material file.
-The additions to the format are all enclosed in \# comments, so that the obj file itself will be openable in existing modeling tools (though will not include the new features).
+## Both use the same source files, just different version for assimp and FBX SDK.  Only the VS2013 Binaries are released.
 
 
-Additions:
 
-Vertex Coloring
-Add vertex coloring to obj format.  Vertex coloring should override material color, if present for a point, by any ingest tool.
+# .geobj format
 
-Vertex Color Index
-Like v, vn, and vt, an indexed list of vertex colors, starting at index 1.  Values must appear before use (in an \#fvcolorindex command).
-\#vcolor R G B A 
+## Builds upon the existing obj format, fully supporting comments (\#), vertices (v), vertice normals (vn), vertice uvs (vt), faces (f), lines (l), groups (o or g), materials (mtllib and usemtl), and material file.
+## The additions to the format are all enclosed in \# comments, so that the obj file itself will be openable in existing modeling tools (though will not include the new features).
 
-R G B A [0-255.0]
 
-Example:
-\#vcolor 255.000000 255.000000 255.000000 255.000000
+## Additions:
 
-Vertex Color Face
-After each face command, maps the face to the vertex color index.  Should always have 1 entry matching each face point.
+### Vertex Coloring
+#### Add vertex coloring to obj format.  Vertex coloring should override material color, if present for a point, by any ingest tool.
 
-[After an f line]
-\#fvcolorindex vc1 vc2 vc3...
+####Vertex Color Index
+##### Like v, vn, and vt, an indexed list of vertex colors, starting at index 1.  Values must appear before use (in an \#fvcolorindex command).
+##### \#vcolor R G B A 
 
-Example:
-f 1/1/1 2/2/2 3/3/3 
-\#fvcolorindex 1 2 3
+##### R G B A [0-255.0]
+
+##### Example:
+##### \#vcolor 255.000000 255.000000 255.000000 255.000000
+
+#### Vertex Color Face
+##### After each face command, maps the face to the vertex color index.  Should always have 1 entry matching each face point.
+
+##### [After an f line]
+##### \#fvcolorindex vc1 vc2 vc3...
+
+##### Example:
+##### f 1/1/1 2/2/2 3/3/3 
+##### \#fvcolorindex 1 2 3
 
 
 
