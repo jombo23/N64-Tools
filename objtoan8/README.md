@@ -210,6 +210,13 @@ Example:
 \#partisinterpolatedrotation 1 0 1  
 \#partisinterpolatedscale 1 1 0  
   
+### Shape Animation  
+Shape animation is used instead of the \#animation command in order to indicate that the animation is going to be specified as vertex position translation only.  The format is exactly the same as regular animations, but used specially, and should include one joint per vertex, and then each keyframe should include part translation only.  
+
+\#shapeanimation [name]  
+
+Example:  
+#shapeanimation Animation0000  
   
 ### Cameras  
 Cameras do not include any geometry or joints, and are purely keyframe based.  
@@ -245,6 +252,7 @@ Example:
 \#keyframetranslation 21300.101562 789.100037 1835.000000  
   
 ### Samples
+
   
 ***Sample Animation:***  
 mtllib animationfr.mtl  
@@ -662,4 +670,4 @@ v 318.000000 -318.000000 344.000000
 \#joint 1  
 \#vjoint 4  
 vt 1.000000 0.000000 0.0  
-f 4/4/1 1/1/1 3/3/1
+f 4/4/1 1/1/1 3/3/1  
