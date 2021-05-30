@@ -1,4 +1,4 @@
-***Official release of objtoan8***  
+# Official release of objtoan8  
   
 Obj2an8 is a tool designed to allow for external programs such as the GoldenEye Setup Editor to support a simple, text-based import format that supports rigs and animation, compatible with obj, yet still allow export from sophisticated modeling tools using more modern formats such as FBX.  Obj2an8 converts between these formats: "geobj", fbx, bvh, and dae.  Note that dae support is not great due to the use of assimp library and the wide variation in dae format usage among modeling tools.  
   
@@ -17,18 +17,18 @@ Both use the same source files, just different version for assimp and FBX SDK.  
   
   
   
-***.geobj format***  
+#.geobj format  
   
 Builds upon the existing obj format, fully supporting comments (\#), vertices (v), vertice normals (vn), vertice uvs (vt), faces (f), lines (l), groups (o or g), materials (mtllib and usemtl), and material file.  
 The additions to the format are all enclosed in \# comments, so that the obj file itself will be openable in existing modeling tools (though will not include the new features).  
   
   
-*Additions:*  
+***Additions:***  
   
 ***Vertex Coloring***  
 Add vertex coloring to obj format.  Vertex coloring should override material color, if present for a point, by any ingest tool.  
   
-*Vertex Color Index*  
+***Vertex Color Index***  
 Like v, vn, and vt, an indexed list of vertex colors, starting at index 1.  Values must appear before use (in an \#fvcolorindex command).  
 \#vcolor R G B A   
   
@@ -37,7 +37,7 @@ R G B A [0-255.0]
 Example:  
 \#vcolor 255.000000 255.000000 255.000000 255.000000  
   
-*Vertex Color Face*  
+***Vertex Color Face***  
 After each face command, maps the face to the vertex color index.  Should always have 1 entry matching each face point.  
   
 [After an f line]  
@@ -52,12 +52,12 @@ f 1/1/1 2/2/2 3/3/3
 ***Rigging***  
 Rigging should appear at the beginning of the geobj file.  It is a set of joints connected in a hierarchy.  There are two modes, relative, and absolute.  Absolute mode is the default, where all joints are specified as absolute coordinates.  Relative mode must be explicitly specified, and includes SRT for each joint, relative to parent joint.  Relative mode is not intended for animations, and just for model data.  Relative mode's vertice positions are defined relative to joint, and NOT absolute, like the obj format declares, so for relative mode geobj files, the groups will not appear in the right position in a model viewer if imported.    
   
-*Joint mode*  
+***Joint mode***  
 Before any joint data, include the type of joint data.  Absolute jointmode is the default if unspecified.  
 \#jointmode relative  
 \#jointmode absolute  
   
-*Joints*  
+***Joints***  
 Joints are specified as two commands in a row, joint, and then joint location  
 \#joint [Name]  
   
@@ -81,7 +81,7 @@ Example:
 \#joint 1  
 \#jointsrt 1.000000 1.000000 1.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000  
   
-*Joint Connections*  
+***Joint Connections***  
 Hierarchy of joint connections.  Defined one connection at a time.  All joints do not need to be connected, but it is recommended.    
   
 \#connection [ParentName] [ChildName]  
@@ -91,7 +91,7 @@ Example:
 \#connection 1 3  
 \#connection 3 5  
   
-*Vertex Joint Assignment*  
+***Vertex Joint Assignment***  
 Assigns vertices to a joint defined in the rigging.    
   
 Two commands in a row, to define the joint, then assign one or more vertices assigned to the joint.  Must appear after the vertex index.  Multiple commands are additive to the same joint (may have more than one \#joint/\#vjoint command to the same joint).  Vertices may only be applied to one joint (vertex weighting not supported).  
@@ -105,17 +105,17 @@ Example:
   
   
   
-Animations  
+***Animations***  
 Animations are defined, much like FBX format, using Euler Angles, Translation, and Scaling relative to the parent part.  Though the format supports multiple animations, one animation per file is recommended.  
 There is a special implicit joint defined in geobj format, called TopJoint.  It is not defined in geobj structure, but will appear in the other formats such as FBX.  It is always the highest top level joint connected to the structure.  So the first joint's parent will be TopJoint's keyframe srt, and TopJoint is root.  
   
-Animation Name  
+***Animation Name***  
 \#animation [Name]  
   
 Example:  
 \#animation Animation00F1  
   
-Keyframe Index  
+***Keyframe Index***  
 Current index of keyframe.  Not all existing keyframe indexes are required to be present, but is recommended.  Currently only linear interpolation is supported.  
 \#keyframe [number]  
 [Number is an integer value starting at 0]  
@@ -124,9 +124,9 @@ Example:
 \#keyframe 0  
   
   
-Keyframe Animation  
+***Keyframe Animation***  
   
-Keyframe Translation  
+***Keyframe Translation***  
 Translation applied to the entire keyframe (Top Joint).  Must appear after the matching \#keyframe command.  If not present, defaults to 0,0,0.    
 \#keyframetranslation TX TY TZ  
 [Double for keyframe absolute translation]  
@@ -134,7 +134,7 @@ Translation applied to the entire keyframe (Top Joint).  Must appear after the m
 Example:  
 \#keyframetranslation 15009.000977 7612.000488 84673.007813  
   
-Keyframe Rotation  
+***Keyframe Rotation***  
 Rotation applied to the entire keyframe (Top Joint).  Must appear after the matching \#keyframe command.  If not present, defaults to 0,0,0.  
 \#keyframerotation RX RY RZ  
 [Double for Euler angles applied at the top]  
@@ -145,12 +145,14 @@ Example:
 Example:  
 \#keyframerotation 351.914032 79.541008 0.351563  
   
-Keyframe Scaling  
+***Keyframe Scaling***  
 Scaling applied to the entire keyframe (Top Joint).  Must appear after the matching \#keyframe command.  If not present, defaults to 1,1,1.  
 \#keyframescale SX SY SZ  
   
 Example:  
 \#keyframescale 1 1 1  
+  
+***Keyframe is Interpolated***  
   
 Whether Keyframe scale, rotation, translation is interpolated.  Indication from the conversion that the input format did not have an explicit keyframe here, and was interpolated.  Useful for import for certain animation formats.  Should appear immediately after the \#keyframerotation, \#keyframescale, \#keyframetranslation commands and match in x, y, z components which are interpolated.  
 \#keyframeisinterpolatedtranslation B0 B1 B2  
@@ -164,36 +166,38 @@ Example:
 \#keyframeisinterpolatedscale 1 1 0  
   
   
-Part Animation  
+***Part Animation***  
 Animation per joint.    
   
-Part Index  
+***Part Index***  
 Part to apply animation to.  Names must match joints in the Joint Hierarchy.  Currently only linear interpolation is supported.  
 \#part [name]  
   
 Example:  
 \#part 1  
   
-Part Translation  
+***Part Translation***  
 Relative to parent Translation applied to the part.  Must appear after the matching \#keyframe and \#part command.  If not present, defaults to 0,0,0.  
 \#parttranslation TX TY TZ  
   
 Example:  
 \#parttranslation 140.000000 13.000000 -191.000000  
   
-Part Rotation  
+***Part Rotation***  
 Relative to parent Rotation applied to the part.  Must appear after the matching \#keyframe and \#part command.  If not present, defaults to 0,0,0.  
 \#partrotation RX RY RZ  
   
 Example:  
 \#partrotation 12.128906 359.384766 3.076172  
   
-Part Scaling  
+***Part Scaling***  
 \#partscale SX SY SZ  
 Relative to parent Scaling applied to the part.  Must appear after the matching \#keyframe and \#part command.  If not present, defaults to 1,1,1.  
   
 Example:  
 \#partscale 0.420000 0.420000 0.420000  
+  
+***Part is Interpolated***  
   
 Whether Part scale, rotation, translation is interpolated.  Indication from the conversion that the input format did not have an explicit keyframe here, and was interpolated.  Useful for import for certain animation formats.  Should appear immediately after the \#partrotation, \#partscale, \#parttranslation commands and match in x, y, z components which are interpolated.  
 \#partisinterpolatedtranslation B0 B1 B2  
@@ -207,17 +211,17 @@ Example:
 \#partisinterpolatedscale 1 1 0  
   
   
-Cameras  
+***Cameras***  
 Cameras do not include any geometry or joints, and are purely keyframe based.  
   
-Camera Name  
+***Camera Name***  
 Name of the camera.  Although multiple cameras are technically supported by the format, only one is recommended.  
 \#camera [Name]  
   
 Example:  
 \#camera DefaultCamera  
   
-Camera Field of View  
+***Camera Field of View***  
 Camera FOV angle.    
 \#keyframefieldofview FOV  
 [Double in degrees]  
@@ -225,7 +229,7 @@ Camera FOV angle.
 Example:  
 \#keyframefieldofview 40.823002  
   
-Camera Color  
+***Camera Color***  
 Color applied to camera.  
 \#keyframecolor R G B A  
 [Double 0-1.0 for each component]  
@@ -233,14 +237,14 @@ Color applied to camera.
 Example:  
 \#keyframecolor 1.000000 1.000000 1.000000 0.098039  
   
-Camera Translation  
+***Camera Translation***  
 Camera absolute position.  
 \#keyframetranslation TX TY TZ  
   
 Example:  
 \#keyframetranslation 21300.101562 789.100037 1835.000000  
   
-Sample Animation:  
+***Sample Animation:***  
 mtllib animationfr.mtl  
 \#joint 0  
 \#jointposition 0.000000 9984.220703 -4534.167969  
@@ -616,7 +620,7 @@ f 58/58 59/59 60/60
 \#partscale 1.000000 1.000000 1.000000  
   
   
-Sample Camera:  
+***Sample Camera:***  
 \#camera DefaultCamera  
 \#keyframe 0  
 \#keyframefieldofview 40.823002  
@@ -629,7 +633,7 @@ Sample Camera:
 \#keyframetranslation 21284.601562 789.100037 1835.000000  
 \#keyframerotation 270.000000 64.248039 270.000000  
   
-Sample Relative Obj:  
+***Sample Relative Obj:***  
 \#jointmode relative  
 \#joint 0  
 \#jointsrt 1.000000 1.000000 1.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000  
