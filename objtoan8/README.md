@@ -17,15 +17,15 @@ Both use the same source files, just different version for assimp and FBX SDK.  
   
   
   
-#.geobj format  
+# .geobj format  
   
 Builds upon the existing obj format, fully supporting comments (\#), vertices (v), vertice normals (vn), vertice uvs (vt), faces (f), lines (l), groups (o or g), materials (mtllib and usemtl), and material file.  
 The additions to the format are all enclosed in \# comments, so that the obj file itself will be openable in existing modeling tools (though will not include the new features).  
   
   
-***Additions:***  
+## Additions:  
   
-***Vertex Coloring***  
+### Vertex Coloring  
 Add vertex coloring to obj format.  Vertex coloring should override material color, if present for a point, by any ingest tool.  
   
 ***Vertex Color Index***  
@@ -49,7 +49,7 @@ f 1/1/1 2/2/2 3/3/3
   
   
   
-***Rigging***  
+### Rigging  
 Rigging should appear at the beginning of the geobj file.  It is a set of joints connected in a hierarchy.  There are two modes, relative, and absolute.  Absolute mode is the default, where all joints are specified as absolute coordinates.  Relative mode must be explicitly specified, and includes SRT for each joint, relative to parent joint.  Relative mode is not intended for animations, and just for model data.  Relative mode's vertice positions are defined relative to joint, and NOT absolute, like the obj format declares, so for relative mode geobj files, the groups will not appear in the right position in a model viewer if imported.    
   
 ***Joint mode***  
@@ -105,7 +105,7 @@ Example:
   
   
   
-***Animations***  
+### Animations  
 Animations are defined, much like FBX format, using Euler Angles, Translation, and Scaling relative to the parent part.  Though the format supports multiple animations, one animation per file is recommended.  
 There is a special implicit joint defined in geobj format, called TopJoint.  It is not defined in geobj structure, but will appear in the other formats such as FBX.  It is always the highest top level joint connected to the structure.  So the first joint's parent will be TopJoint's keyframe srt, and TopJoint is root.  
   
@@ -211,7 +211,7 @@ Example:
 \#partisinterpolatedscale 1 1 0  
   
   
-***Cameras***  
+### Cameras  
 Cameras do not include any geometry or joints, and are purely keyframe based.  
   
 ***Camera Name***  
@@ -243,6 +243,8 @@ Camera absolute position.
   
 Example:  
 \#keyframetranslation 21300.101562 789.100037 1835.000000  
+  
+### Samples
   
 ***Sample Animation:***  
 mtllib animationfr.mtl  
