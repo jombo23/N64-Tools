@@ -863,6 +863,9 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 								)
 						{
 							fprintfIfDebug(outFileDebug, "[Not in DLS] Bend Range %02X\n", alBankCurrent->inst[x]->bendRange);
+							fprintfIfDebug(outFileDebug, "[Not in DLS] Volume %02X\n", alBankCurrent->inst[x]->volume);
+							fprintfIfDebug(outFileDebug, "[Not in DLS] Pan %02X\n", alBankCurrent->inst[x]->pan);
+							fprintfIfDebug(outFileDebug, "[Not in DLS] Priority %02X\n", alBankCurrent->inst[x]->priority);
 							if ((alBankCurrent->inst[x]->tremType != 0) || (alBankCurrent->inst[x]->tremDelay != 0) || (alBankCurrent->inst[x]->tremDepth != 0) || (alBankCurrent->inst[x]->tremRate != 0))
 							{
 								fprintfIfDebug(outFileDebug, "[Not in DLS] Trem Type %02X\n", alBankCurrent->inst[x]->tremType);
@@ -1071,7 +1074,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 
 							art->AddADSR(tcAttack, 0, tcDecay, ptSustain, tcRelease, 0);
 
-							fprintfIfDebug(outFileDebug, "Attack %08X Decay %08X Sustain %08X Release %08X - %04X %04X %04X %04X %04X %04X %04X %04X\n", tcAttack, tcDecay, ptSustain, tcRelease, alBankCurrent->inst[x]->sounds[y]->adsrEAD[0], alBankCurrent->inst[x]->sounds[y]->adsrEAD[1], alBankCurrent->inst[x]->sounds[y]->adsrEAD[2], alBankCurrent->inst[x]->sounds[y]->adsrEAD[3], alBankCurrent->inst[x]->sounds[y]->adsrEAD[4], alBankCurrent->inst[x]->sounds[y]->adsrEAD[5], alBankCurrent->inst[x]->sounds[y]->adsrEAD[6], alBankCurrent->inst[x]->sounds[y]->adsrEAD[7]);
+							fprintfIfDebug(outFileDebug, "Attack %08X Decay %08X Sustain %08X Release %08X - %04X %04X %04X %04X %04X %04X %04X %04X %08X\n", tcAttack, tcDecay, ptSustain, tcRelease, alBankCurrent->inst[x]->sounds[y]->adsrEAD[0], alBankCurrent->inst[x]->sounds[y]->adsrEAD[1], alBankCurrent->inst[x]->sounds[y]->adsrEAD[2], alBankCurrent->inst[x]->sounds[y]->adsrEAD[3], alBankCurrent->inst[x]->sounds[y]->adsrEAD[4], alBankCurrent->inst[x]->sounds[y]->adsrEAD[5], alBankCurrent->inst[x]->sounds[y]->adsrEAD[6], alBankCurrent->inst[x]->sounds[y]->adsrEAD[7], alBankCurrent->inst[x]->sounds[y]->unknown1);
 						}
 
 						signed long pan = 0;
@@ -1216,8 +1219,8 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 								volumeAttenuation = 0x7FFFFF00;
 							}
 
-							if ((signed long)alBankCurrent->inst[x]->sounds[y]->env.decayTime == -1)
-								volumeAttenuation = 0;
+							//if ((signed long)alBankCurrent->inst[x]->sounds[y]->env.decayTime == -1)
+								//volumeAttenuation = 0;
 
 							keyBase = alBankCurrent->inst[x]->sounds[y]->key.keybase;
 							fineTune = (signed short)alBankCurrent->inst[x]->sounds[y]->key.detune;
@@ -1431,7 +1434,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 									tcRelease = CMidiPlayer::TimeSecondsToCents(0.5);
 
 								art->AddADSR(tcAttack, 0, tcDecay, ptSustain, tcRelease, 0);
-								fprintfIfDebug(outFileDebug, "Attack %08X Decay %08X Sustain %08X Release %08X - %04X %04X %04X %04X %04X %04X %04X %04X\n", tcAttack, tcDecay, ptSustain, tcRelease, alBankCurrent->inst[x]->sounds[y]->adsrEAD[0], alBankCurrent->inst[x]->sounds[y]->adsrEAD[1], alBankCurrent->inst[x]->sounds[y]->adsrEAD[2], alBankCurrent->inst[x]->sounds[y]->adsrEAD[3], alBankCurrent->inst[x]->sounds[y]->adsrEAD[4], alBankCurrent->inst[x]->sounds[y]->adsrEAD[5], alBankCurrent->inst[x]->sounds[y]->adsrEAD[6], alBankCurrent->inst[x]->sounds[y]->adsrEAD[7]);
+								fprintfIfDebug(outFileDebug, "Attack %08X Decay %08X Sustain %08X Release %08X - %04X %04X %04X %04X %04X %04X %04X %04X %08X\n", tcAttack, tcDecay, ptSustain, tcRelease, alBankCurrent->inst[x]->sounds[y]->adsrEAD[0], alBankCurrent->inst[x]->sounds[y]->adsrEAD[1], alBankCurrent->inst[x]->sounds[y]->adsrEAD[2], alBankCurrent->inst[x]->sounds[y]->adsrEAD[3], alBankCurrent->inst[x]->sounds[y]->adsrEAD[4], alBankCurrent->inst[x]->sounds[y]->adsrEAD[5], alBankCurrent->inst[x]->sounds[y]->adsrEAD[6], alBankCurrent->inst[x]->sounds[y]->adsrEAD[7], alBankCurrent->inst[x]->sounds[y]->unknown1);
 							}
 
 							signed long pan = 0;
@@ -1642,7 +1645,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 									tcRelease = CMidiPlayer::TimeSecondsToCents(0.5);
 
 								art->AddADSR(tcAttack, 0, tcDecay, ptSustain, tcRelease, 0);
-								fprintfIfDebug(outFileDebug, "Attack %08X Decay %08X Sustain %08X Release %08X - %04X %04X %04X %04X %04X %04X %04X %04X\n", tcAttack, tcDecay, ptSustain, tcRelease, alBankCurrent->inst[x]->sounds[y]->adsrEAD[0], alBankCurrent->inst[x]->sounds[y]->adsrEAD[1], alBankCurrent->inst[x]->sounds[y]->adsrEAD[2], alBankCurrent->inst[x]->sounds[y]->adsrEAD[3], alBankCurrent->inst[x]->sounds[y]->adsrEAD[4], alBankCurrent->inst[x]->sounds[y]->adsrEAD[5], alBankCurrent->inst[x]->sounds[y]->adsrEAD[6], alBankCurrent->inst[x]->sounds[y]->adsrEAD[7]);
+								fprintfIfDebug(outFileDebug, "Attack %08X Decay %08X Sustain %08X Release %08X - %04X %04X %04X %04X %04X %04X %04X %04X %08X\n", tcAttack, tcDecay, ptSustain, tcRelease, alBankCurrent->inst[x]->sounds[y]->adsrEAD[0], alBankCurrent->inst[x]->sounds[y]->adsrEAD[1], alBankCurrent->inst[x]->sounds[y]->adsrEAD[2], alBankCurrent->inst[x]->sounds[y]->adsrEAD[3], alBankCurrent->inst[x]->sounds[y]->adsrEAD[4], alBankCurrent->inst[x]->sounds[y]->adsrEAD[5], alBankCurrent->inst[x]->sounds[y]->adsrEAD[6], alBankCurrent->inst[x]->sounds[y]->adsrEAD[7], alBankCurrent->inst[x]->sounds[y]->unknown1);
 							}
 
 							signed long pan = 0;
@@ -1930,7 +1933,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 									tcRelease = CMidiPlayer::TimeSecondsToCents(0.5);
 
 								art->AddADSR(tcAttack, 0, tcDecay, ptSustain, tcRelease, 0);
-								fprintfIfDebug(outFileDebug, "Attack %08X Decay %08X Sustain %08X Release %08X - %04X %04X %04X %04X %04X %04X %04X %04X\n", tcAttack, tcDecay, ptSustain, tcRelease, alBankCurrent->inst[x]->sounds[y]->adsrEAD[0], alBankCurrent->inst[x]->sounds[y]->adsrEAD[1], alBankCurrent->inst[x]->sounds[y]->adsrEAD[2], alBankCurrent->inst[x]->sounds[y]->adsrEAD[3], alBankCurrent->inst[x]->sounds[y]->adsrEAD[4], alBankCurrent->inst[x]->sounds[y]->adsrEAD[5], alBankCurrent->inst[x]->sounds[y]->adsrEAD[6], alBankCurrent->inst[x]->sounds[y]->adsrEAD[7]);
+								fprintfIfDebug(outFileDebug, "Attack %08X Decay %08X Sustain %08X Release %08X - %04X %04X %04X %04X %04X %04X %04X %04X %08X\n", tcAttack, tcDecay, ptSustain, tcRelease, alBankCurrent->inst[x]->sounds[y]->adsrEAD[0], alBankCurrent->inst[x]->sounds[y]->adsrEAD[1], alBankCurrent->inst[x]->sounds[y]->adsrEAD[2], alBankCurrent->inst[x]->sounds[y]->adsrEAD[3], alBankCurrent->inst[x]->sounds[y]->adsrEAD[4], alBankCurrent->inst[x]->sounds[y]->adsrEAD[5], alBankCurrent->inst[x]->sounds[y]->adsrEAD[6], alBankCurrent->inst[x]->sounds[y]->adsrEAD[7], alBankCurrent->inst[x]->sounds[y]->unknown1);
 							}
 
 							signed long pan = 0;
@@ -2075,8 +2078,8 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 									volumeAttenuation = 0x7FFFFF00;
 								}
 
-								if ((signed long)alBankCurrent->inst[x]->sounds[y]->env.decayTime == -1)
-									volumeAttenuation = 0;
+								//if ((signed long)alBankCurrent->inst[x]->sounds[y]->env.decayTime == -1)
+									//volumeAttenuation = 0;
 
 								keyBase = alBankCurrent->inst[x]->sounds[y]->key.keybase;
 								fineTune = (signed short)alBankCurrent->inst[x]->sounds[y]->key.detune;
@@ -2479,8 +2482,8 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 								volumeAttenuation = 0x7FFFFF00;
 							}
 
-							if ((signed long)alBankCurrent->percussion->sounds[y]->env.decayTime == -1)
-								volumeAttenuation = 0;
+							//if ((signed long)alBankCurrent->percussion->sounds[y]->env.decayTime == -1)
+								//volumeAttenuation = 0;
 
 							keyBase = alBankCurrent->percussion->sounds[y]->key.keybase;
 							fineTune = (signed short)alBankCurrent->percussion->sounds[y]->key.detune;
@@ -3756,8 +3759,8 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 									volumeAttenuation = 0x7FFFFF00;
 								}
 
-								if ((signed long)decayTime == -1)
-									volumeAttenuation = 0;
+								//if ((signed long)decayTime == -1)
+									//volumeAttenuation = 0;
 
 								if (sampleId != -1)
 								{
@@ -3935,8 +3938,8 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 									volumeAttenuation = 0x7FFFFF00;
 								}
 
-								if ((signed long)decayTime == -1)
-									volumeAttenuation = 0;
+								//if ((signed long)decayTime == -1)
+									//volumeAttenuation = 0;
 
 								if (sampleId != -1)
 								{
@@ -4100,8 +4103,8 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 							volumeAttenuation = 0x7FFFFF00;
 						}
 
-						if ((signed long)decayTime == -1)
-							volumeAttenuation = 0;
+						//if ((signed long)decayTime == -1)
+							//volumeAttenuation = 0;
 
 						if (sampleId != -1)
 						{
