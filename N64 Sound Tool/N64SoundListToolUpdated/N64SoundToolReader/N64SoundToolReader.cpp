@@ -726,6 +726,18 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioTazN64PtrWavetableV2(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
 			}
+			else if (gameConfig.gameType.CompareNoCase("ExciteBikeSAM") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioExciteBikeSAM(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments, gameConfig.soundBanks[x].mask);
+			}
+			else if (gameConfig.gameType.CompareNoCase("ExciteBikeSFX") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioExciteBikeSFX(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments, gameConfig.soundBanks[x].mask);
+			}
+			else if (gameConfig.gameType.CompareNoCase("ExciteBikeSNG") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioExciteBikeSNG(&ROM[0], romSize, results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig.soundBanks[x].numberInstruments, gameConfig.soundBanks[x].mask);
+			}
 			else if (gameConfig.gameType.CompareNoCase("RNCN64Wave") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioRNCN64Ptr(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);

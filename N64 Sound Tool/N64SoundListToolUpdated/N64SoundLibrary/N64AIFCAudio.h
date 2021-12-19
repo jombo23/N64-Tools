@@ -77,10 +77,13 @@
 #define N64PTRWAVETABLETABLEQUAKE2 49
 #define N64PTRWAVETABLETABLESNOWBOARDKIDS 50
 #define N64PTRWAVETABLEVIEWPOINT 51
+#define EXCITEBIKESAM 52
+#define EXCITEBIKESFX 53
+#define EXCITEBIKESNG 54
 
 #pragma once
 
-enum    {AL_ADPCM_WAVE = 0, AL_RAW16_WAVE = 1, AL_VOX_WAVE=2, AL_MUSYX_WAVE=3, AL_SIGNED_RAW8=4, AL_SIGNED_RAW16=5, AL_MORT_WAVE=6, AL_WAV=7, AL_KOBE2_WAVE};
+enum    {AL_ADPCM_WAVE = 0, AL_RAW16_WAVE = 1, AL_VOX_WAVE=2, AL_MUSYX_WAVE=3, AL_SIGNED_RAW8=4, AL_SIGNED_RAW16=5, AL_MORT_WAVE=6, AL_WAV=7, AL_KOBE2_WAVE=8, AL_EXCITEBIKE_SAM=9, AL_EXCITEBIKE_SFX=10, AL_EXCITEBIKE_SNG=11};
 
 enum    {PRIMARY = 0, PREVIOUS = 1, SECONDARY = 2};
 
@@ -470,6 +473,9 @@ public:
 	static ALBank* ReadAudioAVL_0Ptr(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioRNCN64PtrOffset(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, unsigned long offset);
 	static ALBank* ReadAudioH20Raw816(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments);
+	static ALBank* ReadAudioExciteBikeSAM(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments, unsigned long mask);
+	static ALBank* ReadAudioExciteBikeSFX(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments, unsigned long mask);
+	static ALBank* ReadAudioExciteBikeSNG(unsigned char* ctl, int romSize, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments, unsigned long mask);
 	static ALBank* ReadAudioTetrisphereRaw816(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments);
 	static ALBank* ReadRNXAudio(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber);
 	static ALBank* ReadAudioN64PtrWavetableV1(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);

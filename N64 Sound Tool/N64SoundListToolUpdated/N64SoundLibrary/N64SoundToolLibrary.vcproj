@@ -177,6 +177,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\EBBigDecompression.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ExciteBikeSAMAudioDecompression.cpp"
+				>
+			</File>
+			<File
 				RelativePath="flzh_rn.cpp"
 				>
 			</File>
@@ -316,6 +324,14 @@
 			</File>
 			<File
 				RelativePath="EASportsDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\EBBigDecompression.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ExciteBikeSAMAudioDecompression.h"
 				>
 			</File>
 			<File

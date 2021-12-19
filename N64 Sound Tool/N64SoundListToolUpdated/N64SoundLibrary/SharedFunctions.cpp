@@ -175,3 +175,99 @@ unsigned long CSharedFunctions::StringHexToLong(CString inString)
 	}
 	return tempLong;
 }
+
+void CSharedFunctions::WriteLongToBuffer(unsigned char* Buffer, unsigned long address, unsigned long data)
+{
+
+	if (address > 0x80800000)
+		return;
+
+	address = address & 0xFFFFFFF;
+
+	Buffer[address] = ((data >> 24) & 0xFF);
+	Buffer[address+1] = ((data >> 16) & 0xFF);
+	Buffer[address+2] = ((data >> 8) & 0xFF);
+	Buffer[address+3] = ((data) & 0xFF);
+}
+
+void CSharedFunctions::WriteShortToBuffer(unsigned char* Buffer, unsigned long address, unsigned short data)
+{
+	if (address > 0x80800000)
+		return;
+
+	address = address & 0xFFFFFFF;
+
+	Buffer[address] = ((data >> 8) & 0xFF);
+	Buffer[address+1] = ((data) & 0xFF);	
+}
+
+void CSharedFunctions::WriteCharToBuffer(unsigned char* Buffer, unsigned long address, unsigned short data)
+{
+
+	if (address > 0x80800000)
+		return;
+
+	address = address & 0xFFFFFFF;
+
+	Buffer[address] = ((data) & 0xFF);	
+}
+
+
+unsigned short CSharedFunctions::CharArrayToShort(unsigned char* currentSpot)
+{
+	return ((currentSpot[0] << 8) | currentSpot[1]);
+}
+
+unsigned long CSharedFunctions::CharArrayToLong(unsigned char* currentSpot)
+{
+	return ((((((currentSpot[0] << 8) | currentSpot[1]) << 8) | currentSpot[2]) << 8) | currentSpot[3]);
+}
+
+unsigned long CSharedFunctions::CharArrayToChar(unsigned char* currentSpot)
+{
+	return currentSpot[0];
+}
+
+unsigned short CSharedFunctions::CharArrayToShort(unsigned char* Buffer, int address)
+{
+	if (address > 0x80800000)
+		return 0;
+
+	address = address & 0xFFFFFFF;
+
+	return ((Buffer[address + 0] << 8) | Buffer[address + 1]);
+}
+
+unsigned long CSharedFunctions::CharArrayToLong(unsigned char* Buffer, int address)
+{
+	if (address > 0x80800000)
+		return 0;
+
+	address = address & 0xFFFFFFF;
+
+	/*if (std::find(addressesWrite.begin(), addressesWrite.end(), address) == addressesWrite.end())
+	{
+		if (std::find(addresses.begin(), addresses.end(), address) == addresses.end())
+		{
+			addresses.push_back(address);
+			addressesValues.push_back(((((((Buffer[address + 0] << 8) | Buffer[address + 1]) << 8) | Buffer[address + 2]) << 8) | Buffer[address + 3]));
+		}
+	}*/
+
+	return ((((((Buffer[address + 0] << 8) | Buffer[address + 1]) << 8) | Buffer[address + 2]) << 8) | Buffer[address + 3]);
+}
+
+unsigned long CSharedFunctions::CharArrayToChar(unsigned char* Buffer, int address)
+{
+	if (address > 0x80800000)
+		return 0;
+
+	address = address & 0xFFFFFFF;
+
+	return Buffer[address];
+}
+
+unsigned long CSharedFunctions::Flip32Bit(unsigned long inLong)
+{
+	return (((inLong & 0xFF000000) >> 24) | ((inLong & 0x00FF0000) >> 8) | ((inLong & 0x0000FF00) << 8) | ((inLong & 0x000000FF) << 24));
+}
