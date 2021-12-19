@@ -16555,6 +16555,151 @@ ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableV2YAY0(unsigned char* ctl, unsign
 	return alBank;
 }
 
+ALBank* CN64AIFCAudio::ReadAudioSeparatedBnkB(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
+{
+	unsigned short numberBands = 1;
+	int startOffset = 8;
+	unsigned long bankOffset = ctlOffset + startOffset;
+
+	// header size 0x30
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = BNKB;
+	alBank->count = 0x80;
+	alBank->flags = 0x0000;
+	alBank->pad = 0x0;
+	alBank->samplerate = 22050;
+	alBank->percussion = 0x000;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = NULL;
+
+	if ((alBank->flags == 0x0000) || (alBank->flags == 0x0100)) // offset
+	{
+		alBank->inst = new ALInst*[alBank->count];
+
+		for (int x = 0; x < alBank->count; x++)
+		{
+			alBank->inst[x] = new ALInst();
+			alBank->inst[x]->samplerate = 0;
+			alBank->inst[x]->sounds = NULL;
+		}
+
+		for (int x = 0; x < alBank->count; x++)
+		{
+			unsigned long offsetInstrument = bankOffset + CharArrayToLong(&ctl[bankOffset + x*4]);
+
+			if ((offsetInstrument == 0x0000) || (CharArrayToLong(&ctl[offsetInstrument]) != 0x50415462)) // PATb
+			{
+				alBank->inst[x]->volume = 0;
+				alBank->inst[x]->pan = 0;
+				alBank->inst[x]->priority = 0;
+				alBank->inst[x]->flags = 0;
+				alBank->inst[x]->tremType = 0;
+				alBank->inst[x]->tremRate = 0;
+				alBank->inst[x]->tremDepth = 0;
+				alBank->inst[x]->tremDelay = 0;
+				alBank->inst[x]->vibType = 0;
+				alBank->inst[x]->vibRate = 0;
+				alBank->inst[x]->vibDepth = 0;
+				alBank->inst[x]->vibDelay = 0;
+				alBank->inst[x]->bendRange = 0;
+				alBank->inst[x]->soundCount = 0;
+				alBank->inst[x]->soundCount = 0;
+				alBank->inst[x]->sounds = NULL;
+				continue;
+			}
+
+			alBank->inst[x]->pan = ctl[offsetInstrument + 0xA];
+			alBank->inst[x]->volume = ctl[offsetInstrument + 0xB];
+			offsetInstrument = offsetInstrument + CharArrayToLong(&ctl[offsetInstrument + 0xC]) + 0x34;
+
+			alBank->inst[x]->soundCount = 1;
+
+			alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+			for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+			{
+				alBank->inst[x]->sounds[y] = new ALSound();
+				alBank->inst[x]->sounds[y]->wav.wavData = NULL;
+			}
+
+			for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+			{
+				if (CharArrayToLong(&ctl[offsetInstrument]) == 0x544D6E62)
+				{
+					alBank->inst[x]->samplerate = CharArrayToShort(&ctl[offsetInstrument + 8]);
+					alBank->inst[x]->sounds[y]->wav.base = CharArrayToLong(&ctl[offsetInstrument + 0x10]);
+					alBank->inst[x]->sounds[y]->wav.len = CharArrayToLong(&ctl[offsetInstrument + 0xC]);
+
+					unsigned long predictorOffset = offsetInstrument + 0x70;
+
+					alBank->inst[x]->sounds[y]->wav.type = AL_ADPCM_WAVE;
+					alBank->inst[x]->sounds[y]->wav.flags = 0x0000;
+					// MUST PAD to 4s
+
+					if (predictorOffset != 0x00000000)
+					{
+						alBank->inst[x]->sounds[y]->wav.type = AL_ADPCM_WAVE;
+						alBank->inst[x]->sounds[y]->wav.adpcmWave = new ALADPCMWaveInfo();
+
+						alBank->inst[x]->sounds[y]->wav.adpcmWave->loop = NULL;
+						alBank->inst[x]->sounds[y]->wav.adpcmWave->book = new ALADPCMBook();
+						alBank->inst[x]->sounds[y]->wav.adpcmWave->book->order = CharArrayToLong(&ctl[predictorOffset + 0x0]);
+						alBank->inst[x]->sounds[y]->wav.adpcmWave->book->npredictors = CharArrayToLong(&ctl[predictorOffset + 0x4]);
+						alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors = new signed short[alBank->inst[x]->sounds[y]->wav.adpcmWave->book->order * alBank->inst[x]->sounds[y]->wav.adpcmWave->book->npredictors * 8];
+
+						for (int z = 0; z < alBank->inst[x]->sounds[y]->wav.adpcmWave->book->order * alBank->inst[x]->sounds[y]->wav.adpcmWave->book->npredictors * 8; z++)
+						{
+							alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[z] = (signed short)CharArrayToShort(&ctl[predictorOffset + 0x8 + z * 2]);
+						}
+						
+						alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+
+						for (int  r = 0; r < alBank->inst[x]->sounds[y]->wav.len; r++)
+						{
+							alBank->inst[x]->sounds[y]->wav.wavData[r] = tbl[alBank->inst[x]->sounds[y]->wav.base + r];
+						}
+					}
+					else
+					{
+						alBank->inst[x]->sounds[y]->wav.type = AL_RAW16_WAVE;
+						alBank->inst[x]->sounds[y]->wav.rawWave = new ALRAWWaveInfo();
+						alBank->inst[x]->sounds[y]->wav.rawWave->loop = NULL;
+					
+						for (int z = (offsetInstrument + 2); z < (offsetInstrument + 0x100); z++)
+						{
+							if (CharArrayToShort(&ctl[z]) == 0x8C02)
+							{
+								alBank->inst[x]->sounds[y]->wav.len = CharArrayToShort(&ctl[z+2]);
+								break;
+							}
+							else if ((CharArrayToShort(&ctl[z]) == 0x5054) || (CharArrayToLong(&ctl[z]) == 0xFF000000))
+							{
+								break;
+							}
+						}
+						alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+
+						for (int  r = 0; r < alBank->inst[x]->sounds[y]->wav.len; r++)
+						{
+							alBank->inst[x]->sounds[y]->wav.wavData[r] = tbl[alBank->inst[x]->sounds[y]->wav.base + r];
+						}
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		DisposeALBank(alBank);
+		MessageBox(NULL, "Error", "Unsupported type in ALBank", NULL);
+		return NULL;
+	}
+
+	return alBank;
+}
+
 ALBank* CN64AIFCAudio::ReadAudioBnkB(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
 {
 	unsigned short numberBands = 1;

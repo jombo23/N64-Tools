@@ -9386,6 +9386,10 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					{
 						results[numberResults].bank = n64AudioLibrary.ReadAudioRNCN64PtrOffset(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig[y].soundBanks[x].numberInstruments);
 					}
+					else if (gameConfig[y].gameType.CompareNoCase("SeparatedBnkB") == 0)
+					{
+						results[numberResults].bank = n64AudioLibrary.ReadAudioSeparatedBnkB(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
+					}
 					else if (gameConfig[y].gameType.CompareNoCase("BnkB") == 0)
 					{
 						results[numberResults].bank = n64AudioLibrary.ReadAudioBnkB(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
