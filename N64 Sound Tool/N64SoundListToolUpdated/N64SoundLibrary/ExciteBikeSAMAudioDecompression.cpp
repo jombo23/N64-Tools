@@ -2233,6 +2233,10 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 		delete [] result;
 		return saved;
 	}
+	else
+	{
+		return false;
+	}
 }
 
 bool CExciteBikeSAMAudioDecompression::DecodeBIGSound(unsigned char* ROM, unsigned long offset, unsigned long size, CString outputWavStr, unsigned char*& data, int& sfxLength, float samplingRateFloat)

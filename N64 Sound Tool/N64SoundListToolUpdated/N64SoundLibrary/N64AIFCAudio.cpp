@@ -15941,6 +15941,10 @@ ALBank* CN64AIFCAudio::ReadAudioExciteBikeSFX(unsigned char* ctl, unsigned long&
 
 	for (int x = 0; x < alBank->count; x++)
 	{
+		if (ebSoundIndexes[x].flags == 1)
+			alBank->inst[x]->samplerate = 11025;
+		else
+			alBank->inst[x]->samplerate = 22050;
 		alBank->inst[x]->soundCount = 1;
 		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
 
