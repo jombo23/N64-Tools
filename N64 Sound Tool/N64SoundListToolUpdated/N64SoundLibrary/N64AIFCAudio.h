@@ -80,10 +80,11 @@
 #define EXCITEBIKESAM 52
 #define EXCITEBIKESFX 53
 #define EXCITEBIKESNG 54
+#define FIGHTINGFORCE 55
 
 #pragma once
 
-enum    {AL_ADPCM_WAVE = 0, AL_RAW16_WAVE = 1, AL_VOX_WAVE=2, AL_MUSYX_WAVE=3, AL_SIGNED_RAW8=4, AL_SIGNED_RAW16=5, AL_MORT_WAVE=6, AL_WAV=7, AL_KOBE2_WAVE=8, AL_EXCITEBIKE_SAM=9, AL_EXCITEBIKE_SFX=10, AL_EXCITEBIKE_SNG=11};
+enum    {AL_ADPCM_WAVE = 0, AL_RAW16_WAVE = 1, AL_VOX_WAVE=2, AL_MUSYX_WAVE=3, AL_SIGNED_RAW8=4, AL_SIGNED_RAW16=5, AL_MORT_WAVE=6, AL_WAV=7, AL_KOBE2_WAVE=8, AL_EXCITEBIKE_SAM=9, AL_EXCITEBIKE_SFX=10, AL_EXCITEBIKE_SNG=11, AL_FIGHTINGFORCE=12};
 
 enum    {PRIMARY = 0, PREVIOUS = 1, SECONDARY = 2};
 
@@ -288,6 +289,12 @@ struct ALInst
 
 	// extras
 	unsigned short samplerate;
+	CString name;
+
+	ALInst()
+	{
+		name = "";
+	}
 };
 
 //AABBCCDDEE AA=course tune correction. BB=fine tune correction. CC=Attack (01=really slow to reach max attack. 7F=max). DD=decay (01=hold decay for awhile. 7F=none). EE=release time (01=really long. 7F=none.).
@@ -477,6 +484,7 @@ public:
 	static ALBank* ReadAudioExciteBikeSAM(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments, unsigned long mask);
 	static ALBank* ReadAudioExciteBikeSFX(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments, unsigned long mask);
 	static ALBank* ReadAudioExciteBikeSNG(unsigned char* ctl, int romSize, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments, unsigned long mask);
+	static ALBank* ReadAudioFightingForce(unsigned char* ctl, int romSize, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioTetrisphereRaw816(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments);
 	static ALBank* ReadRNXAudio(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber);
 	static ALBank* ReadAudioN64PtrWavetableV1(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);

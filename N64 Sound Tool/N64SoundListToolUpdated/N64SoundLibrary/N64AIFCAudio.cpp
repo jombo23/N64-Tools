@@ -11,6 +11,7 @@
 #include "..\N64SoundLibrary\ViewpointDecoder.h"
 #include "..\N64SoundLibrary\EBBigDecompression.h"
 #include "..\N64SoundLibrary\ExciteBikeSAMAudioDecompression.h"
+#include "..\N64SoundLibrary\FightingForceAudioDecompression.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -2272,6 +2273,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_FIGHTINGFORCE)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 
 			return true;
 		}
@@ -3129,6 +3143,17 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 				}
 
 				delete [] outputSfx;
+			}
+			else if (alWave->type == AL_FIGHTINGFORCE)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CFightingForceAudioDecompression fightingForceAudioDecompression;
+
+				fightingForceAudioDecompression.DecodeWav(alBank->inst[instrument]->sounds[sound]->wav.wavData, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
 			}
 			// Full credit to Musyx goes to Bobby Smiles (from Mupen emulator)
 			else if (alWave->type == AL_MUSYX_WAVE)
@@ -4143,6 +4168,17 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 				}
 
 				delete [] outputSfx;
+			}
+			else if (alWave->type == AL_FIGHTINGFORCE)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CFightingForceAudioDecompression fightingForceAudioDecompression;
+
+				fightingForceAudioDecompression.DecodeWav(alBank->inst[instrument]->sounds[sound]->wav.wavData, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_MUSYX_WAVE)
 			{
@@ -16030,6 +16066,87 @@ ALBank* CN64AIFCAudio::ReadAudioExciteBikeSNG(unsigned char* ctl, int romSize, u
 			alBank->inst[x]->sounds[y]->wav.type = AL_EXCITEBIKE_SNG;
 		}
 	}
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioFightingForce(unsigned char* ctl, int romSize, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
+{
+	CEBBigDecompression bigDecompression;
+	unsigned char* outputSfx;
+	int sfxSize = 0;
+
+	bigDecompression.DecodeFile(ctl, ctlOffset, outputSfx, sfxSize);
+
+	CFightingForceAudioDecompression fightingForceAudioDecompression;
+	unsigned long wavTableStart = ctlOffset;
+	std::vector<WavEntry> wavEntries;
+
+	unsigned long wavTableSpot = wavTableStart;
+	while (CSharedFunctions::CharArrayToLong(&ctl[wavTableSpot]) != 0x00000000)
+	{
+		CString tempStr;
+		while (CSharedFunctions::CharArrayToLong(&ctl[wavTableSpot]) != 0x2E776176)
+		{
+			tempStr += (char)ctl[wavTableSpot];
+			wavTableSpot++;
+		}
+		tempStr += ".wav";
+		wavTableSpot += 4;
+		unsigned long offset = CSharedFunctions::Flip32Bit(CSharedFunctions::CharArrayToLong(&ctl[wavTableSpot]));
+		wavTableSpot += 4;
+		unsigned long length = CSharedFunctions::Flip32Bit(CSharedFunctions::CharArrayToLong(&ctl[wavTableSpot]));
+		wavTableSpot += 4;
+
+		wavEntries.push_back(WavEntry(offset, length, tempStr));
+	}
+
+
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = FIGHTINGFORCE;
+	alBank->count = wavEntries.size();
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 11025;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+	}
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x]->name = wavEntries[x].name;
+		alBank->inst[x]->samplerate = 11025;
+		alBank->inst[x]->soundCount = 1;
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.base = wavEntries[x].offset;
+
+			alBank->inst[x]->sounds[y]->wav.len = wavEntries[x].size;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &tbl[wavEntries[x].offset], alBank->inst[x]->sounds[y]->wav.len);
+			
+			alBank->inst[x]->sounds[y]->wav.type = AL_FIGHTINGFORCE;
+		}
+	}
+	delete [] outputSfx;
 	return alBank;
 }
 

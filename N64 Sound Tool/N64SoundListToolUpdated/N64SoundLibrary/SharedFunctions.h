@@ -16,7 +16,7 @@ public:
 	static unsigned short StringToUnsignedShort(CString inString);
 	static void WriteLongToBuffer(unsigned char* Buffer, unsigned long address, unsigned long data);
 	static void WriteShortToBuffer(unsigned char* Buffer, unsigned long address, unsigned short data);
-	static void WriteCharToBuffer(unsigned char* Buffer, unsigned long address, unsigned short data);
+	static void WriteCharToBuffer(unsigned char* Buffer, unsigned long address, unsigned char data);
 	static unsigned short CharArrayToShort(unsigned char* currentSpot);
 	static unsigned long CharArrayToLong(unsigned char* currentSpot);
 	static unsigned long CharArrayToChar(unsigned char* currentSpot);

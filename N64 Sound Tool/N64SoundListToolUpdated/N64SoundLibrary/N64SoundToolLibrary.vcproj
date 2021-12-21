@@ -185,6 +185,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FightingForceAudioDecompression.cpp"
+				>
+			</File>
+			<File
 				RelativePath="flzh_rn.cpp"
 				>
 			</File>
@@ -332,6 +336,10 @@
 			</File>
 			<File
 				RelativePath=".\ExciteBikeSAMAudioDecompression.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FightingForceAudioDecompression.h"
 				>
 			</File>
 			<File

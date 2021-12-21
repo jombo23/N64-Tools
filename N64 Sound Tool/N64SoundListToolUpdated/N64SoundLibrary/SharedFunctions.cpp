@@ -201,7 +201,7 @@ void CSharedFunctions::WriteShortToBuffer(unsigned char* Buffer, unsigned long a
 	Buffer[address+1] = ((data) & 0xFF);	
 }
 
-void CSharedFunctions::WriteCharToBuffer(unsigned char* Buffer, unsigned long address, unsigned short data)
+void CSharedFunctions::WriteCharToBuffer(unsigned char* Buffer, unsigned long address, unsigned char data)
 {
 
 	if (address > 0x80800000)
