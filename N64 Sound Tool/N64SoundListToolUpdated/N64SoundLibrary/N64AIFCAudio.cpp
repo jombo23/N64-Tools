@@ -17699,6 +17699,8 @@ ALBank* CN64AIFCAudio::ReadAudioDuckDodgers(unsigned char* ctl, unsigned long& c
 		{
 			unsigned long offsetInstrument = ctlOffset + 0x10 + (0x18 * x);
 
+			alBank->inst[x]->flags = 0;
+
 			if (offsetInstrument == 0x0000)
 			{
 				alBank->inst[x]->volume = 0;
