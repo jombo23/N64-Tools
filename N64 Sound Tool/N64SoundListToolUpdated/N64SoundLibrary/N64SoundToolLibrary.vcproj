@@ -209,6 +209,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MaddenAudioDecompression.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\MidwayDecoder.cpp"
 				>
 			</File>
@@ -360,6 +364,10 @@
 			</File>
 			<File
 				RelativePath=".\LZARIDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MaddenAudioDecompression.h"
 				>
 			</File>
 			<File

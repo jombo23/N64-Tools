@@ -12,6 +12,7 @@
 #include "..\N64SoundLibrary\EBBigDecompression.h"
 #include "..\N64SoundLibrary\ExciteBikeSAMAudioDecompression.h"
 #include "..\N64SoundLibrary\FightingForceAudioDecompression.h"
+#include "..\N64SoundLibrary\MaddenAudioDecompression.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -2273,6 +2274,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_MADDENBNKB)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if (alWave->type == AL_FIGHTINGFORCE)
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -3143,6 +3157,16 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 				}
 
 				delete [] outputSfx;
+			}
+			else if (alWave->type == AL_MADDENBNKB)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CMaddenAudioDecompression maddenAudioDecompression;
+				maddenAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavFlags, alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_FIGHTINGFORCE)
 			{
@@ -4168,6 +4192,16 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 				}
 
 				delete [] outputSfx;
+			}
+			else if (alWave->type == AL_MADDENBNKB)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CMaddenAudioDecompression maddenAudioDecompression;
+				maddenAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavFlags, alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_FIGHTINGFORCE)
 			{
@@ -16672,6 +16706,185 @@ ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableV2YAY0(unsigned char* ctl, unsign
 	return alBank;
 }
 
+ALBank* CN64AIFCAudio::ReadAudioMaddenBnkB(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
+{
+	// Madden 99 U
+	//00590A74 First sounds
+	//00680AF8 Second sounds
+	//8039CD70 Madden It's in the game sound
+	//8032C020 raw data
+	//80338E38 output buffer
+
+	unsigned short numberBands = 1;
+	int startOffset = 0x14;
+	unsigned long bankOffset = ctlOffset + startOffset;
+
+	// header size 0x30
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = MADDENBNKB;
+	alBank->count = (unsigned short)CharArrayToShort(&ctl[ctlOffset+0x6]);
+	alBank->flags = 0x0000;
+	alBank->pad = 0x0;
+	alBank->samplerate = 22050;
+	alBank->percussion = 0x000;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = NULL;
+
+	if ((alBank->flags == 0x0000) || (alBank->flags == 0x0100)) // offset
+	{
+		alBank->inst = new ALInst*[alBank->count];
+
+		for (int x = 0; x < alBank->count; x++)
+		{
+			alBank->inst[x] = new ALInst();
+			alBank->inst[x]->samplerate = 0;
+			alBank->inst[x]->sounds = NULL;
+		}
+
+		for (int x = 0; x < alBank->count; x++)
+		{
+			unsigned long offsetInstrument = bankOffset + (4 * x) + CharArrayToLong(&ctl[bankOffset + x*4]);
+
+			if ((offsetInstrument == 0x0000) || (CharArrayToLong(&ctl[offsetInstrument]) != 0x50540200)) // PATb
+			{
+				alBank->inst[x]->volume = 0;
+				alBank->inst[x]->pan = 0;
+				alBank->inst[x]->priority = 0;
+				alBank->inst[x]->flags = 0;
+				alBank->inst[x]->tremType = 0;
+				alBank->inst[x]->tremRate = 0;
+				alBank->inst[x]->tremDepth = 0;
+				alBank->inst[x]->tremDelay = 0;
+				alBank->inst[x]->vibType = 0;
+				alBank->inst[x]->vibRate = 0;
+				alBank->inst[x]->vibDepth = 0;
+				alBank->inst[x]->vibDelay = 0;
+				alBank->inst[x]->bendRange = 0;
+				alBank->inst[x]->soundCount = 0;
+				alBank->inst[x]->soundCount = 0;
+				alBank->inst[x]->sounds = NULL;
+				continue;
+			}
+
+			alBank->inst[x]->soundCount = 1;
+
+			alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+			for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+			{
+				alBank->inst[x]->sounds[y] = new ALSound();
+				alBank->inst[x]->sounds[y]->wav.wavData = NULL;
+			}
+
+			for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+			{
+				alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+				alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+				alBank->inst[x]->sounds[y]->flags = 0;
+
+				alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+				alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+
+				alBank->inst[x]->sounds[y]->wav.type = AL_MADDENBNKB;
+				alBank->inst[x]->sounds[y]->wav.flags = 0x0000;
+
+				alBank->inst[x]->sounds[y]->wav.base = 0;
+				alBank->inst[x]->sounds[y]->wav.wavFlags = MADDENSTANDARDAUDIO;
+
+				for (int z = (offsetInstrument + 2); z < (offsetInstrument + 0x100); z++)
+				{
+					if (CharArrayToShort(&ctl[z]) == 0x8402)
+					{
+						// sampling rate
+						alBank->inst[x]->samplerate = CharArrayToShort(&ctl[z+2]);
+					}
+					else if (CharArrayToShort(&ctl[z]) == 0x8301)
+					{
+						if (ctl[z + 2] == 0x7)
+							alBank->inst[x]->sounds[y]->wav.wavFlags = MADDENSTANDARDAUDIO;
+						else if (ctl[z + 2] == 0x9)
+							alBank->inst[x]->sounds[y]->wav.wavFlags = MADDENFLOATAUDIO;
+						else
+							throw;
+					}
+					else if (CharArrayToShort(&ctl[z]) == 0x8804)
+					{
+						alBank->inst[x]->sounds[y]->wav.base = CharArrayToLong(&ctl[z + 2]);
+						if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+							break;
+					}
+					else if (CharArrayToShort(&ctl[z]) == 0x8C02)
+					{
+						alBank->inst[x]->sounds[y]->wav.decompressedLength = CharArrayToShort(&ctl[z+2]);
+						if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+							break;
+					}
+					else if (CharArrayToShort(&ctl[z]) == 0x8502)
+					{
+						// # decoded samples
+						alBank->inst[x]->sounds[y]->wav.decompressedLength = CharArrayToShort(&ctl[z+2]);
+						if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+							break;
+					}
+					else if ((CharArrayToShort(&ctl[z]) == 0x8503) || (CharArrayToShort(&ctl[z]) == 0x8C03))
+					{
+						// TODO check if maybe should be double and if is output length not input length
+						alBank->inst[x]->sounds[y]->wav.decompressedLength = CharArrayToLong(&ctl[z+1]) & 0xFFFFFF;
+						if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+							break;
+					}
+					else if ((CharArrayToShort(&ctl[z]) == 0x5054) || (CharArrayToLong(&ctl[z]) == 0xFF000000))
+					{
+						break;
+					}
+				}
+
+				if ((alBank->inst[x]->sounds[y]->wav.decompressedLength == 0) || (alBank->inst[x]->sounds[y]->wav.base == 0))
+				{
+					alBank->inst[x]->volume = 0;
+					alBank->inst[x]->pan = 0;
+					alBank->inst[x]->priority = 0;
+					alBank->inst[x]->flags = 0;
+					alBank->inst[x]->tremType = 0;
+					alBank->inst[x]->tremRate = 0;
+					alBank->inst[x]->tremDepth = 0;
+					alBank->inst[x]->tremDelay = 0;
+					alBank->inst[x]->vibType = 0;
+					alBank->inst[x]->vibRate = 0;
+					alBank->inst[x]->vibDepth = 0;
+					alBank->inst[x]->vibDelay = 0;
+					alBank->inst[x]->bendRange = 0;
+					alBank->inst[x]->soundCount = 0;
+					alBank->inst[x]->soundCount = 0;
+					alBank->inst[x]->sounds = NULL;
+					continue;
+				}
+
+				unsigned long startSoundTblData = CharArrayToLong(&ctl[ctlOffset + 0x8]);
+				unsigned long lengthTblData = CharArrayToLong(&ctl[ctlOffset + 0xC]);
+				alBank->inst[x]->sounds[y]->wav.len = lengthTblData - (alBank->inst[x]->sounds[y]->wav.base - startSoundTblData);
+
+				alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+
+				for (int  r = 0; r < alBank->inst[x]->sounds[y]->wav.len; r++)
+				{
+					alBank->inst[x]->sounds[y]->wav.wavData[r] = tbl[alBank->inst[x]->sounds[y]->wav.base + r];
+				}
+			}
+		}
+	}
+	else
+	{
+		DisposeALBank(alBank);
+		MessageBox(NULL, "Error", "Unsupported type in ALBank", NULL);
+		return NULL;
+	}
+
+	return alBank;
+}
+
 ALBank* CN64AIFCAudio::ReadAudioSeparatedBnkB(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
 {
 	unsigned short numberBands = 1;
@@ -16680,7 +16893,7 @@ ALBank* CN64AIFCAudio::ReadAudioSeparatedBnkB(unsigned char* ctl, unsigned long&
 
 	// header size 0x30
 	ALBank* alBank = new ALBank();
-	alBank->soundBankFormat = BNKB;
+	alBank->soundBankFormat = SEPARATEDBNKB;
 	alBank->count = 0x80;
 	alBank->flags = 0x0000;
 	alBank->pad = 0x0;

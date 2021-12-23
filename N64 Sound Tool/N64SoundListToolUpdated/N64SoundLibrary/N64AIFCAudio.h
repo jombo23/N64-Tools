@@ -81,10 +81,12 @@
 #define EXCITEBIKESFX 53
 #define EXCITEBIKESNG 54
 #define FIGHTINGFORCE 55
+#define SEPARATEDBNKB 56
+#define MADDENBNKB 57
 
 #pragma once
 
-enum    {AL_ADPCM_WAVE = 0, AL_RAW16_WAVE = 1, AL_VOX_WAVE=2, AL_MUSYX_WAVE=3, AL_SIGNED_RAW8=4, AL_SIGNED_RAW16=5, AL_MORT_WAVE=6, AL_WAV=7, AL_KOBE2_WAVE=8, AL_EXCITEBIKE_SAM=9, AL_EXCITEBIKE_SFX=10, AL_EXCITEBIKE_SNG=11, AL_FIGHTINGFORCE=12};
+enum    {AL_ADPCM_WAVE = 0, AL_RAW16_WAVE = 1, AL_VOX_WAVE=2, AL_MUSYX_WAVE=3, AL_SIGNED_RAW8=4, AL_SIGNED_RAW16=5, AL_MORT_WAVE=6, AL_WAV=7, AL_KOBE2_WAVE=8, AL_EXCITEBIKE_SAM=9, AL_EXCITEBIKE_SFX=10, AL_EXCITEBIKE_SNG=11, AL_FIGHTINGFORCE=12, AL_MADDENBNKB=13};
 
 enum    {PRIMARY = 0, PREVIOUS = 1, SECONDARY = 2};
 
@@ -149,6 +151,7 @@ struct ALWave
 	unsigned long unknown4;
 
 	unsigned char wavFlags;
+	unsigned long decompressedLength;
 
 	ALWave()
 	{
@@ -158,6 +161,7 @@ struct ALWave
 		wavData = NULL;
 		flags = 0;
 		wavFlags = 0;
+		decompressedLength = -1;
 	}
 };
 
@@ -466,6 +470,7 @@ public:
 	static ALBank* ReadAudioArmyMenCompressed(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, bool littleEndianCompressedHeader, bool sarge2style);
 	static ALBank* ReadAudioBnkB(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioSeparatedBnkB(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
+	static ALBank* ReadAudioMaddenBnkB(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioN64PtrWavetableV2YAY0(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioN64PtrWavetableQuake2(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioN64PtrWavetableSnowboardKids(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);

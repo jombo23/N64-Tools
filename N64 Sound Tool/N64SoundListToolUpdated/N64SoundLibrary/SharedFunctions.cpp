@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 #include "SharedFunctions.h"
+#include <string>
+#include <sstream>
 
 CSharedFunctions::CSharedFunctions(void)
 {
@@ -270,4 +272,85 @@ unsigned long CSharedFunctions::CharArrayToChar(unsigned char* Buffer, int addre
 unsigned long CSharedFunctions::Flip32Bit(unsigned long inLong)
 {
 	return (((inLong & 0xFF000000) >> 24) | ((inLong & 0x00FF0000) >> 8) | ((inLong & 0x0000FF00) << 8) | ((inLong & 0x000000FF) << 24));
+}
+
+void CSharedFunctions::WriteFloatToBuffer(unsigned char* Buffer, unsigned long address, float data)
+{
+	WriteLongToBuffer(Buffer, address, (*reinterpret_cast<unsigned long*> (&data)));
+}
+
+void CSharedFunctions::WriteDoubleToBuffer(unsigned char* Buffer, unsigned long address, double data)
+{
+	if (address > 0x80800000)
+		return;
+
+	address = address & 0xFFFFFFF;
+
+	unsigned __int64 tempHex = (*reinterpret_cast<unsigned __int64*> (&data));
+	WriteLongToBuffer(Buffer, address, ((unsigned long)(tempHex >> 32) & 0xFFFFFFFF));
+	WriteLongToBuffer(Buffer, address + 4, ((unsigned long)(tempHex) & 0xFFFFFFFF));
+}
+
+float CSharedFunctions::CharArrayToFloat(unsigned char* currentSpot)
+{
+	unsigned long tempLong = CharArrayToLong(currentSpot);
+	return (*reinterpret_cast<float*> (&tempLong));
+}
+
+float CSharedFunctions::CharArrayToFloat(unsigned char* Buffer, int address)
+{
+	if (address > 0x80800000)
+		return 0;
+
+	address = address & 0xFFFFFFF;
+
+	unsigned long tempLong = CharArrayToLong(&Buffer[address]);
+	return (*reinterpret_cast<float*> (&tempLong));
+}
+
+double CSharedFunctions::CharArrayToDouble(unsigned char* Buffer, int address)
+{
+	if (address > 0x80800000)
+		return 0;
+
+	address = address & 0xFFFFFFF;
+
+	unsigned __int64 tempLongLong = (((unsigned __int64)CharArrayToLong(&Buffer[address]) << 32) | (unsigned __int64)CharArrayToLong(&Buffer[address + 4]));
+	return (*reinterpret_cast<double*> (&tempLongLong));
+}
+
+void CSharedFunctions::StringToByteArray(unsigned char* dataArray, CString hexStr)
+{
+	std::string str = (LPCSTR)hexStr;
+
+	int length = str.length();
+	// make sure the input string has an even digit numbers
+	if(length%2 == 1)
+	{
+		str = "0" + str;
+		length++;
+	}
+
+	// allocate memory for the output array
+	int size = length/2;
+
+	std::stringstream sstr(str);
+	for(int i=0; i < size; i++)
+	{
+		char ch1, ch2;
+		sstr >> ch1 >> ch2;
+		int dig1, dig2;
+		if(isdigit(ch1)) dig1 = ch1 - '0';
+		else if(ch1>='A' && ch1<='F') dig1 = ch1 - 'A' + 10;
+		else if(ch1>='a' && ch1<='f') dig1 = ch1 - 'a' + 10;
+		if(isdigit(ch2)) dig2 = ch2 - '0';
+		else if(ch2>='A' && ch2<='F') dig2 = ch2 - 'A' + 10;
+		else if(ch2>='a' && ch2<='f') dig2 = ch2 - 'a' + 10;
+		dataArray[i] = dig1*16 + dig2;
+	}
+}
+
+unsigned short CSharedFunctions::Flip16Bit(unsigned short ShortValue)
+{
+	return ((ShortValue >> 8) | ((ShortValue << 8)));
 }

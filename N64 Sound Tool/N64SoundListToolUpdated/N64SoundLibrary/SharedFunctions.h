@@ -24,4 +24,11 @@ public:
 	static unsigned long CharArrayToLong(unsigned char* Buffer, int address);
 	static unsigned long CharArrayToChar(unsigned char* Buffer, int address);
 	static unsigned long Flip32Bit(unsigned long inLong);
+	static void WriteFloatToBuffer(unsigned char* Buffer, unsigned long address, float data);
+	static void WriteDoubleToBuffer(unsigned char* Buffer, unsigned long address, double data);
+	static float CharArrayToFloat(unsigned char* currentSpot);
+	static float CharArrayToFloat(unsigned char* Buffer, int address);
+	static double CharArrayToDouble(unsigned char* Buffer, int address);
+	static void StringToByteArray(unsigned char* dataArray, CString hexStr);
+	static unsigned short Flip16Bit(unsigned short ShortValue);
 };
