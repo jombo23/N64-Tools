@@ -2,15 +2,15 @@
 #include "SharedFunctions.h"
 #include <math.h>
 
-CSharedFunctions::CSharedFunctions(void)
+CSharedFunctionsMidi::CSharedFunctionsMidi(void)
 {
 }
 
-CSharedFunctions::~CSharedFunctions(void)
+CSharedFunctionsMidi::~CSharedFunctionsMidi(void)
 {
 }
 
-int CSharedFunctions::GetSizeFile(CString filename)
+int CSharedFunctionsMidi::GetSizeFile(CString filename)
 {
 	FILE* inFile = fopen(filename, "rb");
 	
@@ -23,7 +23,7 @@ int CSharedFunctions::GetSizeFile(CString filename)
 	return fileSize;
 }
 
-int CSharedFunctions::HexToInt(char inChar)
+int CSharedFunctionsMidi::HexToInt(char inChar)
 {
 	switch(inChar)
 	{
@@ -76,7 +76,7 @@ int CSharedFunctions::HexToInt(char inChar)
 	}
 }
 
-unsigned short CSharedFunctions::StringToUnsignedShort(CString inString)
+unsigned short CSharedFunctionsMidi::StringToUnsignedShort(CString inString)
 {
 	inString.Trim();
 	int tempA = inString.GetLength();
@@ -102,7 +102,7 @@ unsigned short CSharedFunctions::StringToUnsignedShort(CString inString)
 	return tempLong;
 }
 
-unsigned char CSharedFunctions::StringToSignedChar(CString inString)
+unsigned char CSharedFunctionsMidi::StringToSignedChar(CString inString)
 {
 	inString.Trim();
 	int tempA = inString.GetLength();
@@ -128,7 +128,7 @@ unsigned char CSharedFunctions::StringToSignedChar(CString inString)
 	return (unsigned char) tempLong;
 }
 
-unsigned char CSharedFunctions::StringToUnsignedChar(CString inString)
+unsigned char CSharedFunctionsMidi::StringToUnsignedChar(CString inString)
 {
 	inString.Trim();
 	int tempA = inString.GetLength();
@@ -154,7 +154,7 @@ unsigned char CSharedFunctions::StringToUnsignedChar(CString inString)
 	return (unsigned char) tempLong;
 }
 
-unsigned long CSharedFunctions::StringHexToLong(CString inString)
+unsigned long CSharedFunctionsMidi::StringHexToLong(CString inString)
 {
 	inString.Trim();
 	int tempA = inString.GetLength();
@@ -180,7 +180,7 @@ unsigned long CSharedFunctions::StringHexToLong(CString inString)
 	return tempLong;
 }
 
-double CSharedFunctions::round(double number)
+double CSharedFunctionsMidi::round(double number)
 {
     return number < 0.0 ? ceil(number - 0.5) : floor(number + 0.5);
 }

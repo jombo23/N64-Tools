@@ -15984,7 +15984,7 @@ void CMidiParse::ExportToBin(CString gameName, unsigned char* buffer, unsigned l
 			fclose(huffman.infile);
 			fclose(huffman.outfile);
 
-			musSize = CSharedFunctions::GetSizeFile(outTempFileName);
+			musSize = CSharedFunctionsMidi::GetSizeFile(outTempFileName);
 
 			FILE* inTempIn = fopen(outTempFileName, "rb");
 			if (inTempIn == NULL)
@@ -16060,7 +16060,7 @@ void CMidiParse::ExportToBin(CString gameName, unsigned char* buffer, unsigned l
 			fclose(lzari.infile);
 			fclose(lzari.outfile);
 
-			musSize = CSharedFunctions::GetSizeFile(outTempFileName);
+			musSize = CSharedFunctionsMidi::GetSizeFile(outTempFileName);
 
 			FILE* inTempIn = fopen(outTempFileName, "rb");
 			if (inTempIn == NULL)
@@ -16550,7 +16550,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			fclose(huffman.infile);
 			fclose(huffman.outfile);
 
-			musSize = CSharedFunctions::GetSizeFile(outTempFileName);
+			musSize = CSharedFunctionsMidi::GetSizeFile(outTempFileName);
 
 			FILE* inTempIn = fopen(outTempFileName, "rb");
 			if (inTempIn == NULL)
@@ -16624,7 +16624,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			fclose(lzari.infile);
 			fclose(lzari.outfile);
 
-			musSize = CSharedFunctions::GetSizeFile(outTempFileName);
+			musSize = CSharedFunctionsMidi::GetSizeFile(outTempFileName);
 
 			FILE* inTempIn = fopen(outTempFileName, "rb");
 			if (inTempIn == NULL)

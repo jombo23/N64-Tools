@@ -2,11 +2,11 @@
 
 #include "MidiExports.h"
 
-class MIDI_API CSharedFunctions
+class MIDI_API CSharedFunctionsMidi
 {
 public:
-	CSharedFunctions(void);
-	~CSharedFunctions(void);
+	CSharedFunctionsMidi(void);
+	~CSharedFunctionsMidi(void);
 
 	static int GetSizeFile(CString filename);
 	static int HexToInt(char inChar);
