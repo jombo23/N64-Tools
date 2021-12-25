@@ -13,6 +13,7 @@
 #include "..\N64SoundLibrary\ExciteBikeSAMAudioDecompression.h"
 #include "..\N64SoundLibrary\FightingForceAudioDecompression.h"
 #include "..\N64SoundLibrary\MaddenAudioDecompression.h"
+#include "..\N64SoundLibrary\SPRallyAudioDecompression.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -2274,6 +2275,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_SOUTHPARKRALLY)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if (alWave->type == AL_MADDENBNKB)
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -3157,6 +3171,21 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 				}
 
 				delete [] outputSfx;
+			}
+			else if (alWave->type == AL_SOUTHPARKRALLY)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CSPRallyAudioDecompression spRallyAudioDecompression;
+
+				unsigned char* outputBuffer = new unsigned char[alBank->inst[instrument]->sounds[sound]->wav.decompressedLength];
+				spRallyAudioDecompression.FUN_00003424(alBank->inst[instrument]->sounds[sound]->wav.wavData, outputBuffer, 0, 0, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength / 0x10, 0);
+				bool result = spRallyAudioDecompression.SaveProcessedWav(outputBuffer, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, 0, samplingRateFloat, outputFile);
+
+				delete [] outputBuffer;
 			}
 			else if (alWave->type == AL_MADDENBNKB)
 			{
@@ -4139,6 +4168,21 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 
 				CExciteBikeSAMAudioDecompression samDecompression;
 				samDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_SOUTHPARKRALLY)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CSPRallyAudioDecompression spRallyAudioDecompression;
+
+				unsigned char* outputBuffer = new unsigned char[alBank->inst[instrument]->sounds[sound]->wav.decompressedLength];
+				spRallyAudioDecompression.FUN_00003424(alBank->inst[instrument]->sounds[sound]->wav.wavData, outputBuffer, 0, 0, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength / 0x10, 0);
+				bool result = spRallyAudioDecompression.SaveProcessedWav(outputBuffer, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, 0, samplingRateFloat, outputFile);
+
+				delete [] outputBuffer;
 			}
 			else if (alWave->type == AL_EXCITEBIKE_SFX)
 			{
@@ -16038,6 +16082,80 @@ ALBank* CN64AIFCAudio::ReadAudioExciteBikeSFX(unsigned char* ctl, unsigned long&
 		}
 	}
 	delete [] outputSfx;
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioSouthParkRally(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments)
+{
+	CSPRallyAudioDecompression spRallyAudioDecompression;
+
+	int startSoundTable = ctlOffset;
+	int endSoundTable = tblOffset;
+	std::vector<SPRallySoundTableEntry> soundTableEntries = spRallyAudioDecompression.GetSoundTableEntries(ctl, startSoundTable, endSoundTable);
+
+	unsigned long fileTableHashMultiplier = 3;
+	unsigned long fileTableStart = numberInstruments;
+	std::vector<SPRallyFileTableEntry> fileTable = spRallyAudioDecompression.GetFileTableEntries(ctl, fileTableStart, fileTableHashMultiplier);
+
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = SOUTHPARKRALLY;
+	alBank->count = soundTableEntries.size();
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 22050;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+	}
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		CString nameROMStr;
+		SPRallyFileTableEntry currentEntry = spRallyAudioDecompression.GetSoundFile(ctl, soundTableEntries[x], fileTable, fileTableHashMultiplier, nameROMStr);
+
+		nameROMStr.Replace("sound/", "");
+		alBank->inst[x]->name = nameROMStr;
+		unsigned long dataPointer = fileTableStart + CSharedFunctions::CharArrayToLong(&ctl[currentEntry.offset]);
+		unsigned long sizeData = CSharedFunctions::CharArrayToLong(&ctl[currentEntry.offset + 4]);
+
+		unsigned long numberSamples = (((unsigned __int64)sizeData * (unsigned __int64)0x38E38E39) >> 32) & 0xFFFFFFFF;
+		numberSamples = numberSamples >> 1;
+
+		unsigned long currentFileOffset = dataPointer;
+		int compressedSize = (currentEntry.offset - currentFileOffset);
+
+		alBank->inst[x]->samplerate = soundTableEntries[x].samplingRate;
+		alBank->inst[x]->soundCount = 1;
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.base = ctlOffset;
+
+			alBank->inst[x]->sounds[y]->wav.len = compressedSize;
+			alBank->inst[x]->sounds[y]->wav.decompressedLength = numberSamples * 0x10;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[currentFileOffset], alBank->inst[x]->sounds[y]->wav.len);
+			
+			alBank->inst[x]->sounds[y]->wav.type = AL_SOUTHPARKRALLY;
+		}
+	}
 	return alBank;
 }
 

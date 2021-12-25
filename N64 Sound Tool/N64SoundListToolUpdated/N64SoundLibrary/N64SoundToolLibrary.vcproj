@@ -265,6 +265,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SPRallyAudioDecompression.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -428,6 +432,10 @@
 			</File>
 			<File
 				RelativePath=".\SoundToolExports.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SPRallyAudioDecompression.h"
 				>
 			</File>
 			<File
