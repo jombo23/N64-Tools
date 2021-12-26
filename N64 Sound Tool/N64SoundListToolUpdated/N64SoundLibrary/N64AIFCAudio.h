@@ -299,6 +299,7 @@ struct ALInst
 	ALInst()
 	{
 		name = "";
+		flags = 0;
 	}
 };
 
@@ -491,6 +492,7 @@ public:
 	static ALBank* ReadAudioExciteBikeSFX(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments, unsigned long mask);
 	static ALBank* ReadAudioExciteBikeSNG(unsigned char* ctl, int romSize, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments, unsigned long mask);
 	static ALBank* ReadAudioSouthParkRally(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments);
+	static ALBank* ReadAudioIndividualSouthParkRally(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset);
 	static ALBank* ReadAudioFightingForce(unsigned char* ctl, int romSize, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioTetrisphereRaw816(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments);
 	static ALBank* ReadRNXAudio(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber);

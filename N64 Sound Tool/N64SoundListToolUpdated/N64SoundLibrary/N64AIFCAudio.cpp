@@ -16159,6 +16159,66 @@ ALBank* CN64AIFCAudio::ReadAudioSouthParkRally(unsigned char* ctl, unsigned long
 	return alBank;
 }
 
+ALBank* CN64AIFCAudio::ReadAudioIndividualSouthParkRally(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset)
+{
+	CSPRallyAudioDecompression spRallyAudioDecompression;
+
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = SOUTHPARKRALLY;
+	alBank->count = 1;
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 8000;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+	}
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		unsigned long dataPointer = ctlOffset;
+		unsigned long sizeData = CSharedFunctions::CharArrayToLong(&ctl[tblOffset + 4]);
+
+		unsigned long numberSamples = (((unsigned __int64)sizeData * (unsigned __int64)0x38E38E39) >> 32) & 0xFFFFFFFF;
+		numberSamples = numberSamples >> 1;
+
+		unsigned long currentFileOffset = dataPointer;
+		int compressedSize = (tblOffset - currentFileOffset);
+
+		alBank->inst[x]->soundCount = 1;
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.base = ctlOffset;
+
+			alBank->inst[x]->sounds[y]->wav.len = compressedSize;
+			alBank->inst[x]->sounds[y]->wav.decompressedLength = numberSamples * 0x10;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[currentFileOffset], alBank->inst[x]->sounds[y]->wav.len);
+			
+			alBank->inst[x]->sounds[y]->wav.type = AL_SOUTHPARKRALLY;
+		}
+	}
+	return alBank;
+}
+
 ALBank* CN64AIFCAudio::ReadAudioExciteBikeSNG(unsigned char* ctl, int romSize, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments, unsigned long mask)
 {
 	ALBank* alBank = new ALBank();
@@ -18022,6 +18082,7 @@ ALBank* CN64AIFCAudio::ReadAudioN64PtrWavetableV2(unsigned char* ctl, unsigned l
 			else
 				offsetInstrument = ctlOffset + offsetInstrument;
 
+			alBank->inst[x]->flags = 0;
 			if ((alBank->inst[x]->flags == 0x0) || (alBank->inst[x]->flags == 0x1))
 			{	
 				alBank->inst[x]->soundCount = 1;

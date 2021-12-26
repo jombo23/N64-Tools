@@ -9713,6 +9713,10 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					{
 						results[numberResults].bank = n64AudioLibrary.ReadAudioSouthParkRally(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig[y].soundBanks[x].numberInstruments);
 					}
+					else if (gameConfig[y].gameType.CompareNoCase("IndividualSouthParkRally") == 0)
+					{
+						results[numberResults].bank = n64AudioLibrary.ReadAudioIndividualSouthParkRally(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset);
+					}
 					else if (gameConfig[y].gameType.CompareNoCase("FightingForce") == 0)
 					{
 						results[numberResults].bank = n64AudioLibrary.ReadAudioFightingForce(&ROM[0], romSize, results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
@@ -9902,6 +9906,23 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					}
 
 					results[numberResults].halfSamplingRate = gameConfig[y].soundBanks[x].halfSamplingRate;
+
+					if (results[numberResults].bank != NULL)
+					{
+						for (int c = 0; c < gameConfig[y].soundBanks[x].instrumentNames.size(); c++)
+						{
+							if (c <= results[numberResults].bank->count)
+							{
+								if (results[numberResults].bank->inst[c] != NULL)
+								{
+									if (results[numberResults].bank->inst[c]->name == "")
+										results[numberResults].bank->inst[c]->name = gameConfig[y].soundBanks[x].instrumentNames[c];
+								}
+							}
+							else
+								break;
+						}
+					}
 					numberResults++;
 				}
 			}

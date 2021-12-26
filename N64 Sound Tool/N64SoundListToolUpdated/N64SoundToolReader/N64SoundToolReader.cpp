@@ -742,6 +742,10 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioSouthParkRally(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig.soundBanks[x].numberInstruments);
 			}
+			else if (gameConfig.gameType.CompareNoCase("IndividualSouthParkRally") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioIndividualSouthParkRally(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset);
+			}
 			else if (gameConfig.gameType.CompareNoCase("FightingForce") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioFightingForce(&ROM[0], romSize, results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
@@ -938,6 +942,24 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 				results[numberResults].halfSamplingRate = gameConfig.soundBanks[x].halfSamplingRate;
 				results[numberResults].overrideSamplingRate = gameConfig.soundBanks[x].overrideSamplingRate;
 				results[numberResults].samplingRate = gameConfig.soundBanks[x].samplingRate;
+
+				if (results[numberResults].bank != NULL)
+				{
+					for (int c = 0; c < gameConfig.soundBanks[x].instrumentNames.size(); c++)
+					{
+						if (c <= results[numberResults].bank->count)
+						{
+							if (results[numberResults].bank->inst[c] != NULL)
+							{
+								if (results[numberResults].bank->inst[c]->name == "")
+									results[numberResults].bank->inst[c]->name = gameConfig.soundBanks[x].instrumentNames[c];
+							}
+						}
+						else
+							break;
+					}
+				}
+
 				numberResults++;
 			}
 			else
