@@ -305,6 +305,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\TwistedSnowboardingAudioDecompression.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ViewpointDecoder.cpp"
 				>
 			</File>
@@ -460,6 +464,10 @@
 			</File>
 			<File
 				RelativePath="TigDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TwistedSnowboardingAudioDecompression.h"
 				>
 			</File>
 			<File

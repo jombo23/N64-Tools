@@ -14,6 +14,7 @@
 #include "..\N64SoundLibrary\FightingForceAudioDecompression.h"
 #include "..\N64SoundLibrary\MaddenAudioDecompression.h"
 #include "..\N64SoundLibrary\SPRallyAudioDecompression.h"
+#include "..\N64SoundLibrary\TwistedSnowboardingAudioDecompression.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -2288,6 +2289,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_TWISTEDEDGESNOWBOARDING)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if (alWave->type == AL_MADDENBNKB)
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -3186,6 +3200,36 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 				bool result = spRallyAudioDecompression.SaveProcessedWav(outputBuffer, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, 0, samplingRateFloat, outputFile);
 
 				delete [] outputBuffer;
+			}
+			else if (alWave->type == AL_TWISTEDEDGESNOWBOARDING)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CTwistedSnowboardingAudioDecompression twistedSnowboardingAudioDecompression;
+
+				signed short previousValue1 = 0;
+				signed short previousValue2 = 0;
+
+				int inputSpot = 0;
+
+				unsigned char* output = new unsigned char[0x100000];
+				int outputLength = 0;
+				twistedSnowboardingAudioDecompression.FUN_00001220(&alBank->inst[instrument]->sounds[sound]->wav.wavData[0x10], inputSpot, output, outputLength, &alBank->inst[instrument]->sounds[sound]->wav.wavData[0], (alBank->inst[instrument]->sounds[sound]->wav.len / 9), previousValue1, previousValue2);
+				
+				unsigned char* processedWav = new unsigned char[outputLength];
+				for (int x = 0; x < outputLength; x += 2)
+				{
+					processedWav[x] = output[x + 1];
+					processedWav[x + 1] = output[x];
+				}
+
+				twistedSnowboardingAudioDecompression.SaveProcessedWav(processedWav, outputLength, 1, samplingRateFloat, outputFile);
+
+				delete [] output;
+				delete [] processedWav;
 			}
 			else if (alWave->type == AL_MADDENBNKB)
 			{
@@ -16154,6 +16198,58 @@ ALBank* CN64AIFCAudio::ReadAudioSouthParkRally(unsigned char* ctl, unsigned long
 			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[currentFileOffset], alBank->inst[x]->sounds[y]->wav.len);
 			
 			alBank->inst[x]->sounds[y]->wav.type = AL_SOUTHPARKRALLY;
+		}
+	}
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioTwistedEdgeSnowboarding(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset)
+{
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = TWISTEDEDGESNOWBOARDING;
+	alBank->count = ((tblOffset - ctlOffset) / 8);
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 11025;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+	}
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		int tableSpot = ctlOffset + (x * 8);
+		int soundROMOffsetSpot = CSharedFunctions::CharArrayToLong(&ctl[tableSpot]);
+		int soundDataSize = CSharedFunctions::CharArrayToLong(&ctl[tableSpot + 4]) - CSharedFunctions::CharArrayToLong(&ctl[tableSpot]);
+
+		alBank->inst[x]->soundCount = 1;
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.base = ctlOffset;
+
+			alBank->inst[x]->sounds[y]->wav.len = soundDataSize;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[soundROMOffsetSpot], alBank->inst[x]->sounds[y]->wav.len);
+			
+			alBank->inst[x]->sounds[y]->wav.type = AL_TWISTEDEDGESNOWBOARDING;
 		}
 	}
 	return alBank;

@@ -746,6 +746,10 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioIndividualSouthParkRally(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset);
 			}
+			else if (gameConfig.gameType.CompareNoCase("TwistedEdgeSnowboarding") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioTwistedEdgeSnowboarding(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset);
+			}
 			else if (gameConfig.gameType.CompareNoCase("FightingForce") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioFightingForce(&ROM[0], romSize, results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
