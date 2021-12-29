@@ -492,6 +492,7 @@ public:
 	static ALBank* ReadAudioRNCN64PtrOffset(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, unsigned long offset);
 	static ALBank* ReadAudioH20Raw816(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments);
 	static ALBank* ReadAudioExciteBikeSAM(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments, unsigned long mask);
+	static ALBank* ReadAudioKobeSAM(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments);
 	static ALBank* ReadAudioExciteBikeSFX(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments, unsigned long mask);
 	static ALBank* ReadAudioExciteBikeSNG(unsigned char* ctl, int romSize, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments, unsigned long mask);
 	static ALBank* ReadAudioSouthParkRally(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments);

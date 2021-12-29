@@ -16099,6 +16099,64 @@ ALBank* CN64AIFCAudio::ReadAudioExciteBikeSAM(unsigned char* ctl, unsigned long&
 	return alBank;
 }
 
+ALBank* CN64AIFCAudio::ReadAudioKobeSAM(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments)
+{
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = EXCITEBIKESAM;
+	alBank->count = 1;
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 22050;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+	}
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x]->soundCount = 1;
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.base = tblOffset;
+
+			CEBBigDecompression bigDecompression;
+			unsigned char* outputSfx;
+			int sfxSize = 0;
+
+			int outputSfxOffset = ctlOffset;
+			bigDecompression.DecodeFile(ctl, outputSfxOffset, outputSfx, sfxSize);
+
+			int sizeSAM = Flip32Bit(CharArrayToLong(&outputSfx[tblOffset + 4])) + 8;
+			alBank->inst[x]->samplerate = CharArrayToLong(&outputSfx[tblOffset + 0x18]);
+			alBank->inst[x]->sounds[y]->wav.len = sizeSAM;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &outputSfx[tblOffset], alBank->inst[x]->sounds[y]->wav.len);
+			
+			alBank->inst[x]->sounds[y]->wav.type = AL_EXCITEBIKE_SAM;
+			delete [] outputSfx;
+		}
+	}
+	return alBank;
+}
+
 ALBank* CN64AIFCAudio::ReadAudioExciteBikeSFX(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments, unsigned long mask)
 {
 	CEBBigDecompression bigDecompression;

@@ -9867,6 +9867,10 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					{
 						results[numberResults].bank = n64AudioLibrary.ReadAudioExciteBikeSAM(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig[y].soundBanks[x].numberInstruments, gameConfig[y].soundBanks[x].mask);
 					}
+					else if (gameConfig[y].gameType.CompareNoCase("KobeSAM") == 0)
+					{
+						results[numberResults].bank = n64AudioLibrary.ReadAudioKobeSAM(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig[y].soundBanks[x].numberInstruments);
+					}
 					else if (gameConfig[y].gameType.CompareNoCase("ExciteBikeSFX") == 0)
 					{
 						results[numberResults].bank = n64AudioLibrary.ReadAudioExciteBikeSFX(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig[y].soundBanks[x].numberInstruments, gameConfig[y].soundBanks[x].mask);

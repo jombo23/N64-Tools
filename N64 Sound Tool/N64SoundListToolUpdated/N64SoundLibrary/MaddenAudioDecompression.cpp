@@ -1053,7 +1053,16 @@ bool CMaddenAudioDecompression::DecompressSoundMadden64(int soundType, unsigned 
 				previousValue = value;
 				count++;
 
-				CSharedFunctions::WriteLongToBuffer(outputData, outputSize, (((int)value * 0xF) >> 5));
+				
+
+				int valueresult = (((int)value * 0xF) >> 5);
+				if ((short)valueresult < (short)-0x8000) {
+					valueresult = (short)-0x8000;
+				  }
+				  else if ((short)0x7fff < (short)valueresult) {
+					valueresult = (short)0x7fff;
+				  }
+				CSharedFunctions::WriteLongToBuffer(outputData, outputSize, valueresult);
 				outputSize += 4;
 
 				unsigned long value2 = ((ROM[soundDataOffset]) & 0xF);
@@ -1083,7 +1092,15 @@ bool CMaddenAudioDecompression::DecompressSoundMadden64(int soundType, unsigned 
 				else
 					throw;
 
-				CSharedFunctions::WriteLongToBuffer(outputData, outputSize, (((int)value2 * 0xF) >> 5));
+				int value2result = (((int)value2 * 0xF) >> 5);
+				if ((short)value2result < (short)-0x8000) {
+					value2result = (short)-0x8000;
+				  }
+				  else if ((short)0x7fff < (short)value2result) {
+					value2result = (short)0x7fff;
+				  }
+
+				CSharedFunctions::WriteLongToBuffer(outputData, outputSize, value2result);
 				outputSize += 4;
 				previousValue2 = value2;
 				count++;
