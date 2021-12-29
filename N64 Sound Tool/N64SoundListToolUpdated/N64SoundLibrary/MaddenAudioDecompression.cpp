@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "MaddenAudioDecompression.h"
 #include "SharedFunctions.h"
+#include <vector>
 
 CMaddenAudioDecompression::CMaddenAudioDecompression(void)
 {
@@ -982,12 +983,142 @@ bool CMaddenAudioDecompression::SaveProcessedWav(unsigned char* processedWavData
 	return true;
 }
 
+bool CMaddenAudioDecompression::DecompressSoundMadden64(int soundType, unsigned char* ROM, int offset, int compressedSize, int decompressedSize, CString outputFilename, float samplingRateFloat)
+{
+	std::vector<int> valueLookup;
+	valueLookup.push_back(0x00000000);
+	valueLookup.push_back(0x00000001);
+	valueLookup.push_back(0x00000002);
+	valueLookup.push_back(0x00000003);
+	valueLookup.push_back(0x00000004);
+	valueLookup.push_back(0x00000005);
+	valueLookup.push_back(0x00000006);
+	valueLookup.push_back(0x00000007);
+	valueLookup.push_back(0xFFFFFFF8);
+	valueLookup.push_back(0xFFFFFFF9);
+	valueLookup.push_back(0xFFFFFFFA);
+	valueLookup.push_back(0xFFFFFFFB);
+	valueLookup.push_back(0xFFFFFFFC);
+	valueLookup.push_back(0xFFFFFFFD);
+	valueLookup.push_back(0xFFFFFFFE);
+	valueLookup.push_back(0xFFFFFFFF);
+
+	if (soundType == MADDENSTANDARDAUDIO)
+	{
+		unsigned char* outputData = new unsigned char[0x100000];
+		int outputSize = 0;
+
+		unsigned long previousValue = 0;
+		unsigned long previousValue2 = 0;
+
+		unsigned long soundDataOffset = offset;
+
+		while (outputSize < (decompressedSize * 4))
+		{
+			unsigned char scale = ((ROM[soundDataOffset] >> 4) & 0xF);
+			unsigned char type = ((ROM[soundDataOffset]) & 0xF) >> 2;
+			if (type > 3)
+				break;
+			soundDataOffset++;
+
+			int count = 0;
+			while (count < 0x10)
+			{
+				unsigned long value = (((ROM[soundDataOffset] >> 4)) & 0xF);
+				value = valueLookup[value];
+				value = (int)value << scale;
+				if (type == 0)
+				{
+				}
+				else if (type == 1)
+				{			
+					unsigned long valueAdjust = (int)previousValue2 * 0xF0;
+					value = (int)value + ((int)valueAdjust >> 8);
+				}
+				else if (type == 2)
+				{
+					unsigned long valueAdjust2 = (int)previousValue2 * 0x1e8;
+					unsigned long valueAdjust = (int)previousValue * 0xf0;
+					value = (int)value + (((int)valueAdjust2 - (int)valueAdjust) >> 8);
+				}
+				else if (type == 3)
+				{
+					unsigned long valueAdjust2 = (int)previousValue2 * 0x1cc;
+					unsigned long valueAdjust = (int)previousValue * 0xd0;
+					value = (int)value + (((int)valueAdjust2 - (int)valueAdjust) >> 8);
+				}
+				else
+					throw;
+
+				previousValue = value;
+				count++;
+
+				CSharedFunctions::WriteLongToBuffer(outputData, outputSize, (((int)value * 0xF) >> 5));
+				outputSize += 4;
+
+				unsigned long value2 = ((ROM[soundDataOffset]) & 0xF);
+				value2 = valueLookup[value2];
+				value2 = (int)value2 << scale;
+				if (type == 0)
+				{
+
+				}
+				else if (type == 1)
+				{
+					unsigned long valueAdjust = (int)previousValue * 0xF0;
+					value2 = (int)value2 + ((int)valueAdjust >> 8);
+				}
+				else if (type == 2)
+				{
+					unsigned long valueAdjust2 = (int)previousValue * 0x1e8;
+					unsigned long valueAdjust = (int)previousValue2 * 0xf0;
+					value2 = (int)value2 + (((int)valueAdjust2 - (int)valueAdjust) >> 8);
+				}
+				else if (type == 3)
+				{
+					unsigned long valueAdjust2 = (int)previousValue * 0x1cc;
+					unsigned long valueAdjust = (int)previousValue2 * 0xd0;
+					value2 = (int)value2 + (((int)valueAdjust2 - (int)valueAdjust) >> 8);
+				}
+				else
+					throw;
+
+				CSharedFunctions::WriteLongToBuffer(outputData, outputSize, (((int)value2 * 0xF) >> 5));
+				outputSize += 4;
+				previousValue2 = value2;
+				count++;
+
+				soundDataOffset++;
+			}
+
+			/*FILE* out = fopen("C:\\temp\\out.bin", "wb");
+			fwrite(outputData, 1, outputSize, out);
+			fflush(out);
+			fclose(out);*/
+		}
+
+		/*FILE* outWav = fopen("C:\\temp\\outwav.bin", "wb");
+		for (int x = 0; x < outputSize; x+=4)
+		{
+			int value = (int)CSharedFunctions::CharArrayToLong(&outputData[x + 4]);
+			short adjust = (short)(value);
+			fwrite(&adjust, 1, 2, outWav);
+		}
+		
+		fflush(outWav);
+		fclose(outWav);*/
+
+		SaveWav(outputData, outputSize, 1, samplingRateFloat, outputFilename);
+
+		delete [] outputData;
+	}
+}
+
 bool CMaddenAudioDecompression::DecompressSound(int soundType, unsigned char* ROM, int offset, int compressedSize, int decompressedSize, CString outputFilename, float samplingRateFloat)
 {
 	if (soundType == MADDENSTANDARDAUDIO)
 	{
-		//8000563C function
-		unsigned char* outputData = new unsigned char[0x500000];
+		unsigned char* outputData = new unsigned char[0x100000];
 		int outputSize = 0;
 
 		unsigned long previousValue = 0;
@@ -1175,7 +1306,7 @@ bool CMaddenAudioDecompression::DecompressSound(int soundType, unsigned char* RO
 		// Not sure where this came from, output spot
 		CSharedFunctions::WriteLongToBuffer(RAM, 0x80052C88, 0x80344070);
 
-		unsigned char* outputBuffer = new unsigned char[0x500000];
+		unsigned char* outputBuffer = new unsigned char[0x100000];
 		int outputBufferSize = 0;
 		while (FUN_0002772c(RAM, outputFloatsSpot, 0x00000100, 0x80052C88, outputBuffer, outputBufferSize) != -1);
 

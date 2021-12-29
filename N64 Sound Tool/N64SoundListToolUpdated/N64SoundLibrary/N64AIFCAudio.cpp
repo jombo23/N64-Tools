@@ -2315,6 +2315,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_MADDEN64)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if (alWave->type == AL_FIGHTINGFORCE)
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -3240,6 +3253,16 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 
 				CMaddenAudioDecompression maddenAudioDecompression;
 				maddenAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavFlags, alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_MADDEN64)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CMaddenAudioDecompression maddenAudioDecompression;
+				maddenAudioDecompression.DecompressSoundMadden64(alBank->inst[instrument]->sounds[sound]->wav.wavFlags, alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_FIGHTINGFORCE)
 			{
@@ -4290,6 +4313,16 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 
 				CMaddenAudioDecompression maddenAudioDecompression;
 				maddenAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavFlags, alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_MADDEN64)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CMaddenAudioDecompression maddenAudioDecompression;
+				maddenAudioDecompression.DecompressSoundMadden64(alBank->inst[instrument]->sounds[sound]->wav.wavFlags, alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_FIGHTINGFORCE)
 			{
@@ -17156,6 +17189,69 @@ ALBank* CN64AIFCAudio::ReadAudioMaddenBnkB(unsigned char* ctl, unsigned long& ct
 		return NULL;
 	}
 
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioMadden64(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset)
+{
+	unsigned char* tbl = &ctl[tblOffset];
+
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = MADDEN64;
+	alBank->count = ((tblOffset - ctlOffset) / 0xC);
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 22050;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+	}
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		int tableSpot = ctlOffset + (x * 0xC);
+		unsigned long compressedDataOffset = ctlOffset + CSharedFunctions::CharArrayToLong(ctl, tableSpot);
+		unsigned long decompressedSize = CSharedFunctions::CharArrayToLong(ctl, tableSpot + 4);
+		unsigned char compressionFlag = ctl[tableSpot + 8];
+		unsigned long compressedDataSize = CSharedFunctions::CharArrayToLong(ctl, tableSpot + 8) & 0xFFFFFF;
+
+		if (compressionFlag != 0)
+			throw;
+
+		alBank->inst[x]->soundCount = 1;
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.base = compressedDataOffset;
+
+			int soundCompressedSize = CSharedFunctions::Flip16Bit(CSharedFunctions::CharArrayToShort(&ctl[compressedDataOffset + 2]));
+			alBank->inst[x]->sounds[y]->wav.decompressedLength = (soundCompressedSize / 9) * 0x10;
+
+			unsigned short unknownType = CSharedFunctions::Flip16Bit(CSharedFunctions::CharArrayToShort(&ctl[compressedDataOffset]));
+			alBank->inst[x]->sounds[y]->wav.len = soundCompressedSize;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[compressedDataOffset + 4], alBank->inst[x]->sounds[y]->wav.len);
+			
+			alBank->inst[x]->sounds[y]->wav.type = AL_MADDEN64;
+		}
+	}
 	return alBank;
 }
 
