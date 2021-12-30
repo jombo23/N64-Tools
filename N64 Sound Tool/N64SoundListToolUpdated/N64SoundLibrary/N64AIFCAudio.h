@@ -86,10 +86,11 @@
 #define SOUTHPARKRALLY 58
 #define TWISTEDEDGESNOWBOARDING 59
 #define MADDEN64 60
+#define NAMCOMUSEUM 61
 
 #pragma once
 
-enum    {AL_ADPCM_WAVE = 0, AL_RAW16_WAVE = 1, AL_VOX_WAVE=2, AL_MUSYX_WAVE=3, AL_SIGNED_RAW8=4, AL_SIGNED_RAW16=5, AL_MORT_WAVE=6, AL_WAV=7, AL_KOBE2_WAVE=8, AL_EXCITEBIKE_SAM=9, AL_EXCITEBIKE_SFX=10, AL_EXCITEBIKE_SNG=11, AL_FIGHTINGFORCE=12, AL_MADDENBNKB=13, AL_SOUTHPARKRALLY=14, AL_TWISTEDEDGESNOWBOARDING=15, AL_MADDEN64=16};
+enum    {AL_ADPCM_WAVE = 0, AL_RAW16_WAVE = 1, AL_VOX_WAVE=2, AL_MUSYX_WAVE=3, AL_SIGNED_RAW8=4, AL_SIGNED_RAW16=5, AL_MORT_WAVE=6, AL_WAV=7, AL_KOBE2_WAVE=8, AL_EXCITEBIKE_SAM=9, AL_EXCITEBIKE_SFX=10, AL_EXCITEBIKE_SNG=11, AL_FIGHTINGFORCE=12, AL_MADDENBNKB=13, AL_SOUTHPARKRALLY=14, AL_TWISTEDEDGESNOWBOARDING=15, AL_MADDEN64=16, AL_NAMCOMUSEUM=17};
 
 enum    {PRIMARY = 0, PREVIOUS = 1, SECONDARY = 2};
 
@@ -456,6 +457,7 @@ public:
 	static ALBank* ReadAudioWav(unsigned char* ctl, int ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioMORT(unsigned char* ctl, int ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioKobe2(unsigned char* ctl, int ctlSize, int ctlOffset, unsigned char* tbl);
+	static ALBank* ReadAudioNamcoMuseum(unsigned char* ctl, int ctlSize, int ctlOffset, int tblOffset);
 	static ALBank* ReadAudioN64PtrWavetableV2ZLIB(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioN64PtrWavetableV2MultiPartERZ(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioRawAllowed(unsigned char* ROM, unsigned char* ctl, int ctlSize, int ctlOffset, unsigned char* tbl, int ctlFlaggedOffset, unsigned long mask, int bankNumber);

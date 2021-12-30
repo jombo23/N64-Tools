@@ -15,6 +15,7 @@
 #include "..\N64SoundLibrary\MaddenAudioDecompression.h"
 #include "..\N64SoundLibrary\SPRallyAudioDecompression.h"
 #include "..\N64SoundLibrary\TwistedSnowboardingAudioDecompression.h"
+#include "..\N64SoundLibrary\NamcoAudioDecompression.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -2302,6 +2303,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_NAMCOMUSEUM)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if (alWave->type == AL_MADDENBNKB)
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -3158,6 +3172,16 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 				int dataLength = 0;
 				samDecompression.DecodeBIGSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, data, dataLength, samplingRateFloat);
 				delete [] data;
+			}
+			else if (alWave->type == AL_NAMCOMUSEUM)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CNamcoAudioDecompression namcoAudioDecompression;
+				namcoAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_EXCITEBIKE_SNG)
 			{
@@ -4303,6 +4327,16 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 				}
 
 				delete [] outputSfx;
+			}
+			else if (alWave->type == AL_NAMCOMUSEUM)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CNamcoAudioDecompression namcoAudioDecompression;
+				namcoAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_MADDENBNKB)
 			{
@@ -20510,6 +20544,64 @@ ALBank* CN64AIFCAudio::ReadAudioMORT(unsigned char* ctl, int ctlSize, int ctlOff
 		
 		alBank->inst[0]->sounds[y]->wav.adpcmWave = NULL;
 		alBank->inst[0]->sounds[y]->wav.rawWave = NULL;
+	}
+
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioNamcoMuseum(unsigned char* ctl, int ctlSize, int ctlOffset, int tblOffset)
+{
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = NAMCOMUSEUM;
+	alBank->count = 1;
+	alBank->flags = 0;
+	alBank->percussion = NULL;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+
+		alBank->inst[x]->samplerate = 11025;
+		alBank->inst[x]->sounds = NULL;
+
+		unsigned short samplingRate = CharArrayToShort(&ctl[ctlOffset + 2]);
+		int decompressedSize = CharArrayToLong(&ctl[ctlOffset + 4]);
+
+		alBank->inst[x]->soundCount = 1;
+
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		alBank->inst[x]->samplerate = samplingRate;
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+			alBank->inst[x]->sounds[y]->wav.wavData = NULL;
+
+			alBank->inst[x]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.base = ctlOffset;
+			alBank->inst[x]->sounds[y]->wav.len = tblOffset - ctlOffset;
+			alBank->inst[x]->sounds[y]->wav.decompressedLength = decompressedSize;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+
+			for (int  r = 0; r < alBank->inst[x]->sounds[y]->wav.len; r++)
+			{
+				alBank->inst[x]->sounds[y]->wav.wavData[r] = ctl[alBank->inst[x]->sounds[y]->wav.base + r];
+			}
+			
+
+			alBank->inst[x]->sounds[y]->wav.type = AL_NAMCOMUSEUM;
+			alBank->inst[x]->sounds[y]->wav.flags = 0;
+			// MUST PAD to 4s
+			
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+		}
 	}
 
 	return alBank;

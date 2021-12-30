@@ -237,6 +237,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\NamcoAudioDecompression.cpp"
+				>
+			</File>
+			<File
 				RelativePath="NinDec.cpp"
 				>
 			</File>
@@ -400,6 +404,10 @@
 			</File>
 			<File
 				RelativePath="N64AIFCAudio.h"
+				>
+			</File>
+			<File
+				RelativePath=".\NamcoAudioDecompression.h"
 				>
 			</File>
 			<File
