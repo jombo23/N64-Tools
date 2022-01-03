@@ -9110,10 +9110,20 @@ void CN64SoundListToolDlg::OnBnClickedButtonrip()
 						sampleRate = (alBankCurrent->inst[x]->samplerate);
 
 					CString tempExportNameStr;
-					if (mExportShortFilename.GetCheck())
-						tempExportNameStr.Format("%s\\B%02XI%02XS%02X.wav", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+					if (alBankCurrent->soundBankFormat == MP3)
+					{
+						if (mExportShortFilename.GetCheck())
+							tempExportNameStr.Format("%s\\B%02XI%02XS%02X.mp3", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+						else
+							tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.mp3", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+					}
 					else
-						tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.wav", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+					{
+						if (mExportShortFilename.GetCheck())
+							tempExportNameStr.Format("%s\\B%02XI%02XS%02X.wav", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+						else
+							tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.wav", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+					}
 
 					float sampleRatePrimary = sampleRate;
 					if (mUseT1.GetCheck())
@@ -10606,10 +10616,20 @@ void CN64SoundListToolDlg::OnBnClickedButtonrip3()
 						sampleRate = (alBankCurrent->inst[r]->samplerate);
 
 					CString tempExportNameStr;
-					if (mExportShortFilename.GetCheck())
-						tempExportNameStr.Format("%s\\B%02XI%02XS%02X.wav", outputFolder, x, r, z);
+					if (alBankCurrent->soundBankFormat == MP3)
+					{
+						if (mExportShortFilename.GetCheck())
+							tempExportNameStr.Format("%s\\B%02XI%02XS%02X.mp3", outputFolder, x, r, z);
+						else
+							tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.mp3", outputFolder, x, r, z);
+					}
 					else
-						tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.wav", outputFolder, x, r, z);
+					{
+						if (mExportShortFilename.GetCheck())
+							tempExportNameStr.Format("%s\\B%02XI%02XS%02X.wav", outputFolder, x, r, z);
+						else
+							tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.wav", outputFolder, x, r, z);
+					}
 
 					float sampleRatePrimary = sampleRate;
 					if (mUseT1.GetCheck())
