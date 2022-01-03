@@ -2316,6 +2316,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_MP3)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if (alWave->type == AL_MADDENBNKB)
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -3182,6 +3195,19 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 
 				CNamcoAudioDecompression namcoAudioDecompression;
 				namcoAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_MP3)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
 			}
 			else if (alWave->type == AL_EXCITEBIKE_SNG)
 			{
@@ -4337,6 +4363,19 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 
 				CNamcoAudioDecompression namcoAudioDecompression;
 				namcoAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_MP3)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
 			}
 			else if (alWave->type == AL_MADDENBNKB)
 			{
@@ -16323,6 +16362,54 @@ ALBank* CN64AIFCAudio::ReadAudioSouthParkRally(unsigned char* ctl, unsigned long
 			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[currentFileOffset], alBank->inst[x]->sounds[y]->wav.len);
 			
 			alBank->inst[x]->sounds[y]->wav.type = AL_SOUTHPARKRALLY;
+		}
+	}
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioMP3(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset)
+{
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = MP3;
+	alBank->count = 1;
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 44100;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+	}
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x]->soundCount = 1;
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.base = ctlOffset;
+
+			alBank->inst[x]->sounds[y]->wav.len = tblOffset - ctlOffset;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[ctlOffset], alBank->inst[x]->sounds[y]->wav.len);
+			
+			alBank->inst[x]->sounds[y]->wav.type = AL_MP3;
 		}
 	}
 	return alBank;
