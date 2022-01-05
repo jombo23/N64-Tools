@@ -877,7 +877,7 @@ bool CMaddenAudioDecompression::SaveWav(unsigned char* wavData, int len, int wav
 	unsigned char* processedWavData = new unsigned char[processedWavDataLength];
 	for (int x = 0; x < len; x += 4)
 	{
-		int value = (int)CSharedFunctions::CharArrayToLong(&wavData[x + 4]);
+		int value = (int)CSharedFunctions::CharArrayToLong(&wavData[x]);
 		short adjust = (short)(value);
 
 		// Little endian
