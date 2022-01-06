@@ -2,6 +2,7 @@
 #include "MaddenAudioDecompression.h"
 #include "SharedFunctions.h"
 #include <vector>
+#include <math.h>
 
 CMaddenAudioDecompression::CMaddenAudioDecompression(void)
 {
@@ -1053,8 +1054,6 @@ bool CMaddenAudioDecompression::DecompressSoundMadden64(int soundType, unsigned 
 				previousValue = value;
 				count++;
 
-				
-
 				int valueresult = (((int)value * 0xF) >> 5);
 				if ((short)valueresult < (short)-0x8000) {
 					valueresult = (short)-0x8000;
@@ -1129,6 +1128,491 @@ bool CMaddenAudioDecompression::DecompressSoundMadden64(int soundType, unsigned 
 
 		delete [] outputData;
 	}
+}
+
+bool CMaddenAudioDecompression::ReadWavData(CString rawWavFileName, unsigned char*& rawData, int& rawLength, unsigned long& samplingRate)
+{
+	FILE* inWavFile = fopen(rawWavFileName, "rb");
+	if (inWavFile == NULL)
+	{
+		MessageBox(NULL, "Error cannot read wav file", "Error", NULL);
+		return false;
+	}
+
+	fseek(inWavFile, 0, SEEK_END);
+	int fileSize = ftell(inWavFile);
+	rewind(inWavFile);
+
+	unsigned char* wavData = new unsigned char[fileSize];
+	fread(wavData, 1, fileSize, inWavFile);
+	fclose(inWavFile);
+
+	if (((((((wavData[0] << 8) | wavData[1]) << 8) | wavData[2]) << 8) | wavData[3]) != 0x52494646)
+	{
+		delete [] wavData;
+		MessageBox(NULL, "Error not RIFF wav", "Error", NULL);
+		return false;
+	}
+
+	if (((((((wavData[0x8] << 8) | wavData[0x9]) << 8) | wavData[0xA]) << 8) | wavData[0xB]) != 0x57415645)
+	{
+		delete [] wavData;
+		MessageBox(NULL, "Error not WAVE wav", "Error", NULL);
+		return false;
+	}
+
+	bool endFlag = false;
+
+	unsigned long currentOffset = 0xC;
+
+	unsigned short channels = 0;
+	samplingRate = 0;
+	unsigned short bitRate = 0;
+
+	bool returnFlag = false;
+
+	while (!endFlag)
+	{
+		if (currentOffset >= (fileSize - 8))
+			break;
+
+		unsigned long sectionType = ((((((wavData[currentOffset] << 8) | wavData[currentOffset + 1]) << 8) | wavData[currentOffset + 2]) << 8) | wavData[currentOffset + 3]);
+
+		if (sectionType == 0x666D7420) // fmt
+		{
+			unsigned long chunkSize = ((((((wavData[currentOffset + 0x7] << 8) | wavData[currentOffset + 0x6]) << 8) | wavData[currentOffset + 0x5]) << 8) | wavData[currentOffset + 0x4]);
+
+			channels = ((wavData[currentOffset + 0xB] << 8) | wavData[currentOffset + 0xA]);
+
+			if (channels != 0x0001)
+			{
+				MessageBox(NULL, "Warning: Only mono wav supported", "Error", NULL);
+				endFlag = true;
+				returnFlag = false;
+			}
+
+			samplingRate = ((((((wavData[currentOffset + 0xF] << 8) | wavData[currentOffset + 0xE]) << 8) | wavData[currentOffset + 0xD]) << 8) | wavData[currentOffset + 0xC]);
+			
+			bitRate = ((wavData[currentOffset + 0x17] << 8) | wavData[currentOffset + 0x16]);
+
+			currentOffset += chunkSize + 8;
+		}
+		else if (sectionType == 0x64617461) // data
+		{
+			rawLength = ((((((wavData[currentOffset + 0x7] << 8) | wavData[currentOffset + 0x6]) << 8) | wavData[currentOffset + 0x5]) << 8) | wavData[currentOffset + 0x4]);
+
+			if ((channels == 0) || (samplingRate == 0) || (bitRate == 0))
+			{
+				MessageBox(NULL, "Incorrect section type (missing fmt)", "Error unknown wav format", NULL);
+				endFlag = true;
+				returnFlag = false;
+			}
+
+			if (bitRate == 0x0010)
+			{
+				rawData = new unsigned char[rawLength];
+				for (int x = 0; x < rawLength; x++)
+				{
+					rawData[x] = wavData[currentOffset + 0x8 + x];
+				}
+			
+				returnFlag = true;
+			}
+			else
+			{
+				MessageBox(NULL, "Error only 16-bit PCM wav supported", "Error", NULL);
+				endFlag = true;
+				returnFlag = false;
+			}
+
+			currentOffset += rawLength + 8;
+		}
+		else if (sectionType == 0x736D706C) // smpl
+		{
+			unsigned long chunkSize = ((((((wavData[currentOffset + 0x7] << 8) | wavData[currentOffset + 0x6]) << 8) | wavData[currentOffset + 0x5]) << 8) | wavData[currentOffset + 0x4]);
+
+			/*unsigned long numSampleBlocks = Flip32Bit(CharArrayToLong(&wavData[currentOffset+0x24]));
+			if (numSampleBlocks > 0)
+			{
+				hasLoopData = true;
+
+				keyBase = Flip32Bit(CharArrayToLong(&wavData[currentOffset+0x14])) & 0xFF;
+				loopStart = Flip32Bit(CharArrayToLong(&wavData[currentOffset+0x34]));
+				loopEnd = Flip32Bit(CharArrayToLong(&wavData[currentOffset+0x38]));
+				loopCount = Flip32Bit(CharArrayToLong(&wavData[currentOffset+0x40]));
+				if (loopCount == 0)
+					loopCount = 0xFFFFFFFF;
+			}*/
+
+			currentOffset += 8 + chunkSize;
+		}
+		else
+		{
+			unsigned long chunkSize = ((((((wavData[currentOffset + 0x7] << 8) | wavData[currentOffset + 0x6]) << 8) | wavData[currentOffset + 0x5]) << 8) | wavData[currentOffset + 0x4]);
+
+			currentOffset += 8 + chunkSize;
+		}
+	}
+
+	delete [] wavData;
+	return returnFlag;
+}
+
+bool CMaddenAudioDecompression::CompressSound(int soundType, CString rawWavFileName, unsigned char*& outputBuffer, int& outputBufferLength)
+{
+	unsigned char* data = NULL;
+	int dataLength = 0;
+	unsigned long samplingRate = 0;
+	bool result = ReadWavData(rawWavFileName, data, dataLength, samplingRate);
+	if (!result)
+		return result;
+
+	for (int x = 0; x < dataLength; x += 2)
+	{
+		unsigned char valueTemp = data[x];
+		data[x] = data[x+1];
+		data[x+1] = valueTemp;
+	}
+
+	result = CompressSound(soundType, data, dataLength, outputBuffer, outputBufferLength);
+
+	delete [] data;
+	return result;
+}
+
+bool CMaddenAudioDecompression::CompressSound(int soundType, unsigned char* data, int dataLength, unsigned char*& outputBuffer, int& outputBufferLength)
+{
+	int previousValueOverall = 0;
+	int previousValue2Overall = 0;
+
+	outputBuffer = new unsigned char[0x100000];
+	outputBufferLength = 0;
+
+	for (int x = 0; x < dataLength; x += 0x1C * 2)
+	{
+		signed short values[0x1C];
+		for (int y = 0; y < 0x1C; y++)
+		{
+			values[y] = CSharedFunctions::CharArrayToShort(data, x + y * 2);
+		}
+
+		double bestMatchDistance = 999999999999999;
+		int bestType = 0;
+		int bestScale = 0;
+
+		for (int type = 0; type < 4; type++)
+		{
+			for (int scale = 0; scale < 0x10; scale++)
+			{
+				int previousValue = previousValueOverall;
+				int previousValue2 = previousValue2Overall;
+				double matchDistance = 0;
+
+				for (int y = 0; y < (0x1C / 2); y++)
+				{
+					unsigned long currentValueCheck = ((int)values[y * 2]) << 8;
+
+					if (type == 0)
+					{
+					}
+					else if (type == 1)
+					{			
+						unsigned long valueAdjust = (int)previousValue2 * 0xF0;
+						currentValueCheck = currentValueCheck - (int)valueAdjust;
+					}
+					else if (type == 2)
+					{
+						unsigned long valueAdjust2 = (int)previousValue2 * 0x1cc;
+						unsigned long valueAdjust = (int)previousValue * 0xd0;
+						currentValueCheck = currentValueCheck - ((int)valueAdjust2 - (int)valueAdjust);
+					}
+					else if (type == 3)
+					{
+						unsigned long valueAdjust2 = (int)previousValue2 * 0x188;
+						unsigned long valueAdjust = (int)previousValue * 0xdc;
+						currentValueCheck = currentValueCheck - ((int)valueAdjust2 - (int)valueAdjust);
+					}
+
+					currentValueCheck = currentValueCheck << (scale + 8);
+					currentValueCheck = currentValueCheck >> 0x1C;
+					currentValueCheck = currentValueCheck & 0xF;
+
+					// now check forwards
+					unsigned long value = (currentValueCheck << 0x1C);
+
+					value = (int)value >> (scale + 8);
+					if (type == 0)
+					{
+					}
+					else if (type == 1)
+					{			
+						unsigned long valueAdjust = (int)previousValue2 * 0xF0;
+						value = (int)value + (int)valueAdjust;
+					}
+					else if (type == 2)
+					{
+						unsigned long valueAdjust2 = (int)previousValue2 * 0x1cc;
+						unsigned long valueAdjust = (int)previousValue * 0xd0;
+						value = (int)value + ((int)valueAdjust2 - (int)valueAdjust);
+					}
+					else if (type == 3)
+					{
+						unsigned long valueAdjust2 = (int)previousValue2 * 0x188;
+						unsigned long valueAdjust = (int)previousValue * 0xdc;
+						value = (int)value + ((int)valueAdjust2 - (int)valueAdjust);
+					}
+					else
+						throw;
+
+					value = (int)value >> 8;
+					if ((short)value < (short)-0x8000) {
+						value = (short)-0x8000;
+					  }
+					  else if ((short)0x7fff < (short)value) {
+						value = (short)0x7fff;
+					  }
+					previousValue = value;
+
+					double delta = ((short)value - values[y * 2]);
+					matchDistance += fabs(delta);
+					
+
+
+					// now do second one
+					currentValueCheck = ((int)values[y * 2 + 1]) << 8;
+
+					if (type == 0)
+					{
+					}
+					else if (type == 1)
+					{			
+						unsigned long valueAdjust = (int)previousValue * 0xF0;
+						currentValueCheck = currentValueCheck - (int)valueAdjust;
+					}
+					else if (type == 2)
+					{
+						unsigned long valueAdjust2 = (int)previousValue * 0x1cc;
+						unsigned long valueAdjust = (int)previousValue2 * 0xd0;
+						currentValueCheck = currentValueCheck - ((int)valueAdjust2 - (int)valueAdjust);
+					}
+					else if (type == 3)
+					{
+						unsigned long valueAdjust2 = (int)previousValue * 0x188;
+						unsigned long valueAdjust = (int)previousValue2 * 0xdc;
+						currentValueCheck = currentValueCheck - ((int)valueAdjust2 - (int)valueAdjust);
+					}
+
+					currentValueCheck = currentValueCheck << (scale + 8);
+					currentValueCheck = currentValueCheck >> 0x1C;
+					currentValueCheck = currentValueCheck & 0xF;
+
+					// now check forwards
+					unsigned long value2 = (currentValueCheck << 0x1C);
+
+					value2 = (int)value2 >> (scale + 8);
+					if (type == 0)
+					{
+
+					}
+					else if (type == 1)
+					{
+						unsigned long valueAdjust = (int)previousValue * 0xF0;
+						value2 = (int)value2 + (int)valueAdjust;
+					}
+					else if (type == 2)
+					{
+						unsigned long valueAdjust2 = (int)previousValue * 0x1cc;
+						unsigned long valueAdjust = (int)previousValue2 * 0xd0;
+						value2 = (int)value2 + ((int)valueAdjust2 - (int)valueAdjust);
+					}
+					else if (type == 3)
+					{
+						unsigned long valueAdjust2 = (int)previousValue * 0x188;
+						unsigned long valueAdjust = (int)previousValue2 * 0xdc;
+						value2 = (int)value2 + ((int)valueAdjust2 - (int)valueAdjust);
+					}
+					else
+						throw;
+
+					value2 = (int)value2 >> 8;
+
+					if ((short)value2 < (short)-0x8000) {
+						value2 = (short)-0x8000;
+					  }
+					  else if ((short)0x7fff < (short)value2) {
+						value2 = (short)0x7fff;
+					}
+
+					previousValue2 = value2;
+
+					delta = ((short)value2 - values[y * 2 + 1]);
+					matchDistance += fabs(delta);
+				}
+
+				if (fabs(matchDistance) < fabs(bestMatchDistance))
+				{
+					bestMatchDistance = fabs(matchDistance);
+					bestScale = scale;
+					bestType = type;
+				}
+			}
+		}
+
+		int previousValue = previousValueOverall;
+		int previousValue2 = previousValue2Overall;
+		outputBuffer[outputBufferLength++] = (bestType << 4) | bestScale;
+
+		for (int y = 0; y < (0x1C / 2); y++)
+		{
+			unsigned char outputValue = 0x00;
+
+			unsigned long currentValueCheck = ((int)values[y * 2]) << 8;
+
+			if (bestType == 0)
+			{
+			}
+			else if (bestType == 1)
+			{			
+				unsigned long valueAdjust = (int)previousValue2 * 0xF0;
+				currentValueCheck = currentValueCheck - (int)valueAdjust;
+			}
+			else if (bestType == 2)
+			{
+				unsigned long valueAdjust2 = (int)previousValue2 * 0x1cc;
+				unsigned long valueAdjust = (int)previousValue * 0xd0;
+				currentValueCheck = currentValueCheck - ((int)valueAdjust2 - (int)valueAdjust);
+			}
+			else if (bestType == 3)
+			{
+				unsigned long valueAdjust2 = (int)previousValue2 * 0x188;
+				unsigned long valueAdjust = (int)previousValue * 0xdc;
+				currentValueCheck = currentValueCheck - ((int)valueAdjust2 - (int)valueAdjust);
+			}
+
+			currentValueCheck = currentValueCheck << (bestScale + 8);
+			currentValueCheck = currentValueCheck >> 0x1C;
+			currentValueCheck = currentValueCheck & 0xF;
+
+			outputValue = currentValueCheck << 4;
+
+			// now check forwards
+			unsigned long value = (currentValueCheck << 0x1C);
+
+			value = (int)value >> (bestScale + 8);
+			if (bestType == 0)
+			{
+			}
+			else if (bestType == 1)
+			{			
+				unsigned long valueAdjust = (int)previousValue2 * 0xF0;
+				value = (int)value + (int)valueAdjust;
+			}
+			else if (bestType == 2)
+			{
+				unsigned long valueAdjust2 = (int)previousValue2 * 0x1cc;
+				unsigned long valueAdjust = (int)previousValue * 0xd0;
+				value = (int)value + ((int)valueAdjust2 - (int)valueAdjust);
+			}
+			else if (bestType == 3)
+			{
+				unsigned long valueAdjust2 = (int)previousValue2 * 0x188;
+				unsigned long valueAdjust = (int)previousValue * 0xdc;
+				value = (int)value + ((int)valueAdjust2 - (int)valueAdjust);
+			}
+			else
+				throw;
+
+			value = (int)value >> 8;
+			if ((short)value < (short)-0x8000) {
+				value = (short)-0x8000;
+			  }
+			  else if ((short)0x7fff < (short)value) {
+				value = (short)0x7fff;
+			  }
+			previousValue = value;
+
+			double delta = ((short)value - values[y * 2]);
+			//matchDistance += fabs(delta);
+			
+
+
+			// now do second one
+			currentValueCheck = ((int)values[y * 2 + 1]) << 8;
+
+			if (bestType == 0)
+			{
+			}
+			else if (bestType == 1)
+			{			
+				unsigned long valueAdjust = (int)previousValue * 0xF0;
+				currentValueCheck = currentValueCheck - (int)valueAdjust;
+			}
+			else if (bestType == 2)
+			{
+				unsigned long valueAdjust2 = (int)previousValue * 0x1cc;
+				unsigned long valueAdjust = (int)previousValue2 * 0xd0;
+				currentValueCheck = currentValueCheck - ((int)valueAdjust2 - (int)valueAdjust);
+			}
+			else if (bestType == 3)
+			{
+				unsigned long valueAdjust2 = (int)previousValue * 0x188;
+				unsigned long valueAdjust = (int)previousValue2 * 0xdc;
+				currentValueCheck = currentValueCheck - ((int)valueAdjust2 - (int)valueAdjust);
+			}
+
+			currentValueCheck = currentValueCheck << (bestScale + 8);
+			currentValueCheck = currentValueCheck >> 0x1C;
+			currentValueCheck = currentValueCheck & 0xF;
+
+			outputValue = outputValue | currentValueCheck;
+			outputBuffer[outputBufferLength++] = outputValue;
+
+			// now check forwards
+			unsigned long value2 = (currentValueCheck << 0x1C);
+
+			value2 = (int)value2 >> (bestScale + 8);
+			if (bestType == 0)
+			{
+
+			}
+			else if (bestType == 1)
+			{
+				unsigned long valueAdjust = (int)previousValue * 0xF0;
+				value2 = (int)value2 + (int)valueAdjust;
+			}
+			else if (bestType == 2)
+			{
+				unsigned long valueAdjust2 = (int)previousValue * 0x1cc;
+				unsigned long valueAdjust = (int)previousValue2 * 0xd0;
+				value2 = (int)value2 + ((int)valueAdjust2 - (int)valueAdjust);
+			}
+			else if (bestType == 3)
+			{
+				unsigned long valueAdjust2 = (int)previousValue * 0x188;
+				unsigned long valueAdjust = (int)previousValue2 * 0xdc;
+				value2 = (int)value2 + ((int)valueAdjust2 - (int)valueAdjust);
+			}
+			else
+				throw;
+
+			value2 = (int)value2 >> 8;
+
+			if ((short)value2 < (short)-0x8000) {
+				value2 = (short)-0x8000;
+			  }
+			  else if ((short)0x7fff < (short)value2) {
+				value2 = (short)0x7fff;
+			}
+
+			previousValue2 = value2;
+
+			delta = ((short)value2 - values[y * 2 + 1]);
+			//matchDistance += fabs(delta);
+		}
+		previousValueOverall = previousValue;
+		previousValue2Overall = previousValue2;
+	}
+	return true;
 }
 
 bool CMaddenAudioDecompression::DecompressSound(int soundType, unsigned char* ROM, int offset, int compressedSize, int decompressedSize, CString outputFilename, float samplingRateFloat)
