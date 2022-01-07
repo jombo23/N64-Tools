@@ -1128,6 +1128,10 @@ bool CMaddenAudioDecompression::DecompressSoundMadden64(int soundType, unsigned 
 
 		delete [] outputData;
 	}
+	else
+	{
+		return false;
+	}
 }
 
 bool CMaddenAudioDecompression::ReadWavData(CString rawWavFileName, unsigned char*& rawData, int& rawLength, unsigned long& samplingRate)

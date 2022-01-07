@@ -309,6 +309,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\TopGearHyperbikeAudioDecompression.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\TwistedSnowboardingAudioDecompression.cpp"
 				>
 			</File>
@@ -472,6 +476,10 @@
 			</File>
 			<File
 				RelativePath="TigDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TopGearHyperbikeAudioDecompression.h"
 				>
 			</File>
 			<File

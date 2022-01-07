@@ -2316,6 +2316,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_TOPGEARHYPERBIKE)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if (alWave->type == AL_MP3)
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -3195,6 +3208,16 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 
 				CNamcoAudioDecompression namcoAudioDecompression;
 				namcoAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_TOPGEARHYPERBIKE)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CTopGearHyperbikeAudioDecompression topGearHyperbikeAudioDecompression;
+				topGearHyperbikeAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_MP3)
 			{
@@ -4363,6 +4386,16 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 
 				CNamcoAudioDecompression namcoAudioDecompression;
 				namcoAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_TOPGEARHYPERBIKE)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CTopGearHyperbikeAudioDecompression topGearHyperbikeAudioDecompression;
+				topGearHyperbikeAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_MP3)
 			{
@@ -20683,6 +20716,133 @@ ALBank* CN64AIFCAudio::ReadAudioNamcoMuseum(unsigned char* ctl, int ctlSize, int
 			
 
 			alBank->inst[x]->sounds[y]->wav.type = AL_NAMCOMUSEUM;
+			alBank->inst[x]->sounds[y]->wav.flags = 0;
+			// MUST PAD to 4s
+			
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+		}
+	}
+
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioTopGearHyperBike(unsigned char* ctl, int ctlSize, int ctlOffset, int tblOffset)
+{
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = TOPGEARHYPERBIKE;
+	alBank->count = ((tblOffset - ctlOffset) / 0x18);
+	alBank->flags = 0;
+	alBank->percussion = NULL;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+
+		int tableSpot = ctlOffset + (x * 0x18);
+		unsigned long compressedSpot = ctlOffset + CSharedFunctions::CharArrayToLong(ctl, tableSpot);
+		unsigned long numberUncompressedSamples = CSharedFunctions::CharArrayToLong(ctl, tableSpot + 4);
+		unsigned long extraValue = CSharedFunctions::CharArrayToLong(ctl, tableSpot + 8);
+		unsigned short samplingRate = CSharedFunctions::CharArrayToShort(ctl, tableSpot + 12);
+		unsigned short unknown = CSharedFunctions::CharArrayToShort(ctl, tableSpot + 14);
+		unsigned short unknown2 = CSharedFunctions::CharArrayToLong(ctl, tableSpot + 16);
+		unsigned short unknown3 = CSharedFunctions::CharArrayToLong(ctl, tableSpot + 20);
+
+		alBank->inst[x]->samplerate = samplingRate;
+		alBank->inst[x]->sounds = NULL;
+
+		alBank->inst[x]->soundCount = 1;
+
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		alBank->inst[x]->samplerate = samplingRate * 2;
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+			alBank->inst[x]->sounds[y]->wav.wavData = NULL;
+
+			alBank->inst[x]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.base = compressedSpot;
+			alBank->inst[x]->sounds[y]->wav.len = (numberUncompressedSamples + 1) / 2;
+			alBank->inst[x]->sounds[y]->wav.decompressedLength = numberUncompressedSamples;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+
+			for (int  r = 0; r < alBank->inst[x]->sounds[y]->wav.len; r++)
+			{
+				alBank->inst[x]->sounds[y]->wav.wavData[r] = ctl[alBank->inst[x]->sounds[y]->wav.base + r];
+			}
+			
+
+			alBank->inst[x]->sounds[y]->wav.type = AL_TOPGEARHYPERBIKE;
+			alBank->inst[x]->sounds[y]->wav.flags = 0;
+			// MUST PAD to 4s
+			
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+		}
+	}
+
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioTopGearOverdrive(unsigned char* ctl, int ctlSize, int ctlOffset, int tblOffset)
+{
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = TOPGEAROVERDRIVE;
+	alBank->count = ((tblOffset - ctlOffset) / 0x14);
+	alBank->flags = 0;
+	alBank->percussion = NULL;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+
+		int tableSpot = ctlOffset + (x * 0x14);
+		unsigned long compressedSpot = ctlOffset + CSharedFunctions::CharArrayToLong(ctl, tableSpot);
+		unsigned long numberUncompressedSamples = CSharedFunctions::CharArrayToShort(ctl, tableSpot + 4);
+		unsigned short samplingRate = CSharedFunctions::CharArrayToShort(ctl, tableSpot + 6);
+		unsigned short unknown = CSharedFunctions::CharArrayToShort(ctl, tableSpot + 8);
+		unsigned short unknown2 = CSharedFunctions::CharArrayToLong(ctl, tableSpot + 12);
+		unsigned short unknown3 = CSharedFunctions::CharArrayToLong(ctl, tableSpot + 16);
+
+		alBank->inst[x]->samplerate = samplingRate;
+		alBank->inst[x]->sounds = NULL;
+
+		alBank->inst[x]->soundCount = 1;
+
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		alBank->inst[x]->samplerate = samplingRate * 2;
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+			alBank->inst[x]->sounds[y]->wav.wavData = NULL;
+
+			alBank->inst[x]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.base = compressedSpot;
+			alBank->inst[x]->sounds[y]->wav.len = (numberUncompressedSamples + 1) / 2;
+			alBank->inst[x]->sounds[y]->wav.decompressedLength = numberUncompressedSamples;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+
+			for (int  r = 0; r < alBank->inst[x]->sounds[y]->wav.len; r++)
+			{
+				alBank->inst[x]->sounds[y]->wav.wavData[r] = ctl[alBank->inst[x]->sounds[y]->wav.base + r];
+			}
+			
+
+			alBank->inst[x]->sounds[y]->wav.type = AL_TOPGEARHYPERBIKE;
 			alBank->inst[x]->sounds[y]->wav.flags = 0;
 			// MUST PAD to 4s
 			

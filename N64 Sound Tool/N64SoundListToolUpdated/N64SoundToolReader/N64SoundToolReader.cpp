@@ -904,6 +904,14 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioNamcoMuseum(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset);
 			}
+			else if (gameConfig.gameType.CompareNoCase("TopGearHyperBike") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioTopGearHyperBike(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset);
+			}
+			else if (gameConfig.gameType.CompareNoCase("TopGearOverdrive") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioTopGearOverdrive(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset);
+			}
 			else if (gameConfig.gameType.CompareNoCase("BanjoTooie") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioBanjoTooie(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], 0, 0xFFFFFFFF, gameConfig.soundBanks[x].numberInstruments);
