@@ -321,6 +321,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\WDCAudioDecompression.cpp"
+				>
+			</File>
+			<File
 				RelativePath="yay0.cpp"
 				>
 			</File>
@@ -488,6 +492,10 @@
 			</File>
 			<File
 				RelativePath=".\ViewpointDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WDCAudioDecompression.h"
 				>
 			</File>
 			<File

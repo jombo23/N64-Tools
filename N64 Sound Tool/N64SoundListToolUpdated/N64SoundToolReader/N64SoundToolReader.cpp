@@ -734,6 +734,14 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioKobeSAM(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig.soundBanks[x].numberInstruments);
 			}
+			else if (gameConfig.gameType.CompareNoCase("WDCSFX") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioWDCSFX(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig.soundBanks[x].numberInstruments);
+			}
+			else if (gameConfig.gameType.CompareNoCase("WDCInstruments") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioWDCInstruments(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig.soundBanks[x].numberInstruments);
+			}
 			else if (gameConfig.gameType.CompareNoCase("ExciteBikeSFX") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioExciteBikeSFX(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments, gameConfig.soundBanks[x].mask);

@@ -16,6 +16,7 @@
 #include "..\N64SoundLibrary\SPRallyAudioDecompression.h"
 #include "..\N64SoundLibrary\TwistedSnowboardingAudioDecompression.h"
 #include "..\N64SoundLibrary\NamcoAudioDecompression.h"
+#include "..\N64SoundLibrary\WDCAudioDecompression.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -2277,6 +2278,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_WDC)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if (alWave->type == AL_SOUTHPARKRALLY)
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -3185,6 +3199,22 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 
 				CExciteBikeSAMAudioDecompression samDecompression;
 				samDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_WDC)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				unsigned char predictorData[0x80];
+				for (int x = 0; x < 0x40; x++)
+				{
+					CSharedFunctions::WriteShortToBuffer(predictorData, x*2, alBank->inst[instrument]->sounds[sound]->wav.adpcmWave->book->predictors[x]);
+				}
+
+				CWDCAudioDecompression wdcAudioDecompression;
+				wdcAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, predictorData, alBank->inst[instrument]->sounds[sound]->wav.len, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_EXCITEBIKE_SFX)
 			{
@@ -4308,6 +4338,22 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 
 				CExciteBikeSAMAudioDecompression samDecompression;
 				samDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_WDC)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				unsigned char predictorData[0x80];
+				for (int x = 0; x < 0x40; x++)
+				{
+					CSharedFunctions::WriteShortToBuffer(predictorData, x*2, alBank->inst[instrument]->sounds[sound]->wav.adpcmWave->book->predictors[x]);
+				}
+
+				CWDCAudioDecompression wdcAudioDecompression;
+				wdcAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, predictorData, alBank->inst[instrument]->sounds[sound]->wav.len, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_SOUTHPARKRALLY)
 			{
@@ -16258,6 +16304,217 @@ ALBank* CN64AIFCAudio::ReadAudioKobeSAM(unsigned char* ctl, unsigned long& ctlSi
 			
 			alBank->inst[x]->sounds[y]->wav.type = AL_EXCITEBIKE_SAM;
 			delete [] outputSfx;
+		}
+	}
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioWDCSFX(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments)
+{
+	std::vector<int> sfxOffset;
+	for (int tableSfxOffset = ctlOffset; tableSfxOffset < tblOffset; tableSfxOffset += 4)
+	{
+		int data = CSharedFunctions::CharArrayToLong(ctl, tableSfxOffset);
+		if (std::find(sfxOffset.begin(), sfxOffset.end(), data) == sfxOffset.end())
+			sfxOffset.push_back(data);
+	}
+	std::sort(sfxOffset.begin(), sfxOffset.end());
+
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = WDCSFX;
+	alBank->count = sfxOffset.size() - 1;
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 44100;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+	}
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x]->soundCount = 1;
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.base = sfxOffset[x];
+
+			CWDCAudioDecompression wdcDecompression;
+			
+			int ROMPREDICTOROFFSET = sfxOffset[x] + 4;
+			int ROMPREDICTORLENGTH = 0x80;
+			int ROMSAMPLEDATAOFFSET = ROMPREDICTOROFFSET + 0x80;
+
+			unsigned long readValue = CSharedFunctions::CharArrayToLong(ctl, sfxOffset[x]);
+			int lowestBits = ((readValue) & 0x1F);
+			int inputSize = ((readValue + 0x1F) >> 5) * 2 * 9;
+
+			int outputSize = inputSize * 9;
+
+			alBank->inst[x]->sounds[y]->wav.len = inputSize;
+			alBank->inst[x]->sounds[y]->wav.decompressedLength = outputSize;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[ROMSAMPLEDATAOFFSET], alBank->inst[x]->sounds[y]->wav.len);
+			
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = new ALADPCMWaveInfo();
+			alBank->inst[x]->sounds[y]->wav.adpcmWave->loop = NULL;
+			alBank->inst[x]->sounds[y]->wav.adpcmWave->book = new ALADPCMBook();
+			alBank->inst[x]->sounds[y]->wav.adpcmWave->book->order = 2;
+			alBank->inst[x]->sounds[y]->wav.adpcmWave->book->npredictors = 4;
+			alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors = new signed short[0x40];
+			for (int p = 0; p < 0x40; p++)
+			{
+				alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[p] = CSharedFunctions::CharArrayToShort(ctl, ROMPREDICTOROFFSET + p * 2);
+			}
+
+			alBank->inst[x]->sounds[y]->wav.type = AL_WDC;
+		}
+	}
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioWDCInstruments(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments)
+{
+	std::vector<int> instrumentOffset;
+	instrumentOffset.push_back(numberInstruments); // shared samples
+	for (int tableSfxOffset = ctlOffset; tableSfxOffset < tblOffset; tableSfxOffset += 4)
+	{
+		int data = CSharedFunctions::CharArrayToLong(ctl, tableSfxOffset);
+		if (std::find(instrumentOffset.begin(), instrumentOffset.end(), data) == instrumentOffset.end())
+			instrumentOffset.push_back(data);
+	}
+	std::sort(instrumentOffset.begin(), instrumentOffset.end());
+
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = WDCINSTRUMENTS;
+	alBank->count = instrumentOffset.size() - 1;
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 44100;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+	}
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x]->soundCount = 0;
+
+		std::vector<int> currentInstrumentOffsetStarts;
+		std::vector<int> predictorOffsets;
+		std::vector<int> sampleOffsets;
+
+		// Precheck sound count
+		int currentInstrumentOffset = instrumentOffset[x];
+		while (CSharedFunctions::CharArrayToLong(&ctl[currentInstrumentOffset]) != 0xFFFFFFFF)
+		{
+			int instrumentStart = currentInstrumentOffset;
+			unsigned long flags = CSharedFunctions::CharArrayToLong(&ctl[currentInstrumentOffset]);
+			
+			//FILE* outFileDMEM = fopen("C:\\temp\\dmem.bin", "wb");
+
+			unsigned long readValue = CSharedFunctions::CharArrayToLong(ctl, currentInstrumentOffset + 4);
+			int lowestBits = ((readValue) & 0x1F);
+			int inputSize = ((readValue + 0x1F) >> 5) * 9;
+			int outputSize = inputSize * 9; // * 4 just to let it play better with silence
+
+			currentInstrumentOffset += 0x14;
+			int ROMPREDICTOROFFSET = currentInstrumentOffset;
+			int ROMPREDICTORLENGTH = 0x80;
+			currentInstrumentOffset += ROMPREDICTORLENGTH;
+
+			if (flags & 1)
+				currentInstrumentOffset += 0x400;
+
+			if (flags & 0x80)
+			{
+				if (currentInstrumentOffset & 1)
+					currentInstrumentOffset++;
+				continue;
+			}
+
+			int ROMSAMPLEDATAOFFSET = currentInstrumentOffset;
+			int ROMSAMPLEDATALENGTH = inputSize / 9 * 9;
+
+			alBank->inst[x]->soundCount++;
+			predictorOffsets.push_back(ROMPREDICTOROFFSET);
+			sampleOffsets.push_back(ROMSAMPLEDATAOFFSET);
+			currentInstrumentOffsetStarts.push_back(instrumentStart);
+
+			currentInstrumentOffset += inputSize;
+
+			if (currentInstrumentOffset & 1)
+				currentInstrumentOffset++;
+		}
+
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.base = currentInstrumentOffsetStarts[y];
+
+			CWDCAudioDecompression wdcDecompression;
+			
+			int ROMPREDICTOROFFSET = predictorOffsets[y];
+			int ROMPREDICTORLENGTH = 0x80;
+			int ROMSAMPLEDATAOFFSET = sampleOffsets[y];
+
+			unsigned long readValue = CSharedFunctions::CharArrayToLong(ctl, currentInstrumentOffsetStarts[y] + 4);
+			int lowestBits = ((readValue) & 0x1F);
+			int inputSize = ((readValue + 0x1F) >> 5) * 9;
+
+			int outputSize = inputSize * 9;
+
+			alBank->inst[x]->sounds[y]->wav.len = inputSize;
+			alBank->inst[x]->sounds[y]->wav.decompressedLength = outputSize;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[ROMSAMPLEDATAOFFSET], alBank->inst[x]->sounds[y]->wav.len);
+			
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = new ALADPCMWaveInfo();
+			alBank->inst[x]->sounds[y]->wav.adpcmWave->loop = NULL;
+			alBank->inst[x]->sounds[y]->wav.adpcmWave->book = new ALADPCMBook();
+			alBank->inst[x]->sounds[y]->wav.adpcmWave->book->order = 2;
+			alBank->inst[x]->sounds[y]->wav.adpcmWave->book->npredictors = 4;
+			alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors = new signed short[0x40];
+			for (int p = 0; p < 0x40; p++)
+			{
+				alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[p] = CSharedFunctions::CharArrayToShort(ctl, ROMPREDICTOROFFSET + p * 2);
+			}
+
+			alBank->inst[x]->sounds[y]->wav.type = AL_WDC;
 		}
 	}
 	return alBank;
