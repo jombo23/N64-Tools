@@ -17623,7 +17623,40 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			std::map<int, fileData> smp;
 			unsigned char* outputDecompressed = new unsigned char[0x100000];
 			int dcmSize = -1;
-			CAidynToDCMConvertor::convert(tempInput, gamebuffer, fileTable, fileTableData, smp, "", outputDecompressed, dcmSize);
+			CAidynToDCMConvertor::convert(tempInput, gamebuffer, fileTable, fileTableData, smp, "", outputDecompressed, dcmSize, 0);
+			fwrite(outputDecompressed, 1, dcmSize, outFile);
+
+			if (outputDecompressed)
+			{
+				delete [] outputDecompressed;
+				outputDecompressed = NULL;
+			}
+			delete [] tempInput;
+		}
+
+		fclose(outFile);
+	}
+	else if (gameType.CompareNoCase("SmpOffsetAidDebug") == 0)
+	{
+		FILE* outFile = fopen(fileName, "wb");
+		if (outFile == NULL)
+		{
+			MessageBox(NULL, "Cannot Write File", "Error", NULL);
+			return;
+		}
+
+		int decompressedSize = -1;
+		int fileTable = size;
+		int fileID = address;
+		int fileTableData = extra;
+		unsigned char* tempInput = CAidynDecoder::DecompressAidynFile(gamebuffer, fileTable, fileTableData, fileID, decompressedSize);
+
+		if (tempInput != NULL)
+		{
+			std::map<int, fileData> smp;
+			unsigned char* outputDecompressed = new unsigned char[0x100000];
+			int dcmSize = -1;
+			CAidynToDCMConvertor::convert(tempInput, gamebuffer, fileTable, fileTableData, smp, "", outputDecompressed, dcmSize, 1);
 			fwrite(outputDecompressed, 1, dcmSize, outFile);
 
 			if (outputDecompressed)

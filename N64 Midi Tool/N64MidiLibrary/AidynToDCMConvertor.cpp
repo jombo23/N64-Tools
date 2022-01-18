@@ -58,7 +58,7 @@ unsigned long CAidynToDCMConvertor::Flip32Bit(unsigned long inLong)
 
 
 
-bool CAidynToDCMConvertor::convert(unsigned char* data, unsigned char* ROM, int fileTable, int fileTableDataStart, std::map<int, fileData>& smp, CString kind, unsigned char* output, int& outputPosition)
+bool CAidynToDCMConvertor::convert(unsigned char* data, unsigned char* ROM, int fileTable, int fileTableDataStart, std::map<int, fileData>& smp, CString kind, unsigned char* output, int& outputPosition, int smpOffset)
 {
      //"""Converts Aidyn DCMs into single-file standalone DCM-lite files (DCM1).
      //[data] can be either a bytes-like object or a filename for the dch.
@@ -176,7 +176,7 @@ bool CAidynToDCMConvertor::convert(unsigned char* data, unsigned char* ROM, int 
 			int decompressedSize = -1;
 			fileData tempData;
 			tempData.fileSize = decompressedSize;
-			tempData.data = CAidynDecoder::DecompressAidynFile(ROM, fileTable, fileTableDataStart, ID, decompressedSize);
+			tempData.data = CAidynDecoder::DecompressAidynFile(ROM, fileTable, fileTableDataStart, ID+smpOffset, decompressedSize);
 			smp[ID] = tempData;
              
 			if (smp.find(ID) == smp.end())

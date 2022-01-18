@@ -41,5 +41,5 @@ public:
 	static void WriteShortToBuffer(unsigned char* Buffer, unsigned long address, unsigned short data);
 	static unsigned short Flip16Bit(unsigned short ShortValue);
 	static unsigned long Flip32Bit(unsigned long inLong);
-	static bool convert(unsigned char* data, unsigned char* ROM, int fileTable, int fileTableDataStart, std::map<int, fileData>& smp, CString kind, unsigned char* output, int& outputPosition);
+	static bool convert(unsigned char* data, unsigned char* ROM, int fileTable, int fileTableDataStart, std::map<int, fileData>& smp, CString kind, unsigned char* output, int& outputPosition, int smpOffset);
 };
