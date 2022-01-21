@@ -3134,7 +3134,14 @@ void CN64MidiToolDlg::OnBnClickedButtonscandirformidis()
 						(CharArrayToLong(&binary[x]) == 0x2D6C6835))
 						&& (binary[x+4] == 0x2D)) // lz/lh*/
 					//if (CharArrayToLong(&binary[x]) == 0x4D4F5254) //MORT
-					if (CharArrayToLong(&binary[x]) == 0x53424E4B) //SBNK
+					//if (CharArrayToLong(&binary[x]) == 0x53424E4B) //SBNK
+					if (
+						(CharArrayToShort(&binary[x]) == 0x5433) && (
+						((CharArrayToShort(&binary[x+0x12]) == 0x5622) || (CharArrayToShort(&binary[x+0x12]) == 0x7D00) || (CharArrayToShort(&binary[x+0x12]) == 0x2B11) || (CharArrayToShort(&binary[x+0x12]) == 0x3E80) || (CharArrayToShort(&binary[x+0x12]) == 0x55F0) || (CharArrayToShort(&binary[x+0x12]) == 0x1588) || (CharArrayToShort(&binary[x+0x12]) == 0x1770) || (CharArrayToShort(&binary[x+0x12]) == 0x396C) || (CharArrayToShort(&binary[x+0x12]) == 0x1F40) || (CharArrayToShort(&binary[x+0x12]) == 0xAC44) || (CharArrayToShort(&binary[x+0x12]) == 0x1558) || (CharArrayToShort(&binary[x+0x12]) == 0x2B77)) //T3
+						|| ((CharArrayToShort(&binary[x+0x22]) == 0x5622) || (CharArrayToShort(&binary[x+0x22]) == 0x7D00) || (CharArrayToShort(&binary[x+0x22]) == 0x2B11) || (CharArrayToShort(&binary[x+0x22]) == 0x3E80) || (CharArrayToShort(&binary[x+0x22]) == 0x55F0) || (CharArrayToShort(&binary[x+0x22]) == 0x1588) || (CharArrayToShort(&binary[x+0x22]) == 0x1770) || (CharArrayToShort(&binary[x+0x22]) == 0x396C) || (CharArrayToShort(&binary[x+0x22]) == 0x1F40) || (CharArrayToShort(&binary[x+0x22]) == 0xAC44) || (CharArrayToShort(&binary[x+0x22]) == 0x1558) || (CharArrayToShort(&binary[x+0x22]) == 0x2B77)) //T3
+						|| ((CharArrayToShort(&binary[x+0x32]) == 0x5622) || (CharArrayToShort(&binary[x+0x32]) == 0x7D00) || (CharArrayToShort(&binary[x+0x32]) == 0x2B11) || (CharArrayToShort(&binary[x+0x32]) == 0x3E80) || (CharArrayToShort(&binary[x+0x32]) == 0x55F0) || (CharArrayToShort(&binary[x+0x32]) == 0x1588) || (CharArrayToShort(&binary[x+0x32]) == 0x1770) || (CharArrayToShort(&binary[x+0x32]) == 0x396C) || (CharArrayToShort(&binary[x+0x32]) == 0x1F40) || (CharArrayToShort(&binary[x+0x32]) == 0xAC44) || (CharArrayToShort(&binary[x+0x32]) == 0x1558) || (CharArrayToShort(&binary[x+0x32]) == 0x2B77)) //T3
+						)
+						)
 					//if ((CharArrayToLong(&binary[x]) == 0x53444632) && ((x % 0x10) == 0))
 					//if ((CharArrayToShort(&binary[x]) == 0x5331) && ((CharArrayToShort(&binary[x+2]) < 0x500)) && (CharArrayToShort(&binary[x+4]) == 0x0000) && (CharArrayToShort(&binary[x+6]) != 0x0000) && (CharArrayToShort(&binary[x+8]) == 0x0000) && (CharArrayToShort(&binary[x+0xA]) != 0x0000) && ((x % 0x10) == 0))
 						//if ((CharArrayToLong(&binary[x]) == 0x00000215) && (CharArrayToShort(&binary[x+4]) == 0x0000) && (CharArrayToShort(&binary[x+6]) > 0x0000) && (CharArrayToShort(&binary[x+6]) <= 0x0040 && (CharArrayToLong(&binary[x + 0x28]) == 0x00000000) && (CharArrayToLong(&binary[x + 0x2C]) == 0x00000000)))
@@ -3270,7 +3277,7 @@ void CN64MidiToolDlg::OnBnClickedButtonscandirformidis()
 								tempFileName.Replace(".v64", "");
 								tempFileName.Replace(".rom", "");
 								wroteNameHeader = true;
-								fprintf(outFile, "[%s Speech]:type=MORT\n", tempFileName);
+								fprintf(outFile, "[%s Sfx]:type=MORT\n", tempFileName);
 								fprintf(outFileAlt, "[%s Speech]:type=MORT\n", tempFileName);
 							}
 							fprintf(outFile, "%08X,%08X,%d", x, x + (CharArrayToLong(&binary[x + 8]) << 2), CharArrayToShort(&binary[x + 2]));

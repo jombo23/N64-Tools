@@ -17070,6 +17070,61 @@ ALBank* CN64AIFCAudio::ReadAudioTetrisphereRaw816(unsigned char* ctl, unsigned l
 	return alBank;
 }
 
+ALBank* CN64AIFCAudio::ReadAudio16BitPCM(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments)
+{
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = RAW16BITPCM;
+	alBank->count = 1;
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 11025;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+	}
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x]->soundCount = 1;
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.base = ctlOffset;
+
+			alBank->inst[x]->sounds[y]->wav.len = tblOffset - ctlOffset;
+
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[ctlOffset], alBank->inst[x]->sounds[y]->wav.len);
+			
+			// Byteflip
+			for (int r = 0; r < alBank->inst[x]->sounds[y]->wav.len; r += 2)
+			{
+				CSharedFunctions::WriteShortToBuffer(alBank->inst[x]->sounds[y]->wav.wavData, r, CSharedFunctions::Flip16Bit(CSharedFunctions::CharArrayToShort(alBank->inst[x]->sounds[y]->wav.wavData, r)));
+			}
+			
+			alBank->inst[x]->sounds[y]->wav.type = AL_SIGNED_RAW16;
+		}
+	}
+	return alBank;
+}
+
 ALBank* CN64AIFCAudio::ReadAudioRNCN64PtrOffset(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, unsigned long offset)
 {
 	unsigned char* outputDecompressed = new unsigned char[0x2000000];
@@ -17117,8 +17172,9 @@ ALBank* CN64AIFCAudio::ReadRNCAudio(unsigned char* ROM, unsigned char* ctl, unsi
 	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	int fileSizeCompressed = -1;
 	RncDecoder rnc;
-	rnc.unpackM1(&ctl[ctlOffset], outputDecompressed, 0x0, fileSizeCompressed);
-	ALBank* alBank = ReadAudio(ROM, &outputDecompressed[0], fileSizeCompressed, 0, tbl, 0, 0, bankNumber);
+	int decompressedSize = rnc.unpackM1(&ctl[ctlOffset], outputDecompressed, 0x0, fileSizeCompressed);
+
+	ALBank* alBank = ReadAudio(ROM, &outputDecompressed[0], decompressedSize, 0, tbl, 0, 0, bankNumber);
 	alBank->soundBankFormat = STANDARDRNCCOMPRESSED;
 	delete [] outputDecompressed;
 	return alBank;
@@ -21858,7 +21914,7 @@ ALBank* CN64AIFCAudio::ReadAudioMusyx(unsigned char* ctl, int ctlSize, int ctlOf
 			alBank->inst[x]->sounds[y]->wav.type = AL_MUSYX_WAVE;
 
 			alBank->inst[x]->samplerate = CharArrayToShort(&ctl[offsetInstrument+0xE]);
-			alBank->inst[x]->sounds[y]->wav.sampleRateNotInDefaultNintendoSpec = CharArrayToShort(&ctl[offsetInstrument+0x12]);
+			alBank->inst[x]->sounds[y]->wav.sampleRateNotInDefaultNintendoSpec = CharArrayToLong(&ctl[offsetInstrument+0x10]) & 0xFFFFFF;
 
 			alBank->inst[x]->sounds[y]->key.keybase = ctl[offsetInstrument + 0xC];
 

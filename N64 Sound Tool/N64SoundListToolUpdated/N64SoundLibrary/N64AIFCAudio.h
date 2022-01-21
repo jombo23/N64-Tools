@@ -93,6 +93,7 @@
 #define TOPGEAROVERDRIVE 64
 #define WDCSFX 65
 #define WDCINSTRUMENTS 66
+#define RAW16BITPCM 67
 
 #pragma once
 
@@ -513,6 +514,7 @@ public:
 	static ALBank* ReadAudioTwistedEdgeSnowboarding(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset);
 	static ALBank* ReadAudioFightingForce(unsigned char* ctl, int romSize, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioTetrisphereRaw816(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments);
+	static ALBank* ReadAudio16BitPCM(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments);
 	static ALBank* ReadRNXAudio(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber);
 	static ALBank* ReadAudioN64PtrWavetableV1(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);
 	static ALBank* ReadAudioTurok(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankTrueOffset, unsigned long mask, unsigned char* ROM, int bankNumber);

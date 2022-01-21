@@ -806,6 +806,10 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioTetrisphereRaw816(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments);
 			}
+			else if (gameConfig.gameType.CompareNoCase("16BitPCM") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudio16BitPCM(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig.soundBanks[x].numberInstruments);
+			}
 			else if (gameConfig.gameType.CompareNoCase("YAY0N64WavePtrTableV2") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioN64PtrWavetableV2YAY0(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
