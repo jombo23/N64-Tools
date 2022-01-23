@@ -2,6 +2,7 @@
 
 #include "SoundToolExports.h"
 
+
 class SOUNDTOOL_API CSharedFunctions
 {
 public:

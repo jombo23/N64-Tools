@@ -17,6 +17,7 @@
 #include "..\N64SoundLibrary\TwistedSnowboardingAudioDecompression.h"
 #include "..\N64SoundLibrary\NamcoAudioDecompression.h"
 #include "..\N64SoundLibrary\WDCAudioDecompression.h"
+#include "..\N64SoundLibrary\AcclaimDEANAudioDecompression.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -2343,6 +2344,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_ACCLAIM_DEAN)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if (alWave->type == AL_MP3)
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -3248,6 +3262,16 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 
 				CTopGearHyperbikeAudioDecompression topGearHyperbikeAudioDecompression;
 				topGearHyperbikeAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_ACCLAIM_DEAN)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CAcclaimDEANAudioDecompression acclaimDEANAudioDecompression;
+				acclaimDEANAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_MP3)
 			{
@@ -4442,6 +4466,16 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 
 				CTopGearHyperbikeAudioDecompression topGearHyperbikeAudioDecompression;
 				topGearHyperbikeAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.decompressedLength, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_ACCLAIM_DEAN)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CAcclaimDEANAudioDecompression acclaimDEANAudioDecompression;
+				acclaimDEANAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_MP3)
 			{
@@ -17174,6 +17208,13 @@ ALBank* CN64AIFCAudio::ReadRNCAudio(unsigned char* ROM, unsigned char* ctl, unsi
 	RncDecoder rnc;
 	int decompressedSize = rnc.unpackM1(&ctl[ctlOffset], outputDecompressed, 0x0, fileSizeCompressed);
 
+	/*CString tempStr;
+	tempStr.Format("C:\\temp\\nbajam99usrnc%08X.bin", ctlOffset);
+	FILE* a = fopen(tempStr, "wb");
+	fwrite(outputDecompressed, 1, decompressedSize, a);
+	fflush(a);
+	fclose(a);*/
+
 	ALBank* alBank = ReadAudio(ROM, &outputDecompressed[0], decompressedSize, 0, tbl, 0, 0, bankNumber);
 	alBank->soundBankFormat = STANDARDRNCCOMPRESSED;
 	delete [] outputDecompressed;
@@ -22506,6 +22547,30 @@ ALBank* CN64AIFCAudio::ReadAudio(unsigned char* ROM, unsigned char* ctl, int ctl
 									for (int z = 0; z < alBank->inst[x]->sounds[y]->wav.adpcmWave->book->order * alBank->inst[x]->sounds[y]->wav.adpcmWave->book->npredictors * 8; z++)
 									{
 										alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[z] = (signed short)CharArrayToShort(&ctl[predictorOffset + 0x8 + z * 2]);
+									}
+
+									/*if (
+										(alBank->inst[x]->sounds[y]->wav.adpcmWave->book->order == 1)
+										&&
+										(alBank->inst[x]->sounds[y]->wav.adpcmWave->book->npredictors == 1)
+										)*/
+									// WWF Warzone had  DEAN with 2/4
+									{
+										// DEAN Acclaim
+										if (
+											(alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[0] == 0x4445)
+											&& (alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[1] == 0x414E)
+											)
+										{
+											alBank->inst[x]->sounds[y]->wav.type = AL_ACCLAIM_DEAN;
+										}
+										else if (
+											(alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[0] == 0x524B)
+											&& (alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[1] == 0x4446)
+											)
+										{
+											MessageBox(NULL, "Figure out Acclaim RKDF!!", "Warning", NULL);
+										}
 									}
 								}
 							}
