@@ -1,7 +1,5 @@
 #pragma once
 
-//#include "SoundToolExports.h"
-
 /* ScummVM - Graphic Adventure Engine
  *
  * ScummVM is the legal property of its developers, whose names
@@ -30,6 +28,7 @@
 #define RNC_SIGNATURE81   0x524E4381 // "RNC\081"
 #define RNX_SIGNATURE   0x524E5801 // "RNX\001"
 #define RNX_SIGNATUREV2   0x524E5802 // "RNX\002"
+#define ERZ_SIGNATURE	0x45525A01 // "ERZ\001"
 
 class RncDecoder {
 

@@ -113,7 +113,7 @@ void RncDecoder::makeHufftable(unsigned short *table) {
 	if (!numCodes)
 		return;
 
-	unsigned char huffLength[16];
+	unsigned char huffLength[128];
 	for (i = 0; i < numCodes; i++)
 		huffLength[i] = (unsigned char)(inputBits(4) & 0x00FF);
 
@@ -183,7 +183,7 @@ int RncDecoder::unpackM1(const void *input, void *output, unsigned short key, in
 {
 	unsigned char *outputLow, *outputHigh;
 	const unsigned char *inputHigh, *inputptr = (const unsigned char *)input;
-
+	const unsigned char* outputStart = (unsigned char*)output;
 	unsigned long unpackLen = 0;
 	packLen = 0;
 	unsigned short counts = 0;
@@ -198,7 +198,9 @@ int RncDecoder::unpackM1(const void *input, void *output, unsigned short key, in
 	//Check for "RNC "
 	if ((READ_BE_UINT32(inputptr) != RNC_SIGNATURE) && (READ_BE_UINT32(inputptr) != RNC_SIGNATUREV2) && 
 		(READ_BE_UINT32(inputptr) != RNX_SIGNATURE) && (READ_BE_UINT32(inputptr) != RNX_SIGNATUREV2)
-		 && (READ_BE_UINT32(inputptr) != RNC_SIGNATURE81))
+		 && (READ_BE_UINT32(inputptr) != RNC_SIGNATURE81)
+		 && (READ_BE_UINT32(inputptr) != ERZ_SIGNATURE)
+		 )
 		return NOT_PACKED;
 
 	int version = inputptr[3];
@@ -231,7 +233,7 @@ int RncDecoder::unpackM1(const void *input, void *output, unsigned short key, in
 		indexedBlockCount = READ_BE_UINT16(inputptr);
 		inputptr += 2;
 
-		indexedBlockSize = inputptr[0] * 0x1000;
+		indexedBlockSize = inputptr[0] * 0x400;
 		inputptr++;
 
 		// reserved
@@ -254,13 +256,27 @@ int RncDecoder::unpackM1(const void *input, void *output, unsigned short key, in
 			unpackLen = indexedBlockSize;
 			packLen = compressedSizes[x];
 			blocks = 1;
+
+			int currentOffset = (x * indexedBlockSize);
+
+			if ((totalUnpackLen - currentOffset) < 0x1000)
+				unpackLen = (totalUnpackLen - currentOffset);
 		}
 
 		if ((version == 0x01) || (version == 0x81))
 		{
-			_srcPtr = inputptr;
+			int currentOffset = 0;
+			for (int y = 0; y < x; y++)
+			{
+				currentOffset += compressedSizes[y];
+				if ((currentOffset % 2) != 0)
+					currentOffset++;
+			}
 
-			inputHigh = ((const unsigned char *)input) + packLen + HEADER_LEN;
+			_srcPtr = inputptr + currentOffset;
+
+			// Not sure what's going on here, but it's not working
+			/*inputHigh = ((const unsigned char *)input) + packLen + HEADER_LEN;
 			outputLow = (unsigned char *)output;
 			outputHigh = *(((const unsigned char *)input) + 16) + unpackLen + outputLow;
 
@@ -269,7 +285,7 @@ int RncDecoder::unpackM1(const void *input, void *output, unsigned short key, in
 				_dstPtr = outputHigh;
 				memcpy((_dstPtr-packLen), (_srcPtr-packLen), packLen);
 				_srcPtr = (_dstPtr-packLen);
-			}
+			}*/
 
 			_dstPtr = (unsigned char *)output;
 			_bitCount = 0;
