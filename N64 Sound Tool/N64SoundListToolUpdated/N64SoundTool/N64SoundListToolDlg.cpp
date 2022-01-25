@@ -6165,6 +6165,88 @@ void CN64SoundListToolDlg::ShowSoundBankControls()
 		m_sampleAttackVolumeStatic.ShowWindow(SW_SHOW);
 		m_sampleDecayVolumeStatic.ShowWindow(SW_SHOW);
 	}
+	else if (alBankCurrent->soundBankFormat == CLAYFIGHTER)
+	{
+		mHalfVADPCMPrecision.ShowWindow(SW_HIDE);
+		mCheckUnknownEADFlag.ShowWindow(SW_HIDE);
+		mLabelTableIndex.ShowWindow(SW_HIDE);
+		mTableIndex.ShowWindow(SW_HIDE);
+		m_injectInPlaceButton.ShowWindow(SW_HIDE);
+		m_playButton.ShowWindow(SW_SHOW);
+		m_playLoopedButton.ShowWindow(SW_SHOW);
+		m_stopButton.ShowWindow(SW_SHOW);
+		m_saveButton.ShowWindow(SW_SHOW);
+		m_import16BitRaw.ShowWindow(SW_HIDE);
+		m_import16BitADPCM.ShowWindow(SW_HIDE);
+		m_import16BitADPCMSamePred.ShowWindow(SW_HIDE);
+		m_import16BitRawValues.ShowWindow(SW_HIDE);
+		m_importPredictors.ShowWindow(SW_HIDE);
+		mImportFromSDKTools.ShowWindow(SW_HIDE);
+		m_add16BitRaw.ShowWindow(SW_HIDE);
+		m_add16BitADPCM.ShowWindow(SW_HIDE);
+		mAddInstrumentButton.ShowWindow(SW_HIDE);
+		mDeleteInstrumentButton.ShowWindow(SW_HIDE);
+		mDeletePercussionBank.ShowWindow(SW_HIDE);
+		mAddPercussionBank.ShowWindow(SW_HIDE);
+		mDeleteSfxBank.ShowWindow(SW_HIDE);
+		mAddSfxBank.ShowWindow(SW_HIDE);
+		m_importGroupBox.ShowWindow(SW_HIDE);
+		m_addToEndGroupBox.ShowWindow(SW_HIDE);
+		m_deleteButton.ShowWindow(SW_HIDE);
+		m_tremGroupBox.ShowWindow(SW_SHOW);
+		m_vibrGroupBox.ShowWindow(SW_SHOW);
+		mVolume.ShowWindow(SW_SHOW);
+		mPan.ShowWindow(SW_SHOW);
+		mPriority.ShowWindow(SW_SHOW);
+		mTremType.ShowWindow(SW_SHOW);
+		mTremRate.ShowWindow(SW_SHOW);
+		mTremDepth.ShowWindow(SW_SHOW);
+		mTremDelay.ShowWindow(SW_SHOW);
+		mVibType.ShowWindow(SW_SHOW);
+		mVibRate.ShowWindow(SW_SHOW);
+		mVibDepth.ShowWindow(SW_SHOW);
+		mVibDelay.ShowWindow(SW_SHOW);
+		mBendRange.ShowWindow(SW_SHOW);
+		mSamplePan.ShowWindow(SW_SHOW);
+		mSampleVol.ShowWindow(SW_SHOW);
+		mAttackTime.ShowWindow(SW_SHOW);
+		mDecayTime.ShowWindow(SW_SHOW);
+		mReleaseTime.ShowWindow(SW_SHOW);
+		mAttackVolume.ShowWindow(SW_SHOW);
+		mDecayVolume.ShowWindow(SW_SHOW);
+		mVelMin.ShowWindow(SW_SHOW);
+		mVelMax.ShowWindow(SW_SHOW);
+		mKeyMin.ShowWindow(SW_SHOW);
+		mKeyMax.ShowWindow(SW_SHOW);
+		mKeyBase.ShowWindow(SW_SHOW);
+		mKeyBaseListCtrl.ShowWindow(SW_SHOW);
+		mDetune.ShowWindow(SW_SHOW);
+		m_instrVolStatic.ShowWindow(SW_SHOW);
+		m_instrPanStatic.ShowWindow(SW_SHOW);
+		m_InstrPriorityStatic.ShowWindow(SW_SHOW);
+		m_instrTremTypeStatic.ShowWindow(SW_SHOW);
+		m_instrTremRateStatic.ShowWindow(SW_SHOW);
+		m_instrTremDepthStatic.ShowWindow(SW_SHOW);
+		m_instrTremDelayStatic.ShowWindow(SW_SHOW);
+		m_instrVibrTypeStatic.ShowWindow(SW_SHOW);
+		m_InstrBendRangeStatic.ShowWindow(SW_SHOW);
+		m_instrVibrRateStatic.ShowWindow(SW_SHOW);
+		m_instrVibrDepthStatic.ShowWindow(SW_SHOW);
+		m_instrVibrDelayStatic.ShowWindow(SW_SHOW);
+		m_samplePanStatic.ShowWindow(SW_SHOW);
+		m_sampleVolStatic.ShowWindow(SW_SHOW);
+		m_sampleVelMinStatic.ShowWindow(SW_SHOW);
+		m_sampleVelMaxStatic.ShowWindow(SW_SHOW);
+		m_sampleKeyMinStatic.ShowWindow(SW_SHOW);
+		m_sampleKeyMaxStatic.ShowWindow(SW_SHOW);
+		m_sampleKeyBaseStatic.ShowWindow(SW_SHOW);
+		m_sampleDetuneStatic.ShowWindow(SW_SHOW);
+		m_sampleAttackTimeStatic.ShowWindow(SW_SHOW);
+		m_sampleDecayTimeStatic.ShowWindow(SW_SHOW);
+		m_sampleReleaseTimeStatic.ShowWindow(SW_SHOW);
+		m_sampleAttackVolumeStatic.ShowWindow(SW_SHOW);
+		m_sampleDecayVolumeStatic.ShowWindow(SW_SHOW);
+	}
 	else if (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED)
 	{
 		mHalfVADPCMPrecision.ShowWindow(SW_HIDE);
@@ -6796,6 +6878,7 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundbank()
 		if (
 			(alBankCurrent->soundBankFormat == STANDARDFORMAT)
 			|| (alBankCurrent->soundBankFormat == STANDARDRNCCOMPRESSED)
+			|| (alBankCurrent->soundBankFormat == CLAYFIGHTER)
 			|| (alBankCurrent->soundBankFormat == STANDARDFORMATRAWALLOWED)
 			|| (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED)
 			|| (alBankCurrent->soundBankFormat == ZLIBSTANDARD)
@@ -9031,7 +9114,7 @@ void CN64SoundListToolDlg::OnBnClickedInjectplace()
 		{
 			n64AudioLibrary.WriteAudioNinDec(alBanks, ctl, ctlSize, tbl, tblSize);
 		}
-		else if ((alBankCurrent->soundBankFormat == TUROKFORMAT)  || (alBankCurrent->soundBankFormat == STANDARDRNCCOMPRESSED)  || (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED)|| (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED))
+		else if ((alBankCurrent->soundBankFormat == TUROKFORMAT)  || (alBankCurrent->soundBankFormat == STANDARDRNCCOMPRESSED) || (alBankCurrent->soundBankFormat == CLAYFIGHTER) || (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED)|| (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED))
 		{
 			MessageBox("Sorry, no encoding yet for MIO0 format");
 			return;
@@ -10317,6 +10400,10 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					else if (gameConfig[y].gameType.CompareNoCase("RNCCompressed") == 0)
 					{
 						results[numberResults].bank = n64AudioLibrary.ReadRNCAudio(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig[y].soundBanks[x].numberInstruments);
+					}
+					else if (gameConfig[y].gameType.CompareNoCase("Clayfighter") == 0)
+					{
+						results[numberResults].bank = n64AudioLibrary.ReadAudioClayfighter(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig[y].soundBanks[x].numberInstruments);
 					}
 					else if (gameConfig[y].gameType.CompareNoCase("RNXCompressed") == 0)
 					{
@@ -12664,6 +12751,7 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombopercussion()
 		if (
 			(alBankCurrent->soundBankFormat == STANDARDFORMAT)
 			|| (alBankCurrent->soundBankFormat == STANDARDRNCCOMPRESSED)
+			|| (alBankCurrent->soundBankFormat == CLAYFIGHTER)
 			|| (alBankCurrent->soundBankFormat == STANDARDFORMATRAWALLOWED)
 			|| (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED)
 			|| (alBankCurrent->soundBankFormat == ZLIBSTANDARD)
@@ -13935,6 +14023,7 @@ void CN64SoundListToolDlg::OnBnClickedButtondeletepercussionbank()
 		if (
 			(alBankCurrent->soundBankFormat == STANDARDFORMAT)
 			|| (alBankCurrent->soundBankFormat == STANDARDRNCCOMPRESSED)
+			|| (alBankCurrent->soundBankFormat == CLAYFIGHTER)
 			|| (alBankCurrent->soundBankFormat == STANDARDFORMATRAWALLOWED)
 			|| (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED)
 			|| (alBankCurrent->soundBankFormat == ZLIBSTANDARD)
@@ -14006,6 +14095,7 @@ void CN64SoundListToolDlg::OnBnClickedButtonaddpercussionbank()
 		if (
 			(alBankCurrent->soundBankFormat == STANDARDFORMAT)
 			|| (alBankCurrent->soundBankFormat == STANDARDRNCCOMPRESSED)
+			|| (alBankCurrent->soundBankFormat == CLAYFIGHTER)
 			|| (alBankCurrent->soundBankFormat == STANDARDFORMATRAWALLOWED)
 			|| (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED)
 			|| (alBankCurrent->soundBankFormat == ZLIBSTANDARD)

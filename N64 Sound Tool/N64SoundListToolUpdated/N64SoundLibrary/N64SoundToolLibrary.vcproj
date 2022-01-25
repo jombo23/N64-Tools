@@ -177,6 +177,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DecompressClayfighter.cpp"
+				>
+			</File>
+			<File
 				RelativePath="EASportsDecoder.cpp"
 				>
 			</File>
@@ -356,6 +360,10 @@
 			</File>
 			<File
 				RelativePath=".\CalcCRC.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DecompressClayfighter.h"
 				>
 			</File>
 			<File

@@ -690,6 +690,10 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadRNCAudio(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments);
 			}
+			else if (gameConfig.gameType.CompareNoCase("Clayfighter") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioClayfighter(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments);
+			}
 			else if (gameConfig.gameType.CompareNoCase("RNXCompressed") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadRNXAudio(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments);

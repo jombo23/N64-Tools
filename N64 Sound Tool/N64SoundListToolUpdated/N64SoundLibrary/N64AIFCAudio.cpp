@@ -18,6 +18,7 @@
 #include "..\N64SoundLibrary\NamcoAudioDecompression.h"
 #include "..\N64SoundLibrary\WDCAudioDecompression.h"
 #include "..\N64SoundLibrary\AcclaimDEANAudioDecompression.h"
+#include "..\N64SoundLibrary\DecompressClayfighter.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -2596,6 +2597,7 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 				if (
 					(alBank->soundBankFormat == STANDARDFORMAT)
 					|| (alBank->soundBankFormat == STANDARDRNCCOMPRESSED)
+					|| (alBankCurrent->soundBankFormat == CLAYFIGHTER)
 					|| (alBank->soundBankFormat == STANDARDRNXCOMPRESSED)
 					|| (alBank->soundBankFormat == BLASTCORPSZLBSTANDARD)
 					|| (alBank->soundBankFormat == NINDEC)
@@ -4855,6 +4857,7 @@ bool CN64AIFCAudio::ExtractPercussion(CString mainFolder, ALBank* alBank, int so
 				if (
 					(alBank->soundBankFormat == STANDARDFORMAT)
 					|| (alBank->soundBankFormat == STANDARDRNCCOMPRESSED)
+					|| (alBankCurrent->soundBankFormat == CLAYFIGHTER)
 					|| (alBank->soundBankFormat == STANDARDRNXCOMPRESSED)
 					|| (alBank->soundBankFormat == BLASTCORPSZLBSTANDARD)
 					|| (alBank->soundBankFormat == NINDEC)
@@ -8599,7 +8602,7 @@ void CN64AIFCAudio::WriteAudioToFile(std::vector<ALBank*> alBanks, CString outFi
 		{
 			//WriteAudioSuperMario(alBank, ctl, ctlSize, tbl, tblSize);
 		}
-		else if ((alBank->soundBankFormat == STARFOX64FORMAT) || (alBank->soundBankFormat == ZELDAFORMAT) || (alBank->soundBankFormat == TUROKFORMAT)  || (alBank->soundBankFormat == STANDARDRNCCOMPRESSED) || (alBank->soundBankFormat == STANDARDRNXCOMPRESSED) || (alBank->soundBankFormat == N64PTRWAVETABLETABLEV2))
+		else if ((alBank->soundBankFormat == STARFOX64FORMAT) || (alBank->soundBankFormat == ZELDAFORMAT) || (alBank->soundBankFormat == TUROKFORMAT)  || (alBank->soundBankFormat == STANDARDRNCCOMPRESSED)|| (alBank->soundBankFormat == CLAYFIGHTER) || (alBank->soundBankFormat == STANDARDRNXCOMPRESSED) || (alBank->soundBankFormat == N64PTRWAVETABLETABLEV2))
 		{
 			MessageBox(NULL, "Sorry, format not supported", "Error", NULL);
 			return;
@@ -17199,6 +17202,22 @@ ALBank* CN64AIFCAudio::ReadAudioSno(unsigned char* ctl, unsigned long& ctlSize, 
 ALBank* CN64AIFCAudio::ReadAudioRNCN64Ptr(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
 {
 	return ReadAudioRNCN64PtrOffset(ctl, ctlSize, ctlOffset, tbl, 0);
+}
+
+ALBank* CN64AIFCAudio::ReadAudioClayfighter(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments)
+{
+	unsigned char* outputDecompressed = new unsigned char[0x2000000];
+		
+	unsigned long header = CSharedFunctions::CharArrayToLong(ctl, ctlOffset);
+	int lengthInput = CSharedFunctions::CharArrayToLong(ctl, ctlOffset + 4);
+	int lengthOutput = CSharedFunctions::CharArrayToLong(ctl, ctlOffset + 8);
+
+	int decompressedSize = CDecompressClayfighter::Decompress(outputDecompressed, &ctl[ctlOffset + 0xC]);
+
+	ALBank* alBank = ReadAudio(ROM, &outputDecompressed[numberInstruments], decompressedSize, 0, tbl, 0, 0, 0);
+	alBank->soundBankFormat = CLAYFIGHTER;
+	delete [] outputDecompressed;
+	return alBank;
 }
 
 ALBank* CN64AIFCAudio::ReadRNCAudio(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber)
