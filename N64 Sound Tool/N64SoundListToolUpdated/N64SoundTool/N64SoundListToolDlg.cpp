@@ -10511,7 +10511,7 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					}
 					else if (gameConfig[y].gameType.CompareNoCase("BnkB") == 0)
 					{
-						results[numberResults].bank = n64AudioLibrary.ReadAudioBnkB(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
+						results[numberResults].bank = n64AudioLibrary.ReadAudioBnkB(&ROM[0], romSize, results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
 					}
 					else if (gameConfig[y].gameType.CompareNoCase("N64WavePtrTableV1") == 0)
 					{

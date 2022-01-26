@@ -17985,7 +17985,7 @@ ALBank* CN64AIFCAudio::ReadAudioSeparatedBnkB(unsigned char* ctl, unsigned long&
 	return alBank;
 }
 
-ALBank* CN64AIFCAudio::ReadAudioBnkB(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
+ALBank* CN64AIFCAudio::ReadAudioBnkB(unsigned char* ctl, int romSize, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl)
 {
 	unsigned short numberBands = 1;
 	int startOffset;
@@ -18003,7 +18003,7 @@ ALBank* CN64AIFCAudio::ReadAudioBnkB(unsigned char* ctl, unsigned long& ctlSize,
 	alBank->count = (unsigned short)CharArrayToShort(&ctl[ctlOffset+0x6]);
 	alBank->flags = 0x0000;
 	alBank->pad = 0x0;
-	alBank->samplerate = 8000;
+	alBank->samplerate = 16000;
 	alBank->percussion = 0x000;
 	alBank->eadPercussion = NULL;
 	alBank->countEADPercussion = 0;
@@ -18088,7 +18088,7 @@ ALBank* CN64AIFCAudio::ReadAudioBnkB(unsigned char* ctl, unsigned long& ctlSize,
 						break;
 					}
 				}
-				alBank->inst[x]->sounds[y]->wav.len = 0x7000;
+				alBank->inst[x]->sounds[y]->wav.len = 0x80000;
 
 				alBank->inst[x]->sounds[y]->wav.type = AL_ADPCM_WAVE;
 				alBank->inst[x]->sounds[y]->wav.flags = 0x0000;
@@ -18131,12 +18131,51 @@ ALBank* CN64AIFCAudio::ReadAudioBnkB(unsigned char* ctl, unsigned long& ctlSize,
 				}
 				else
 				{
-					alBank->inst[x]->sounds[y]->wav.type = AL_RAW16_WAVE;
-					alBank->inst[x]->sounds[y]->wav.rawWave = new ALRAWWaveInfo();
-					alBank->inst[x]->sounds[y]->wav.rawWave->loop = NULL;
-				
+					alBank->inst[x]->sounds[y]->wav.type = AL_MADDENBNKB;
+					alBank->inst[x]->sounds[y]->wav.wavFlags = MADDENFLOATAUDIO;
+
 					for (int z = (offsetInstrument + 2); z < (offsetInstrument + 0x100); z++)
 					{
+						if ((CharArrayToShort(&ctl[z]) == 0x8402) || (CharArrayToShort(&ctl[z]) == 0x8C42))
+						{
+							// sampling rate
+							alBank->inst[x]->samplerate = CharArrayToShort(&ctl[z+2]);
+						}
+						else if (CharArrayToShort(&ctl[z]) == 0x8301)
+						{
+							if (ctl[z + 2] == 0x7)
+								alBank->inst[x]->sounds[y]->wav.wavFlags = MADDENSTANDARDAUDIO;
+							else if (ctl[z + 2] == 0x9)
+								alBank->inst[x]->sounds[y]->wav.wavFlags = MADDENFLOATAUDIO;
+							else
+								throw;
+						}
+						else if (CharArrayToShort(&ctl[z]) == 0x8804)
+						{
+							alBank->inst[x]->sounds[y]->wav.base = CharArrayToLong(&ctl[z + 2]);
+							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+								break;
+						}
+						else if (CharArrayToShort(&ctl[z]) == 0x8C02)
+						{
+							alBank->inst[x]->sounds[y]->wav.decompressedLength = CharArrayToShort(&ctl[z+2]);
+							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+								break;
+						}
+						else if (CharArrayToShort(&ctl[z]) == 0x8502)
+						{
+							// # decoded samples
+							alBank->inst[x]->sounds[y]->wav.decompressedLength = CharArrayToShort(&ctl[z+2]);
+							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+								break;
+						}
+						else if ((CharArrayToShort(&ctl[z]) == 0x8503) || (CharArrayToShort(&ctl[z]) == 0x8C03))
+						{
+							// TODO check if maybe should be double and if is output length not input length
+							alBank->inst[x]->sounds[y]->wav.decompressedLength = CharArrayToLong(&ctl[z+1]) & 0xFFFFFF;
+							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+								break;
+						}
 						if (CharArrayToShort(&ctl[z]) == 0x8C02)
 						{
 							alBank->inst[x]->sounds[y]->wav.len = CharArrayToShort(&ctl[z+2]);
@@ -18147,6 +18186,10 @@ ALBank* CN64AIFCAudio::ReadAudioBnkB(unsigned char* ctl, unsigned long& ctlSize,
 							break;
 						}
 					}
+
+					if ((tblOffset + alBank->inst[x]->sounds[y]->wav.base + alBank->inst[x]->sounds[y]->wav.len) > romSize)
+						alBank->inst[x]->sounds[y]->wav.len = romSize - (tblOffset + alBank->inst[x]->sounds[y]->wav.base);
+
 					alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
 
 					for (int  r = 0; r < alBank->inst[x]->sounds[y]->wav.len; r++)

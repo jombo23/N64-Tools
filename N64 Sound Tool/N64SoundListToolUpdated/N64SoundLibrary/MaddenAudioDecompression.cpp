@@ -1749,7 +1749,7 @@ bool CMaddenAudioDecompression::DecompressSound(int soundType, unsigned char* RO
 	}
 	else if (soundType == MADDENFLOATAUDIO)
 	{
-		int sizeRAM = 0x400000;
+		int sizeRAM = 0x800000;
 		unsigned char* RAM = new unsigned char[sizeRAM];
 		for (int x = 0; x < sizeRAM; x++)
 			RAM[x] = 0x00;
@@ -1811,7 +1811,7 @@ bool CMaddenAudioDecompression::DecompressSound(int soundType, unsigned char* RO
 		// Not sure where this came from, output spot
 		CSharedFunctions::WriteLongToBuffer(RAM, 0x80052C88, 0x80344070);
 
-		unsigned char* outputBuffer = new unsigned char[0x100000];
+		unsigned char* outputBuffer = new unsigned char[0x800000];
 		int outputBufferSize = 0;
 		while (FUN_0002772c(RAM, outputFloatsSpot, 0x00000100, 0x80052C88, outputBuffer, outputBufferSize) != -1);
 

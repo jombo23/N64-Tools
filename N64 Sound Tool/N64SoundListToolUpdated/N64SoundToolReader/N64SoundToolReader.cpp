@@ -796,7 +796,7 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			}
 			else if (gameConfig.gameType.CompareNoCase("BnkB") == 0)
 			{
-				results[numberResults].bank = n64AudioLibrary.ReadAudioBnkB(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
+				results[numberResults].bank = n64AudioLibrary.ReadAudioBnkB(&ROM[0], romSize, results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
 			}
 			else if (gameConfig.gameType.CompareNoCase("N64WavePtrTableV1") == 0)
 			{
