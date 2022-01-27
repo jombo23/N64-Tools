@@ -18131,8 +18131,7 @@ ALBank* CN64AIFCAudio::ReadAudioBnkB(unsigned char* ctl, int romSize, unsigned l
 				}
 				else
 				{
-					alBank->inst[x]->sounds[y]->wav.type = AL_MADDENBNKB;
-					alBank->inst[x]->sounds[y]->wav.wavFlags = MADDENFLOATAUDIO;
+					alBank->inst[x]->sounds[y]->wav.type = AL_SIGNED_RAW16;
 
 					for (int z = (offsetInstrument + 2); z < (offsetInstrument + 0x100); z++)
 					{
@@ -18143,37 +18142,41 @@ ALBank* CN64AIFCAudio::ReadAudioBnkB(unsigned char* ctl, int romSize, unsigned l
 						}
 						else if (CharArrayToShort(&ctl[z]) == 0x8301)
 						{
+							alBank->inst[x]->sounds[y]->wav.type = AL_MADDENBNKB;
 							if (ctl[z + 2] == 0x7)
 								alBank->inst[x]->sounds[y]->wav.wavFlags = MADDENSTANDARDAUDIO;
 							else if (ctl[z + 2] == 0x9)
 								alBank->inst[x]->sounds[y]->wav.wavFlags = MADDENFLOATAUDIO;
 							else
 								throw;
+
+							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0) && (alBank->inst[x]->sounds[y]->wav.type == AL_MADDENBNKB))
+								break;
 						}
 						else if (CharArrayToShort(&ctl[z]) == 0x8804)
 						{
 							alBank->inst[x]->sounds[y]->wav.base = CharArrayToLong(&ctl[z + 2]);
-							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0) && (alBank->inst[x]->sounds[y]->wav.type == AL_MADDENBNKB))
 								break;
 						}
 						else if (CharArrayToShort(&ctl[z]) == 0x8C02)
 						{
 							alBank->inst[x]->sounds[y]->wav.decompressedLength = CharArrayToShort(&ctl[z+2]);
-							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0) && (alBank->inst[x]->sounds[y]->wav.type == AL_MADDENBNKB))
 								break;
 						}
 						else if (CharArrayToShort(&ctl[z]) == 0x8502)
 						{
 							// # decoded samples
 							alBank->inst[x]->sounds[y]->wav.decompressedLength = CharArrayToShort(&ctl[z+2]);
-							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0) && (alBank->inst[x]->sounds[y]->wav.type == AL_MADDENBNKB))
 								break;
 						}
 						else if ((CharArrayToShort(&ctl[z]) == 0x8503) || (CharArrayToShort(&ctl[z]) == 0x8C03))
 						{
 							// TODO check if maybe should be double and if is output length not input length
 							alBank->inst[x]->sounds[y]->wav.decompressedLength = CharArrayToLong(&ctl[z+1]) & 0xFFFFFF;
-							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0))
+							if ((alBank->inst[x]->sounds[y]->wav.decompressedLength > 0) && (alBank->inst[x]->sounds[y]->wav.base > 0) && (alBank->inst[x]->sounds[y]->wav.type == AL_MADDENBNKB))
 								break;
 						}
 						if (CharArrayToShort(&ctl[z]) == 0x8C02)
@@ -18195,6 +18198,16 @@ ALBank* CN64AIFCAudio::ReadAudioBnkB(unsigned char* ctl, int romSize, unsigned l
 					for (int  r = 0; r < alBank->inst[x]->sounds[y]->wav.len; r++)
 					{
 						alBank->inst[x]->sounds[y]->wav.wavData[r] = tbl[alBank->inst[x]->sounds[y]->wav.base + r];
+					}
+
+					if (alBank->inst[x]->sounds[y]->wav.type == AL_SIGNED_RAW16)
+					{
+						alBank->inst[x]->sounds[y]->wav.len = alBank->inst[x]->sounds[y]->wav.decompressedLength;
+						// Byteflip
+						for (int r = 0; r < alBank->inst[x]->sounds[y]->wav.len; r += 2)
+						{
+							CSharedFunctions::WriteShortToBuffer(alBank->inst[x]->sounds[y]->wav.wavData, r, CSharedFunctions::Flip16Bit(CSharedFunctions::CharArrayToShort(alBank->inst[x]->sounds[y]->wav.wavData, r)));
+						}
 					}
 				}
 			}
