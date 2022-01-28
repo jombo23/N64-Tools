@@ -2034,10 +2034,53 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 			delete [] outputDecompressed;
 		}
 	}
-	else
+	else if (gameName.CompareNoCase("DuckDodgers") == 0)
 	{
 		compressed = false;
 		//midiParse.ImportMidiConfig("aerofightersassault.txt");
+		for (int x = 0; x < gameConfig[gameNumber].numberMidis; x++)
+		{
+			for (int y = gameConfig[gameNumber].midiBanks[x].start; y < gameConfig[gameNumber].midiBanks[x].end; y += 8)
+			{
+				unsigned long musicFrequency = CharArrayToLong(&buffer[y]);
+				unsigned long romOffset = gameConfig[gameNumber].midiBanks[x].extra + CharArrayToLong(&buffer[y+4]);
+				unsigned long romOffsetNext;
+				if (y < (gameConfig[gameNumber].midiBanks[x].end - 8))
+					romOffsetNext = gameConfig[gameNumber].midiBanks[x].extra + CharArrayToLong(&buffer[y+4+8]);
+				else
+					romOffsetNext = gameConfig[gameNumber].midiBanks[x].extra2;
+
+				int midiLength = romOffsetNext - romOffset;
+				
+				/*FILE* a = fopen("C:\\temp\\a.bin", "wb");
+				fwrite(tempGEMidi, 1, midiLength + 0x44, a);
+				fflush(a);
+				fclose(a);*/
+
+				CString tempSpotStr;
+				tempSpotStr.Format("%08X:%08X:%08X", romOffset, romOffsetNext, musicFrequency);
+				addMidiStrings.push_back(tempSpotStr);
+				numberMidiStrings++;
+
+				if (calculateInstrumentCount)
+				{
+					int numberInstTemp = 0;
+					bool hasLoopPoint = false;
+					int loopStart = 0;
+					int loopEnd = 0;
+					unsigned long extra = 0;
+					unsigned long extra2 = 0;
+					midiParse.ExportToMidi("Unknown", buffer, bufferSize, romOffset, midiLength, "asdasdaw43.mid", "DuckDodgers", numberInstTemp, musicFrequency, compressed, hasLoopPoint, loopStart, loopEnd, false, separateByInstrument, false, musicFrequency, 0, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
+					if (numberInstTemp > numberInstruments)
+						numberInstruments = numberInstTemp;
+					::DeleteFile("asdasdaw43.mid");
+				}
+			}
+		}
+	}
+	else
+	{
+		compressed = false;
 		for (int x = 0; x < gameConfig[gameNumber].numberMidis; x++)
 		{
 			ParseUncompressedType(buffer, bufferSize, gameConfig[gameNumber].midiBanks[x].start, gameConfig[gameNumber].midiBanks[x].end, addMidiStrings, numberMidiStrings, numberInstruments, compressed, buffer, calculateInstrumentCount, separateByInstrument, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo);

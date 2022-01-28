@@ -299,6 +299,1040 @@ CMidiParse::~CMidiParse(void)
 
 
 
+void CMidiParse::DuckDodgersMidiToMidi(byte* inputMID, int inputSize, CString outFileName, int& numberInstruments, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool extendTracksToHighest, bool usePitchBendSensitity, int pitchBendSensitity, unsigned long division)
+{
+	numberInstruments = 0;
+	try
+	{
+		FILE* outFile = fopen(outFileName, "wb");
+		if (outFile == NULL)
+		{
+			MessageBox(NULL, "Error outputting file", "Error", NULL);
+			return;
+		}
+
+		unsigned long lengthHeader = 0;
+
+		// parse midi
+		
+		unsigned long tempLong = Flip32Bit(0x4D546864);
+		fwrite(&tempLong, 1 ,4 , outFile);
+		tempLong = Flip32Bit(0x00000006);
+		fwrite(&tempLong, 1 ,4 , outFile);
+		tempLong = Flip32Bit(0x00000001); // Type 0, 1 track
+		fwrite(&tempLong, 1 ,4 , outFile);
+
+		unsigned short tempShort = division;
+		tempShort = Flip16Bit(tempShort);
+		fwrite(&tempShort, 1 ,2 , outFile);
+
+		int counterTrack = 0;
+
+		int highestTrackLength = 0;
+
+		int numberType0Controllers = 1;
+
+		//for (int iii = 0; iii < (lengthHeader - 4); iii+=4) // ignore last 00000180
+		{
+			unsigned long absoluteTime = 0;
+
+			unsigned long offset = 0;
+			
+			int position = offset;	
+
+			//if (position != 0)
+			{
+				int previousEventValue = 0;
+
+				std::map<int, int> loopEndsWithCount;
+
+				byte* repeatPattern = NULL;
+				byte altOffset = 0;
+				byte altLength = 0;
+
+				bool endFlag = false;
+
+				while ((position < inputSize) && !endFlag)
+				{
+					int timePosition = position;
+
+					unsigned long original;
+					unsigned long timeTag = GetVLBytes(inputMID, position, original, repeatPattern, altOffset, altLength, true);
+
+					absoluteTime += timeTag;
+
+					if (absoluteTime > highestTrackLength)
+						highestTrackLength = absoluteTime;
+
+
+					int vlLength = 0;
+					byte eventVal = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					bool statusBit = false;
+
+					if (eventVal < 0x80)
+					{
+						// continuation
+						statusBit = true;
+					}
+					else
+					{
+						statusBit = false;
+					}
+
+					if ((eventVal == 0xFF) || (statusBit && (previousEventValue == 0xFF))) // meta event
+					{
+						byte subType;
+						if (statusBit)
+							subType = eventVal;
+						else
+							subType = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						if (subType == 0x51) // tempo
+						{
+							int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+
+						}
+						else if (subType == 0x2D) // end loop
+						{
+							byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+							
+							if ((loopCount == 0xFF) || (loopCount == 0x00))
+							{
+								break;
+							}
+							else
+							{
+								std::map<int, int>::iterator it = loopEndsWithCount.find(position);
+								if (it != loopEndsWithCount.end())
+								{
+									int countLeft = it->second;
+
+									if (countLeft == 0)
+									{
+										loopEndsWithCount.erase(it);
+									}
+									else
+									{
+										loopEndsWithCount[position] = (countLeft - 1);
+
+										if (repeatPattern == NULL)
+										{
+											position = position - offsetToBeginningLoop;
+										}
+										else
+										{
+											loopEndsWithCount.erase(it);
+										}
+									}
+								}
+								else
+								{
+									loopEndsWithCount[position] = loopCount - 1;
+
+									if (repeatPattern == NULL)
+									{
+										position = position - offsetToBeginningLoop;
+									}
+									else
+									{
+										loopEndsWithCount.erase(it);
+									}
+								}
+							}
+						}
+						else if (subType == 0x2E) // start loop
+						{
+							byte loopNumber = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byte endLoop = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true); // Always FF
+						}
+						else if (subType == 0x2F)
+						{
+							endFlag = true;
+						}
+
+						// Not set to previous event value
+						//if (!statusBit)
+							//previousEventValue = eventVal;
+					}
+					else if ((eventVal >= 0x90 && eventVal < 0xA0) || (statusBit && (previousEventValue >= 0x90) && (previousEventValue < 0xA0)))
+					{
+						if (eventVal >= 0x90 && eventVal < 0xA0)
+						{
+							if (numberType0Controllers < ((eventVal & 0xF) + 1))
+								numberType0Controllers = ((eventVal & 0xF) + 1);
+						}
+						if (statusBit && (previousEventValue >= 0x90) && (previousEventValue < 0xA0))
+						{
+							if (numberType0Controllers < ((previousEventValue & 0xF) + 1))
+								numberType0Controllers = ((previousEventValue & 0xF) + 1);
+						}
+
+						byte curEventVal;
+
+						byte noteNumber;
+						if (statusBit)
+						{
+							noteNumber = eventVal;
+							curEventVal = previousEventValue;
+						}
+						else
+						{
+							noteNumber = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							curEventVal = eventVal;
+						}
+						byte velocity = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						if (velocity == 0)
+						{
+							// Turn off
+						}
+
+						if (!statusBit)
+							previousEventValue = eventVal;
+					}
+					else if (((eventVal >= 0xB0) && (eventVal < 0xC0)) || (statusBit && (previousEventValue >= 0xB0) && (previousEventValue < 0xC0))) // controller change
+					{
+						CString controllerTypeText = "";
+						byte controllerType;
+						
+						if (statusBit)
+						{
+							controllerType = eventVal;
+							previousEventValue;
+						}
+						else
+						{
+							controllerType = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							eventVal;
+						}
+						byte controllerValue = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						if (!statusBit)
+							previousEventValue = eventVal;
+					}
+					else if (((eventVal >= 0xC0) && (eventVal < 0xD0)) || (statusBit && (previousEventValue >= 0xC0) && (previousEventValue < 0xD0))) // change instrument
+					{
+						byte instrument;
+						if (statusBit)
+						{
+							instrument = eventVal;
+							previousEventValue;
+						}
+						else
+						{
+							instrument = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							eventVal;
+						}
+
+						if (!statusBit)
+							previousEventValue = eventVal;
+					}
+					else if (((eventVal >= 0xD0) && (eventVal < 0xE0)) || (statusBit && (previousEventValue >= 0xD0) && (previousEventValue < 0xE0))) // channel aftertouch
+					{
+						byte amount;
+						if (statusBit)
+						{
+							amount = eventVal;
+							previousEventValue;
+						}
+						else
+						{
+							amount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							eventVal;
+						}
+
+						if (!statusBit)
+							previousEventValue = eventVal;
+					}
+					else if (((eventVal >= 0xE0) && (eventVal < 0xF0)) || (statusBit && (previousEventValue >= 0xE0) && (previousEventValue < 0xF0))) // pitch bend
+					{
+						byte valueLSB;
+						if (statusBit)
+						{
+							valueLSB = eventVal;
+							previousEventValue;
+						}
+						else
+						{
+							valueLSB = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							eventVal;
+						}
+						
+						byte valueMSB = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						if (!statusBit)
+							previousEventValue = eventVal;
+					}
+					else if (eventVal == 0xFE) // repeat operation
+					{
+						// should not be here...
+
+						// no prev event set
+					}
+					else
+					{
+						
+					}
+				}
+			}
+		}
+
+		//for (int iii = 0; iii < (lengthHeader - 4); iii+=4) // ignore last 00000180
+		{
+			unsigned long absoluteTime = 0;
+
+			int trackEventCountSub = 0;
+			TrackEvent* trackEventsSub = new TrackEvent[0x30000];
+
+			for (int j = 0; j < 0x30000; j++)
+			{
+				trackEventsSub[j].contents = NULL;
+				trackEventsSub[j].obsoleteEvent = false;
+				trackEventsSub[j].deltaTime = 0;
+				trackEventsSub[j].absoluteTime = 0;
+
+			}
+
+			unsigned long offset = 0; //CharArrayToLong(&inputMID[iii]);
+			
+			int position = offset;	
+
+			//if (position != 0)
+			{
+				tempLong = Flip32Bit(0x4D54726B);
+				fwrite(&tempLong, 1 ,4 , outFile);
+	
+				int previousEventValue = 0;
+
+				std::map<int, int> loopEndsWithCount;
+				std::vector<int> loopNumbers;
+
+				byte* repeatPattern = NULL;
+				byte altOffset = 0;
+				byte altLength = 0;
+
+				bool endFlag = false;
+
+				if (usePitchBendSensitity)
+				{
+					//https://www.midikits.net/midi_analyser/pitch_bend.htm
+
+					for (int iii = 0; iii < numberType0Controllers; iii++)
+					{
+						trackEventsSub[trackEventCountSub].type = 0xB0 | ((iii / 4) & 0xF);
+						trackEventsSub[trackEventCountSub].contentSize = 2;
+						trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+						
+						trackEventsSub[trackEventCountSub].contents[0] = 0x64;
+						trackEventsSub[trackEventCountSub].contents[1] = 0x00;
+
+						trackEventCountSub++;
+
+
+						trackEventsSub[trackEventCountSub].type = 0xB0 | ((iii / 4) & 0xF);
+						trackEventsSub[trackEventCountSub].contentSize = 2;
+						trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+						
+						trackEventsSub[trackEventCountSub].contents[0] = 0x65;
+						trackEventsSub[trackEventCountSub].contents[1] = 0x00;
+
+						trackEventCountSub++;
+
+
+						trackEventsSub[trackEventCountSub].type = 0xB0 | ((iii / 4) & 0xF);
+						trackEventsSub[trackEventCountSub].contentSize = 2;
+						trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+						
+						trackEventsSub[trackEventCountSub].contents[0] = 0x06;
+						if (pitchBendSensitity > 0x18)
+							pitchBendSensitity = 0x18;
+						trackEventsSub[trackEventCountSub].contents[1] = pitchBendSensitity;
+
+						trackEventCountSub++;
+
+						trackEventsSub[trackEventCountSub].type = 0xB0 | ((iii / 4) & 0xF);
+						trackEventsSub[trackEventCountSub].contentSize = 2;
+						trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+						
+						trackEventsSub[trackEventCountSub].contents[0] = 0x64;
+						trackEventsSub[trackEventCountSub].contents[1] = 0x7F;
+
+						trackEventCountSub++;
+
+
+						trackEventsSub[trackEventCountSub].type = 0xB0 | ((iii / 4) & 0xF);
+						trackEventsSub[trackEventCountSub].contentSize = 2;
+						trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+						
+						trackEventsSub[trackEventCountSub].contents[0] = 0x65;
+						trackEventsSub[trackEventCountSub].contents[1] = 0x7F;
+
+						trackEventCountSub++;
+					}
+				}
+
+				while ((position < inputSize) && !endFlag)
+				{
+					if (extendTracksToHighest)
+					{
+						if (absoluteTime >= highestTrackLength)
+						{
+							trackEventsSub[trackEventCountSub].absoluteTime = highestTrackLength;
+							trackEventsSub[trackEventCountSub].deltaTime = (highestTrackLength - absoluteTime);
+
+							trackEventsSub[trackEventCountSub].type = 0xFF;
+							trackEventsSub[trackEventCountSub].contentSize = 2;
+							trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+							
+							trackEventsSub[trackEventCountSub].contents[0] = 0x2F;
+							trackEventsSub[trackEventCountSub].contents[1] = 0x0;
+
+							trackEventCountSub++;
+
+							endFlag = true;
+
+							break;
+						}
+					}
+
+
+					if (trackEventCountSub >= 0x30000)
+					{
+						for (int eventCount = 0; eventCount < trackEventCountSub; eventCount++)
+						{
+							if (trackEventsSub[eventCount].contents != NULL)
+							{
+								delete [] trackEventsSub[eventCount].contents;
+								trackEventsSub[eventCount].contents = NULL;
+							}
+						}
+
+						delete [] trackEventsSub;
+						return;
+					}
+
+					int timePosition = position;
+
+					unsigned long original;
+					// trackEventsSub[trackEventCountSub].deltaTime is for loops
+					unsigned long timeTag = GetVLBytes(inputMID, position, original, repeatPattern, altOffset, altLength, true);
+
+					if (extendTracksToHighest)
+					{
+						if ((absoluteTime + timeTag) > highestTrackLength)
+						{
+							trackEventsSub[trackEventCountSub].absoluteTime = highestTrackLength;
+							trackEventsSub[trackEventCountSub].deltaTime = (highestTrackLength - absoluteTime);
+
+							trackEventsSub[trackEventCountSub].type = 0xFF;
+							trackEventsSub[trackEventCountSub].contentSize = 2;
+							trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+							
+							trackEventsSub[trackEventCountSub].contents[0] = 0x2F;
+							trackEventsSub[trackEventCountSub].contents[1] = 0x0;
+
+							trackEventCountSub++;
+
+							endFlag = true;
+
+							break;
+						}
+					}
+
+					trackEventsSub[trackEventCountSub].deltaTime += timeTag;
+
+					absoluteTime += timeTag;
+					trackEventsSub[trackEventCountSub].absoluteTime = absoluteTime;
+
+					int vlLength = 0;
+					byte eventVal = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					bool statusBit = false;
+
+					if (eventVal < 0x80)
+					{
+						// continuation
+						statusBit = true;
+					}
+					else
+					{
+						statusBit = false;
+					}
+
+					if ((eventVal == 0xFF) || (statusBit && (previousEventValue == 0xFF))) // meta event
+					{
+						byte subType;
+						if (statusBit)
+							subType = eventVal;
+						else
+							subType = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						if (subType == 0x51) // tempo
+						{
+							int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+
+							trackEventsSub[trackEventCountSub].type = 0xFF;
+							trackEventsSub[trackEventCountSub].contentSize = 5;
+							trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+							
+							trackEventsSub[trackEventCountSub].contents[0] = 0x51;
+							trackEventsSub[trackEventCountSub].contents[1] = 0x3;
+							trackEventsSub[trackEventCountSub].contents[2] = ((microsecondsSinceQuarterNote >> 16) & 0xFF);
+							trackEventsSub[trackEventCountSub].contents[3] = ((microsecondsSinceQuarterNote >> 8) & 0xFF);
+							trackEventsSub[trackEventCountSub].contents[4] = ((microsecondsSinceQuarterNote >> 0) & 0xFF);
+
+							trackEventCountSub++;
+
+							
+							int MICROSECONDS_PER_MINUTE = 60000000;
+							float beatsPerMinute = (float)MICROSECONDS_PER_MINUTE / (float)microsecondsSinceQuarterNote;
+						}
+						else if (subType == 0x2D) // end loop
+						{
+							int loopNumber = 0;
+							if (loopNumbers.size() > 0)
+							{
+								loopNumber = loopNumbers.back();
+								loopNumbers.pop_back();
+							}
+
+							// Fake loop end, controller 103
+							for (int iii = 0; iii < numberType0Controllers; iii++)
+							{
+								trackEventsSub[trackEventCountSub].type = 0xB0 | ((iii / 4) & 0xF);
+								trackEventsSub[trackEventCountSub].contentSize = 2;
+								trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+								trackEventsSub[trackEventCountSub].contents[0] = 103;
+								trackEventsSub[trackEventCountSub].contents[1] = loopNumber;
+								trackEventCountSub++;
+							}
+
+							byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+							
+							if ((loopCount == 0xFF) || (loopCount == 0x00))
+							{
+								hasLoopPoint = true;
+								loopEnd = absoluteTime;
+
+								if (extendTracksToHighest)
+								{
+									if (repeatPattern == NULL)
+									{
+										position = position - offsetToBeginningLoop;
+									}
+								}
+							}
+							else
+							{
+								std::map<int, int>::iterator it = loopEndsWithCount.find(position);
+								if (it != loopEndsWithCount.end())
+								{
+									int countLeft = it->second;
+
+									if (countLeft == 0)
+									{
+										loopEndsWithCount.erase(it);
+									}
+									else
+									{
+										loopEndsWithCount[position] = (countLeft - 1);
+
+										if (repeatPattern == NULL)
+										{
+											position = position - offsetToBeginningLoop;
+										}
+										else
+										{
+											loopEndsWithCount.erase(it);
+										}
+									}
+								}
+								else
+								{
+									loopEndsWithCount[position] = loopCount - 1;
+
+									if (repeatPattern == NULL)
+									{
+										position = position - offsetToBeginningLoop;
+									}
+									else
+									{
+										loopEndsWithCount.erase(it);
+									}
+								}
+							}
+						}
+						else if (subType == 0x2E) // start loop
+						{
+							byte loopNumber = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byte endLoop = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true); // Always FF
+							hasLoopPoint = true;
+							loopStart = absoluteTime;
+
+							for (int iii = 0; iii < numberType0Controllers; iii++)
+							{
+								// Fake loop start, controller 102
+								trackEventsSub[trackEventCountSub].type = 0xB0 | ((iii / 4) & 0xF);
+								trackEventsSub[trackEventCountSub].contentSize = 2;
+								trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+								trackEventsSub[trackEventCountSub].contents[0] = 102;
+								trackEventsSub[trackEventCountSub].contents[1] = loopNumber;
+								trackEventCountSub++;
+							}
+
+
+
+							loopNumbers.push_back(loopNumber);
+						}
+						else if (subType == 0x2F)
+						{
+							trackEventsSub[trackEventCountSub].type = 0xFF;
+							trackEventsSub[trackEventCountSub].contentSize = 2;
+							trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+							
+							trackEventsSub[trackEventCountSub].contents[0] = 0x2F;
+							trackEventsSub[trackEventCountSub].contents[1] = 0x0;
+
+							trackEventCountSub++;
+
+							endFlag = true;
+						}
+
+						// In Duck Dodgers not set for FF
+						//if (!statusBit)
+							//previousEventValue = eventVal;
+					}
+					else if ((eventVal >= 0x90 && eventVal < 0xA0) || (statusBit && (previousEventValue >= 0x90) && (previousEventValue < 0xA0)))
+					{
+						byte curEventVal;
+
+						byte noteNumber;
+						if (statusBit)
+						{
+							trackEventsSub[trackEventCountSub].type = previousEventValue;
+							noteNumber = eventVal;
+							curEventVal = previousEventValue;
+						}
+						else
+						{
+							trackEventsSub[trackEventCountSub].type = eventVal;
+							noteNumber = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							curEventVal = eventVal;
+						}
+						byte velocity = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						if (velocity == 0)
+						{
+							bool notFound = true;
+							// Turn off
+							for (int check = (trackEventCountSub - 1); check >= 0; check--)
+							{
+								if (trackEventsSub[check].contents[0] == noteNumber)
+								{
+									trackEventsSub[check].durationTime = absoluteTime - trackEventsSub[check].durationTime;
+									notFound = false;
+									break;
+								}
+							}
+
+							if (notFound)
+							{
+								notFound = notFound;
+							}
+						}
+						else
+						{
+							trackEventsSub[trackEventCountSub].durationTime = 0; // to be filled in
+							trackEventsSub[trackEventCountSub].contentSize = 2;
+							trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+							trackEventsSub[trackEventCountSub].contents[0] = noteNumber;
+							trackEventsSub[trackEventCountSub].contents[1] = velocity;
+
+							trackEventCountSub++;
+						}
+
+						if (!statusBit)
+							previousEventValue = eventVal;
+					}
+					else if (((eventVal >= 0xB0) && (eventVal < 0xC0)) || (statusBit && (previousEventValue >= 0xB0) && (previousEventValue < 0xC0))) // controller change
+					{
+						CString controllerTypeText = "";
+						byte controllerType;
+						
+						if (statusBit)
+						{
+							controllerType = eventVal;
+							trackEventsSub[trackEventCountSub].type = previousEventValue;
+						}
+						else
+						{
+							controllerType = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							trackEventsSub[trackEventCountSub].type = eventVal;
+						}
+						byte controllerValue = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						trackEventsSub[trackEventCountSub].contentSize = 2;
+						trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+						trackEventsSub[trackEventCountSub].contents[0] = controllerType;
+						trackEventsSub[trackEventCountSub].contents[1] = controllerValue;
+
+						trackEventCountSub++;
+
+						if (!statusBit)
+							previousEventValue = eventVal;
+					}
+					else if (((eventVal >= 0xC0) && (eventVal < 0xD0)) || (statusBit && (previousEventValue >= 0xC0) && (previousEventValue < 0xD0))) // change instrument
+					{
+						byte instrument;
+						if (statusBit)
+						{
+							instrument = eventVal;
+							trackEventsSub[trackEventCountSub].type = previousEventValue;
+						}
+						else
+						{
+							instrument = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							trackEventsSub[trackEventCountSub].type = eventVal;
+						}
+
+						trackEventsSub[trackEventCountSub].contentSize = 1;
+						trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+						trackEventsSub[trackEventCountSub].contents[0] = instrument;
+						if (instrument >= numberInstruments)
+							numberInstruments = (instrument + 1);
+
+						trackEventCountSub++;
+
+						if (!statusBit)
+							previousEventValue = eventVal;
+					}
+					else if (((eventVal >= 0xD0) && (eventVal < 0xE0)) || (statusBit && (previousEventValue >= 0xD0) && (previousEventValue < 0xE0))) // channel aftertouch
+					{
+						byte amount;
+						if (statusBit)
+						{
+							amount = eventVal;
+							trackEventsSub[trackEventCountSub].type = previousEventValue;
+						}
+						else
+						{
+							amount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							trackEventsSub[trackEventCountSub].type = eventVal;
+						}
+
+						trackEventsSub[trackEventCountSub].contentSize = 1;
+						trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+						trackEventsSub[trackEventCountSub].contents[0] = amount;
+
+						trackEventCountSub++;
+
+						if (!statusBit)
+							previousEventValue = eventVal;
+					}
+					else if (((eventVal >= 0xE0) && (eventVal < 0xF0)) || (statusBit && (previousEventValue >= 0xE0) && (previousEventValue < 0xF0))) // pitch bend
+					{
+						byte valueLSB;
+						if (statusBit)
+						{
+							valueLSB = eventVal;
+							trackEventsSub[trackEventCountSub].type = previousEventValue;
+						}
+						else
+						{
+							valueLSB = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							trackEventsSub[trackEventCountSub].type = eventVal;
+						}
+						
+						byte valueMSB = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						trackEventsSub[trackEventCountSub].contentSize = 2;
+						trackEventsSub[trackEventCountSub].contents = new byte[trackEventsSub[trackEventCountSub].contentSize];
+						trackEventsSub[trackEventCountSub].contents[0] = valueLSB;
+						trackEventsSub[trackEventCountSub].contents[1] = valueMSB;
+
+						trackEventCountSub++;
+
+						if (!statusBit)
+							previousEventValue = eventVal;
+					}
+					else if (eventVal == 0xFE) // repeat operation
+					{
+						// should not be here...
+
+						// no prev event set
+					}
+					else
+					{
+						fprintf(outFile, "%02X ERROR MISSING PARSE OF TYPE\n", eventVal);
+					}
+
+				}
+
+				for (int eventCount = 0; eventCount < trackEventCountSub; eventCount++)
+				{
+					if (trackEventCountSub >= 0x30000)
+					{
+						fclose(outFile);
+
+						for (int eventCount = 0; eventCount < trackEventCountSub; eventCount++)
+						{
+							if (trackEventsSub[eventCount].contents != NULL)
+							{
+								delete [] trackEventsSub[eventCount].contents;
+								trackEventsSub[eventCount].contents = NULL;
+							}
+						}
+
+						delete [] trackEventsSub;
+						return;
+					}
+
+					TrackEvent trackEvent = trackEventsSub[eventCount];
+					if ((trackEvent.type >= 0x90) && (trackEvent.type < 0xA0))
+					{
+						// need to split out
+						if (trackEvent.durationTime > 0)
+						{
+
+							unsigned long shutoffTime = (trackEvent.absoluteTime + trackEvent.durationTime);
+
+							if (eventCount != (trackEventCountSub - 1))
+							{
+
+								for (int i = (eventCount+1); i < trackEventCountSub; i++)
+								{
+									if ((trackEventsSub[i].absoluteTime >= shutoffTime) && (i != (trackEventCountSub - 1)))
+									{
+										for (int j = (trackEventCountSub - 1); j >= i; j--)
+										{
+											trackEventsSub[j+1].absoluteTime = trackEventsSub[j].absoluteTime;
+											trackEventsSub[j+1].contentSize = trackEventsSub[j].contentSize;
+											if (trackEventsSub[j+1].contents != NULL)
+											{
+												delete [] trackEventsSub[j+1].contents;
+												trackEventsSub[j+1].contents = NULL;
+											}
+											trackEventsSub[j+1].contents = new byte[trackEventsSub[j].contentSize];
+											for (int r = 0; r < trackEventsSub[j].contentSize; r++)
+											{
+												trackEventsSub[j+1].contents[r] = trackEventsSub[j].contents[r];
+											}
+											trackEventsSub[j+1].deltaTime = trackEventsSub[j].deltaTime;
+											trackEventsSub[j+1].durationTime = trackEventsSub[j].durationTime;
+											trackEventsSub[j+1].obsoleteEvent = trackEventsSub[j].obsoleteEvent;
+											trackEventsSub[j+1].type = trackEventsSub[j].type;
+										}
+
+										trackEventsSub[i].type = trackEventsSub[eventCount].type;
+										trackEventsSub[i].absoluteTime = shutoffTime;
+										trackEventsSub[i].deltaTime = (trackEventsSub[i].absoluteTime - trackEventsSub[i-1].absoluteTime);
+										trackEventsSub[i].contentSize = trackEventsSub[eventCount].contentSize;
+										trackEventsSub[i].durationTime = 0;
+
+
+										if (trackEventsSub[i].contents != NULL)
+										{
+											delete [] trackEventsSub[i].contents;
+										}
+
+										trackEventsSub[i].contents = new byte[trackEventsSub[i].contentSize];
+										trackEventsSub[i].contents[0] = trackEventsSub[eventCount].contents[0];
+										trackEventsSub[i].contents[1] = 0;
+
+										trackEventsSub[i+1].deltaTime = (trackEventsSub[i+1].absoluteTime - trackEventsSub[i].absoluteTime);
+
+										if (trackEventsSub[i].deltaTime > 0xFF000000)
+										{
+											int a =1;
+										}
+
+										trackEventCountSub++;
+										break;
+									}
+									else if (i == (trackEventCountSub - 1))
+									{
+										trackEventsSub[i+1].absoluteTime = shutoffTime; // move end to end
+										trackEventsSub[i+1].contentSize = trackEventsSub[i].contentSize;
+										if (trackEventsSub[i+1].contents != NULL)
+										{
+											delete [] trackEventsSub[i+1].contents;
+											trackEventsSub[i+1].contents = NULL;
+										}
+										trackEventsSub[i+1].contents = new byte[trackEventsSub[i].contentSize];
+										for (int r = 0; r < trackEventsSub[i].contentSize; r++)
+										{
+											trackEventsSub[i+1].contents[r] = trackEventsSub[i].contents[r];
+										}
+										trackEventsSub[i+1].deltaTime = trackEventsSub[i].deltaTime;
+										trackEventsSub[i+1].durationTime = trackEventsSub[i].durationTime;
+										trackEventsSub[i+1].obsoleteEvent = trackEventsSub[i].obsoleteEvent;
+										trackEventsSub[i+1].type = trackEventsSub[i].type;
+
+
+										trackEventsSub[i].type = trackEventsSub[eventCount].type;
+										trackEventsSub[i].absoluteTime = shutoffTime;
+										trackEventsSub[i].deltaTime = (trackEventsSub[i].absoluteTime - trackEventsSub[i - 1].absoluteTime);
+										trackEventsSub[i].contentSize = trackEventsSub[eventCount].contentSize;
+										trackEventsSub[i].durationTime = 0;
+
+										if (trackEventsSub[i].contents != NULL)
+										{
+											delete [] trackEventsSub[i].contents;
+										}
+
+										trackEventsSub[i].contents = new byte[trackEventsSub[i].contentSize];
+										trackEventsSub[i].contents[0] = trackEventsSub[eventCount].contents[0];
+										trackEventsSub[i].contents[1] = 0;
+
+										trackEventsSub[i+1].deltaTime = (trackEventsSub[i+1].absoluteTime - trackEventsSub[i].absoluteTime);
+
+										trackEventCountSub++;
+										break;
+									}
+								}
+							}
+							else
+							{
+								trackEventsSub[eventCount+1].absoluteTime = shutoffTime; // move end to end
+								trackEventsSub[eventCount+1].contentSize = trackEventsSub[eventCount].contentSize;
+								if (trackEventsSub[eventCount+1].contents != NULL)
+								{
+									delete [] trackEventsSub[eventCount+1].contents;
+									trackEventsSub[eventCount+1].contents = NULL;
+								}
+								trackEventsSub[eventCount+1].contents = new byte[trackEventsSub[eventCount].contentSize];
+								for (int r = 0; r < trackEventsSub[eventCount].contentSize; r++)
+								{
+									trackEventsSub[eventCount+1].contents[r] = trackEventsSub[eventCount].contents[r];
+								}
+								trackEventsSub[eventCount+1].deltaTime = trackEventsSub[eventCount].deltaTime;
+								trackEventsSub[eventCount+1].durationTime = trackEventsSub[eventCount].durationTime;
+								trackEventsSub[eventCount+1].obsoleteEvent = trackEventsSub[eventCount].obsoleteEvent;
+								trackEventsSub[eventCount+1].type = trackEventsSub[eventCount].type;
+
+
+								trackEventsSub[eventCount].type = trackEventsSub[eventCount].type;
+								trackEventsSub[eventCount].absoluteTime = shutoffTime;
+								if ((trackEventsSub[eventCount].absoluteTime - trackEventsSub[eventCount - 1].absoluteTime) > 0xFF000000)
+								{
+									int a =1;
+								}
+								trackEventsSub[eventCount].deltaTime = (trackEventsSub[eventCount].absoluteTime - trackEventsSub[eventCount - 1].absoluteTime);
+								trackEventsSub[eventCount].contentSize = trackEventsSub[eventCount].contentSize;
+								trackEventsSub[eventCount].durationTime = 0;
+								trackEventsSub[eventCount].contents = new byte[trackEventsSub[eventCount].contentSize];
+								trackEventsSub[eventCount].contents[0] = trackEventsSub[eventCount].contents[0];
+								trackEventsSub[eventCount].contents[1] = 0;
+
+								trackEventsSub[eventCount+1].deltaTime = (trackEventsSub[eventCount+1].absoluteTime - trackEventsSub[eventCount].absoluteTime);
+								if (trackEventsSub[eventCount].deltaTime > 0xFF000000)
+								{
+									int a =1;
+								}
+								trackEventCountSub++;
+							}
+						}
+					}
+				}
+
+				
+				unsigned long timeOffset = 0;
+
+				unsigned long sizeData = 0;
+				byte previousTrackEvent = 0x0;
+
+				
+				for (int j = 0; j < trackEventCountSub; j++)
+				{
+					TrackEvent trackEvent =  trackEventsSub[j];
+					if (trackEvent.obsoleteEvent)
+					{
+						timeOffset += trackEvent.deltaTime;
+					}
+					else
+					{
+						unsigned long lengthTimeDelta = 0;
+						unsigned long timeDelta = ReturnVLBytes((trackEvent.deltaTime + timeOffset), lengthTimeDelta);
+						timeOffset = 0;
+
+						sizeData += lengthTimeDelta;
+
+
+						if ((trackEvent.type != previousTrackEvent) || (trackEvent.type == 0xFF))
+						{
+							sizeData += 1;
+						}
+
+						sizeData += trackEvent.contentSize;
+
+						previousTrackEvent = trackEvent.type;
+					}
+				}
+
+				tempLong = Flip32Bit(sizeData);
+				fwrite(&tempLong,1, 4, outFile);
+
+				timeOffset = 0;
+				previousTrackEvent = 0x0;
+				for (int eventCount = 0; eventCount < trackEventCountSub; eventCount++)
+				{
+					TrackEvent trackEvent = trackEventsSub[eventCount];
+
+					if (trackEvent.obsoleteEvent)
+					{
+						timeOffset += trackEvent.deltaTime;
+					}
+					else
+					{
+						unsigned long lengthTimeDelta = 0;
+						unsigned long timeDelta = ReturnVLBytes((trackEvent.deltaTime + timeOffset), lengthTimeDelta);
+						timeOffset = 0;
+						WriteVLBytes(outFile, timeDelta, lengthTimeDelta, true);
+
+						if ((trackEvent.type != previousTrackEvent) || (trackEvent.type == 0xFF))
+						{
+							fwrite(&trackEvent.type, 1, 1, outFile);
+						}
+
+						fwrite(trackEvent.contents, 1, trackEvent.contentSize, outFile);
+
+						previousTrackEvent = trackEvent.type;
+					}
+				}
+			}
+
+			for (int eventCount = 0; eventCount < trackEventCountSub; eventCount++)
+			{
+				if (trackEventsSub[eventCount].contents != NULL)
+				{
+					delete [] trackEventsSub[eventCount].contents;
+					trackEventsSub[eventCount].contents = NULL;
+				}
+			}
+
+			counterTrack++;
+
+			delete [] trackEventsSub;
+		}
+
+
+
+	
+
+		fflush(outFile);	
+		fclose(outFile);
+	}
+	catch (...)
+	{
+		MessageBox(NULL, "Error exporting", "Error", NULL);
+	}
+}
+
 void CMidiParse::GEMidiToMidi(byte* inputMID, int inputSize, CString outFileName, int& numberInstruments, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool extendTracksToHighest, bool usePitchBendSensitity, int pitchBendSensitity)
 {
 	numberInstruments = 0;
@@ -15286,6 +16320,644 @@ void CMidiParse::GEMidiToDebugTextFile(CString midiFile, CString textFileOut, bo
 	delete [] inputMID;
 }
 
+
+void CMidiParse::DuckDodgersMidiToDebugTextFile(CString midiFile, CString textFileOut, bool extendTracksToHighest)
+{
+	CString filepath = midiFile;
+	
+	FILE* inFile = fopen(filepath, "rb");
+	if (inFile == NULL)
+	{
+		MessageBox(NULL, "Can't read input file " + filepath, "Error", NULL);
+		return;
+	}
+
+	fseek(inFile, 0, SEEK_END);
+	int inputSize = ftell(inFile);
+	rewind(inFile);
+
+	unsigned char* inputMID = new unsigned char[inputSize];
+
+	fread(inputMID, 1, inputSize, inFile);
+	fclose(inFile);
+
+	DuckDodgersMidiToDebugTextFile(inputMID, inputSize, textFileOut, extendTracksToHighest);
+
+	delete [] inputMID;
+}
+
+void CMidiParse::DuckDodgersMidiToDebugTextFile(byte* inputMID, int inputSize, CString textFileOut, bool extendTracksToHighest)
+{
+	FILE* outFile = fopen(textFileOut, "w");
+	if (outFile == NULL)
+	{
+		MessageBox(NULL, "Error outputting file", "Error", NULL);
+		return;
+	}
+
+	unsigned long lengthHeader = 0;
+
+	fprintf(outFile, "Offset Start Midi Events: %08X \n", 0);
+
+	fprintf(outFile, "Tracks\n");
+
+	// parse midi
+	
+	int counterTrack = 0;
+
+	int highestTrackLength = 0;
+
+	//for (int iii = 0; iii < (lengthHeader - 4); iii+=4) // ignore last 00000180
+	{
+		unsigned long absoluteTime = 0;
+
+		unsigned long offset = 0;
+		
+		int position = offset;	
+
+		//if (position != 0)
+		{
+			int previousEventValue = 0;
+
+			std::map<int, int> loopEndsWithCount;
+
+			byte* repeatPattern = NULL;
+			byte altOffset = 0;
+			byte altLength = 0;
+
+			bool endFlag = false;
+
+			while ((position < inputSize) && !endFlag)
+			{
+				int timePosition = position;
+
+				unsigned long original;
+				unsigned long timeTag = GetVLBytes(inputMID, position, original, repeatPattern, altOffset, altLength, true);
+
+				absoluteTime += timeTag;
+
+				if (absoluteTime > highestTrackLength)
+					highestTrackLength = absoluteTime;
+
+
+				int vlLength = 0;
+				byte eventVal = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+				bool statusBit = false;
+
+				if (eventVal < 0x80)
+				{
+					// continuation
+					statusBit = true;
+				}
+				else
+				{
+					statusBit = false;
+				}
+
+				if ((eventVal == 0xFF) || (statusBit && (previousEventValue == 0xFF))) // meta event
+				{
+					byte subType;
+					if (statusBit)
+						subType = eventVal;
+					else
+						subType = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					if (subType == 0x51) // tempo
+					{
+						int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+
+					}
+					else if (subType == 0x2D) // end loop
+					{
+						byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+						
+						if ((loopCount == 0xFF) || (loopCount == 0x00))
+						{
+							break;
+						}
+						else
+						{
+							std::map<int, int>::iterator it = loopEndsWithCount.find(position);
+							if (it != loopEndsWithCount.end())
+							{
+								int countLeft = it->second;
+
+								if (countLeft == 0)
+								{
+									loopEndsWithCount.erase(it);
+								}
+								else
+								{
+									loopEndsWithCount[position] = (countLeft - 1);
+
+									if (repeatPattern == NULL)
+									{
+										position = position - offsetToBeginningLoop;
+									}
+									else
+									{
+										loopEndsWithCount.erase(it);
+									}
+								}
+							}
+							else
+							{
+								loopEndsWithCount[position] = loopCount - 1;
+
+								if (repeatPattern == NULL)
+								{
+									position = position - offsetToBeginningLoop;
+								}
+								else
+								{
+									loopEndsWithCount.erase(it);
+								}
+							}
+						}
+					}
+					else if (subType == 0x2E) // start loop
+					{
+						byte loopNumber = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byte endLoop = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true); // Always FF
+					}
+					else if (subType == 0x2F)
+					{
+						endFlag = true;
+					}
+
+					// Not Duck Dodgers
+					//if (!statusBit)
+						//previousEventValue = eventVal;
+				}
+				else if ((eventVal >= 0x90 && eventVal < 0xA0) || (statusBit && (previousEventValue >= 0x90) && (previousEventValue < 0xA0)))
+				{
+					byte curEventVal;
+
+					byte noteNumber;
+					if (statusBit)
+					{
+						noteNumber = eventVal;
+						curEventVal = previousEventValue;
+					}
+					else
+					{
+						noteNumber = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						curEventVal = eventVal;
+					}
+					byte velocity = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					//unsigned long timeDuration = GetVLBytes(inputMID, position, original, repeatPattern, altOffset, altLength, true);
+
+					if (!statusBit)
+						previousEventValue = eventVal;
+				}
+				else if (((eventVal >= 0xB0) && (eventVal < 0xC0)) || (statusBit && (previousEventValue >= 0xB0) && (previousEventValue < 0xC0))) // controller change
+				{
+					CString controllerTypeText = "";
+					byte controllerType;
+					
+					if (statusBit)
+					{
+						controllerType = eventVal;
+						previousEventValue;
+					}
+					else
+					{
+						controllerType = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						eventVal;
+					}
+					byte controllerValue = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					if (!statusBit)
+						previousEventValue = eventVal;
+				}
+				else if (((eventVal >= 0xC0) && (eventVal < 0xD0)) || (statusBit && (previousEventValue >= 0xC0) && (previousEventValue < 0xD0))) // change instrument
+				{
+					byte instrument;
+					if (statusBit)
+					{
+						instrument = eventVal;
+						previousEventValue;
+					}
+					else
+					{
+						instrument = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						eventVal;
+					}
+
+					if (!statusBit)
+						previousEventValue = eventVal;
+				}
+				else if (((eventVal >= 0xD0) && (eventVal < 0xE0)) || (statusBit && (previousEventValue >= 0xD0) && (previousEventValue < 0xE0))) // channel aftertouch
+				{
+					byte amount;
+					if (statusBit)
+					{
+						amount = eventVal;
+						previousEventValue;
+					}
+					else
+					{
+						amount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						eventVal;
+					}
+
+					if (!statusBit)
+						previousEventValue = eventVal;
+				}
+				else if (((eventVal >= 0xE0) && (eventVal < 0xF0)) || (statusBit && (previousEventValue >= 0xE0) && (previousEventValue < 0xF0))) // pitch bend
+				{
+					byte valueLSB;
+					if (statusBit)
+					{
+						valueLSB = eventVal;
+						previousEventValue;
+					}
+					else
+					{
+						valueLSB = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						eventVal;
+					}
+					
+					byte valueMSB = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					if (!statusBit)
+						previousEventValue = eventVal;
+				}
+				else if (eventVal == 0xFE) // repeat operation
+				{
+					// should not be here...
+
+					// no prev event set
+				}
+				else
+				{
+					
+				}
+			}
+		}
+	}
+
+	//for (int i = 0; i < (lengthHeader - 4); i+=4) // ignore last 00000180
+	{
+		unsigned long offset = 0;
+		fprintf(outFile, "Track %X Offset %X: Track Offset %08X\n", counterTrack, 0, offset);
+
+		int position = offset;	
+
+		
+
+		if (position != 0)
+		{
+			int previousEventValue = 0;
+
+			byte* repeatPattern = NULL;
+			byte altOffset = 0;
+			byte altLength = 0;
+
+			std::map<int, int> loopEndsWithCount;
+
+			int timeAbsolute = 0;
+			bool endFlag = false;
+			while ((position < inputSize) && !endFlag)
+			{
+				int timePosition = position;
+
+				if (extendTracksToHighest)
+				{
+					if (timeAbsolute >= highestTrackLength)
+					{
+						endFlag = true;
+
+						break;
+					}
+				}
+				unsigned long original;
+				unsigned long timeTag = GetVLBytes(inputMID, position, original, repeatPattern, altOffset, altLength, true);
+
+				if (extendTracksToHighest)
+				{
+					if ((timeAbsolute + timeTag) > highestTrackLength)
+					{
+						endFlag = true;
+
+						break;
+					}
+				}
+
+				timeAbsolute += timeTag;
+
+				byte eventVal = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+				bool statusBit = false;
+
+				if (eventVal < 0x80)
+				{
+					// continuation
+					statusBit = true;
+					fprintf(outFile, "Offset: %08X - Event Delta Time: %d -Abs %d (%08X)  -   ", timePosition, timeTag, timeAbsolute, original);
+				}
+				else
+				{
+					statusBit = false;
+					fprintf(outFile, "Offset: %08X - Event Delta Time: %d -Abs %d (%08X) -   ", timePosition, timeTag, timeAbsolute, original);
+				}
+
+				if ((eventVal == 0xFF) || (statusBit && (previousEventValue == 0xFF))) // meta event
+				{
+					byte subType;
+					if (statusBit)
+						subType = eventVal;
+					else
+						subType = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					if (subType == 0x51) // tempo
+					{
+						int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+						int MICROSECONDS_PER_MINUTE = 60000000;
+						float beatsPerMinute = (float)MICROSECONDS_PER_MINUTE / (float)microsecondsSinceQuarterNote;
+
+						if (statusBit)
+							fprintf(outFile, "!%02X%06X - MicroSecondSinceQuarterNote %d (BPM: %f)\n", subType, microsecondsSinceQuarterNote, microsecondsSinceQuarterNote, beatsPerMinute);
+						else
+							fprintf(outFile, "%02X%02X%06X - MicroSecondSinceQuarterNote %d (BPM: %f)\n", eventVal, subType, microsecondsSinceQuarterNote, microsecondsSinceQuarterNote, beatsPerMinute);
+					}
+					else if (subType == 0x2D) // end loop
+					{
+						
+						byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+
+						if (statusBit)
+							fprintf(outFile, "!%02X%02X%02X%08X Count %u LoopCount %u OffsetBeginning %u (%04X)", subType, loopCount, currentLoopCount, offsetToBeginningLoop, loopCount, currentLoopCount, offsetToBeginningLoop, (position - offsetToBeginningLoop));
+						else
+							fprintf(outFile, "%02X%02X%02X%02X%08X Count %u LoopCount %u OffsetBeginning %u (%04X)", eventVal, subType, loopCount, currentLoopCount, offsetToBeginningLoop, loopCount, currentLoopCount, offsetToBeginningLoop, (position - offsetToBeginningLoop));
+						 //meta status byte (0xFF), a loop end subtype byte (0x2D), a loop count byte (0-255), a current loop count (should be the same as the loop count byte), and four bytes that specify the number of bytes difference between the end of the loop end event, and the begining of the loop start event. (note that if this value is calculated before the pattern matching compression takes place, this value will have to be adjusted to compensate for any compression of data that takes place between the loop end and the loop start.) The loop count value should be a zero to loop forever, otherwise it should be set to one less than the number of times the section should repeat. (i.e. to hear a section eight times, you would set the loop count to seven.)
+
+						if ((loopCount == 0xFF) || (loopCount == 0x00))
+						{
+							if (extendTracksToHighest)
+							{
+								if (repeatPattern == NULL)
+								{
+									position = position - offsetToBeginningLoop;
+
+									fprintf(outFile, " ...Going to %08X", position);
+								}
+							}
+						}
+						else
+						{
+							std::map<int, int>::iterator it = loopEndsWithCount.find(position);
+							if (it != loopEndsWithCount.end())
+							{
+								int countLeft = it->second;
+
+								if (countLeft == 0)
+								{
+									loopEndsWithCount.erase(it);
+								}
+								else
+								{
+									loopEndsWithCount[position] = (countLeft - 1);
+
+									if (repeatPattern == NULL)
+									{
+										position = position - offsetToBeginningLoop;
+
+										fprintf(outFile, " ...Going to %08X for count left of %02X", position, loopEndsWithCount[position]);
+									}
+									else
+									{
+										loopEndsWithCount.erase(it);
+									}
+								}
+							}
+							else
+							{
+								loopEndsWithCount[position] = loopCount - 1;
+
+								if (repeatPattern == NULL)
+								{
+									position = position - offsetToBeginningLoop;
+
+									fprintf(outFile, " ...Going to %08X for count left of %02X", position, loopEndsWithCount[position]);
+								}
+								else
+								{
+									loopEndsWithCount.erase(it);
+								}
+							}
+						}
+
+						fprintf(outFile, "\n");
+					}
+					else if (subType == 0x2E) // start loop
+					{
+						byte loopNumber = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byte endLoop = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						if (statusBit)
+							fprintf(outFile, "!%02X%02X%02X Loop #%u\n", subType, loopNumber, endLoop, loopNumber);
+						else
+							fprintf(outFile, "%02X%02X%02X%02X Loop #%u\n", eventVal, subType, loopNumber, endLoop, loopNumber);
+					}
+					else if (subType == 0x2F)
+					{
+						if (statusBit)
+							fprintf(outFile, "!%02X End of Track\n", subType);
+						else
+							fprintf(outFile, "%02X%02X End of Track\n", eventVal, subType);
+						endFlag = true;
+					}
+
+					// Not Duck Dodgers
+					//if (!statusBit)
+						//previousEventValue = eventVal;
+				}
+				else if ((eventVal >= 0x90 && eventVal < 0xA0) || (statusBit && (previousEventValue >= 0x90) && (previousEventValue < 0xA0)))
+				{
+					byte noteNumber;
+					if (statusBit)
+						noteNumber = eventVal;
+					else
+						noteNumber = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+					byte velocity = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					if (statusBit)
+						fprintf(outFile, "!%02X%02X - Midi Channel %d NoteNumber %d Velocity %d\n", noteNumber, velocity, (previousEventValue&0xF), noteNumber, velocity);
+					else
+						fprintf(outFile, "%02X%02X%02X - Midi Channel %d NoteNumber %d Velocity %d\n", eventVal, noteNumber, velocity, (eventVal&0xF), noteNumber, velocity);
+
+					if (!statusBit)
+						previousEventValue = eventVal;
+				}
+				else if (((eventVal >= 0xB0) && (eventVal < 0xC0)) || (statusBit && (previousEventValue >= 0xB0) && (previousEventValue < 0xC0))) // controller change
+				{
+					CString controllerTypeText = "";
+					byte controllerType;
+					if (statusBit)
+						controllerType = eventVal;
+					else
+						controllerType = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+					byte controllerValue = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					if (controllerType == 0x00) controllerTypeText = "BankSelect";
+					else if (controllerType == 0x01) controllerTypeText = "Modulation";
+					else if (controllerType == 0x02) controllerTypeText = "BreathController";
+					else if (controllerType == 0x04) controllerTypeText = "FootController";
+					else if (controllerType == 0x05) controllerTypeText = "PortamentoTime";
+					else if (controllerType == 0x06) controllerTypeText = "DataEntryMSB";
+					else if (controllerType == 0x07) controllerTypeText = "MainVolume";
+					else if (controllerType == 0x08) controllerTypeText = "Balance";
+					else if (controllerType == 0x0A) controllerTypeText = "Pan";
+					else if (controllerType == 0x0B) controllerTypeText = "ExpressionController";
+					else if (controllerType == 0x0C) controllerTypeText = "EffectControl1";
+					else if (controllerType == 0x0D) controllerTypeText = "EffectControl2";
+					else if ((controllerType >= 0x10) && (controllerType <= 0x13)) controllerTypeText = "General-PurposeControllers01/04/09";
+					else if ((controllerType >= 0x20) && (controllerType <= 0x3F)) controllerTypeText = "LSBforcontrollers0-31";
+					else if (controllerType == 0x40) controllerTypeText = "Damperpedalsustain";
+					else if (controllerType == 0x41) controllerTypeText = "Portamento";
+					else if (controllerType == 0x42) controllerTypeText = "Sostenuto";
+					else if (controllerType == 0x43) controllerTypeText = "SoftPedal";
+					else if (controllerType == 0x44) controllerTypeText = "LegatoFootswitch";
+					else if (controllerType == 0x45) controllerTypeText = "Hold2";
+					else if (controllerType == 0x46) controllerTypeText = "SoundController1default:TimberVariation";
+					else if (controllerType == 0x47) controllerTypeText = "SoundController2default:Timber/HarmonicContent";
+					else if (controllerType == 0x48) controllerTypeText = "SoundController3default:ReleaseTime";
+					else if (controllerType == 0x49) controllerTypeText = "SoundController4default:AttackTime";
+					else if ((controllerType >= 0x4A) && (controllerType <= 0x4F)) controllerTypeText = "SoundController06/10/09";
+					else if ((controllerType >= 0x50) && (controllerType <= 0x53)) controllerTypeText = "General-PurposeControllers05/08/09";
+					else if (controllerType == 0x54) controllerTypeText = "PortamentoControl";
+					else if (controllerType == 0x5B) controllerTypeText = "Effects1DepthformerlyExternalEffectsDepth";
+					else if (controllerType == 0x5C) controllerTypeText = "Effects2DepthformerlyTremoloDepth";
+					else if (controllerType == 0x5D) controllerTypeText = "Effects3DepthformerlyChorusDepth";
+					else if (controllerType == 0x5E) controllerTypeText = "Effects4DepthformerlyCelesteDetune";
+					else if (controllerType == 0x5F) controllerTypeText = "Effects5DepthformerlyPhaserDepth";
+					else if (controllerType == 0x60) controllerTypeText = "DataIncrement";
+					else if (controllerType == 0x61) controllerTypeText = "DataDecrement";
+					else if (controllerType == 0x62) controllerTypeText = "Non-RegisteredParameterNumberLSB";
+					else if (controllerType == 0x63) controllerTypeText = "Non-RegisteredParameterNumberMSB";
+					else if (controllerType == 0x64) controllerTypeText = "RegisteredParameterNumberLSB";
+					else if (controllerType == 0x65) controllerTypeText = "RegisteredParameterNumberMSB";
+					else if ((controllerType >= 0x79) && (controllerType <= 0x7F)) controllerTypeText = "ModeMessages";
+
+					if (statusBit)
+						fprintf(outFile, "!%02X%02X - Midi Channel %d ControllerType %d (%s) Value %d\n", controllerType, controllerValue, (previousEventValue&0xF), controllerType, controllerTypeText, controllerValue);
+					else
+						fprintf(outFile, "%02X%02X%02X - Midi Channel %d ControllerType %d (%s) Value %d\n", eventVal, controllerType, controllerValue, (eventVal&0xF), controllerType, controllerTypeText, controllerValue);
+
+					if (!statusBit)
+						previousEventValue = eventVal;
+				}
+				else if (((eventVal >= 0xC0) && (eventVal < 0xD0)) || (statusBit && (previousEventValue >= 0xC0) && (previousEventValue < 0xD0))) // change instrument
+				{
+					byte instrument;
+					if (statusBit)
+						instrument = eventVal;
+					else
+						instrument = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					if (statusBit)
+					{
+						if ((previousEventValue & 0xF) == 9)
+							fprintf(outFile, "!%02X - Midi Channel %d Instrument %d\n", instrument, (previousEventValue&0xF), instrument);
+						else
+							fprintf(outFile, "!%02X - Midi Channel %d Instrument %d\n", instrument, (previousEventValue&0xF), instrument);
+					}
+					else
+					{
+						if ((eventVal & 0xF) == 9)
+							fprintf(outFile, "%02X%02X - Midi Channel %d Instrument %d\n", eventVal, instrument, (eventVal&0xF), instrument);
+						else
+							fprintf(outFile, "%02X%02X - Midi Channel %d Instrument %d\n", eventVal, instrument, (eventVal&0xF), instrument);
+					}
+
+					if (!statusBit)
+						previousEventValue = eventVal;
+				}
+				else if (((eventVal >= 0xD0) && (eventVal < 0xE0)) || (statusBit && (previousEventValue >= 0xD0) && (previousEventValue < 0xE0))) // channel aftertouch
+				{
+					byte amount;
+					if (statusBit)
+						amount = eventVal;
+					else
+						amount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					if (statusBit)
+					{
+						if ((previousEventValue & 0xF) == 9)
+							fprintf(outFile, "!%02X - Midi Channel %d Amount %d\n", amount, (previousEventValue&0xF), amount);
+						else
+							fprintf(outFile, "!%02X - Midi Channel %d Amount %d\n", amount, (previousEventValue&0xF), amount);
+					}
+					else
+					{
+						if ((eventVal & 0xF) == 9)
+							fprintf(outFile, "%02X%02X - Midi Channel %d Amount %d\n", eventVal, amount, (eventVal&0xF), amount);
+						else
+							fprintf(outFile, "%02X%02X - Midi Channel %d Amount %d\n", eventVal, amount, (eventVal&0xF), amount);
+					}
+
+					if (!statusBit)
+						previousEventValue = eventVal;
+				}
+				else if (((eventVal >= 0xE0) && (eventVal < 0xF0)) || (statusBit && (previousEventValue >= 0xE0) && (previousEventValue < 0xF0))) // pitch bend
+				{
+					byte lsb;
+					if (statusBit)
+						lsb = eventVal;
+					else
+						lsb = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					byte msb = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					if (statusBit)
+					{
+						if ((previousEventValue & 0xF) == 9)
+							fprintf(outFile, "!%02X%02X - Midi Channel %d lsb %d msb %d\n", lsb, msb, (previousEventValue&0xF), lsb, msb);
+						else
+							fprintf(outFile, "!%02X%02X - Midi Channel %d lsb %d msb %d\n", lsb, msb, (previousEventValue&0xF), lsb, msb);
+					}
+					else
+					{
+						if ((eventVal & 0xF) == 9)
+							fprintf(outFile, "%02X%02X%02X - Midi Channel %d lsb %d msb %d\n", eventVal, lsb, msb, (eventVal&0xF), lsb, msb);
+						else
+							fprintf(outFile, "%02X%02X%02X - Midi Channel %d lsb %d msb %d\n", eventVal, lsb, msb, (eventVal&0xF), lsb, msb);
+					}
+
+					if (!statusBit)
+						previousEventValue = eventVal;
+				}
+				else if (eventVal == 0xFE) // repeat operation
+				{
+					// should not be here...
+
+					// no prev event set
+				}
+				else
+				{
+					fprintf(outFile, "%02X ERROR MISSING PARSE OF TYPE\n", eventVal);
+				}
+			}
+		}
+		else
+		{
+			fprintf(outFile, "No Track Data\n");
+		}
+
+		fprintf(outFile, "\n");
+		counterTrack++;
+	}
+
+
+	fclose(outFile);
+}
+
 void CMidiParse::MidiToDebugTextFile(CString midiFile, CString textFileOut)
 {
 	CString tempFileName = midiFile;
@@ -18491,6 +20163,12 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 		{
 			
 		}
+	}
+	else if (gameType.CompareNoCase("DuckDodgers") == 0)
+	{
+		DuckDodgersMidiToMidi(&gamebuffer[address], size, fileName, numberInstruments, hasLoopPoint, loopStart, loopEnd, extendTracksToHighest, usePitchBendSensitity, pitchBendSensitity, extra);
+		if (generateDebugTextFile)
+			DuckDodgersMidiToDebugTextFile(&gamebuffer[address], size, fileName + " TrackParseDebug.txt", extendTracksToHighest);
 	}
 	else
 	{

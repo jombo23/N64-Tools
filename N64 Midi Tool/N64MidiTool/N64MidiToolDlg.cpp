@@ -1615,6 +1615,7 @@ void CN64MidiToolDlg::ConvertIntoSpot(CString inputFile)
 			(gameConfig[gameNumber].gameType == "RNCMidi") ||
 			(gameConfig[gameNumber].gameType == "RobotechN64Midi") ||
 			(gameConfig[gameNumber].gameType == "RNCSeq") ||
+			(gameConfig[gameNumber].gameType == "DuckDodgers") ||
 			(gameConfig[gameNumber].gameType == "MultipartZLibXMFastTracker2") ||
 			(gameConfig[gameNumber].gameType == "DCM") ||
 			(gameConfig[gameNumber].gameType == "Aidyn") ||
@@ -2365,6 +2366,11 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("RNCSeq") == 0)
 	{
 		MessageBox("Unsupported RNCSeq Compressed import");
+		return;
+	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("DuckDodgers") == 0)
+	{
+		MessageBox("Unsupported DuckDodgers Compressed import");
 		return;
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("Konami") == 0)

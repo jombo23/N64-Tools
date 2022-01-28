@@ -5816,6 +5816,7 @@ void CN64SoundbankToolDlg::OnCbnSelchangeCombosound()
 				|| (gameConfigMidi[x].gameType.CompareNoCase("DCM") == 0)
 				|| (gameConfigMidi[x].gameType.CompareNoCase("MultipartZLibXMFastTracker2") == 0)
 				|| (gameConfigMidi[x].gameType.CompareNoCase("MIDx") == 0)
+				|| (gameConfigMidi[x].gameType.CompareNoCase("DuckDodgers") == 0)
 			)
 			{
 				mOutputLoop.ShowWindow(SW_HIDE);

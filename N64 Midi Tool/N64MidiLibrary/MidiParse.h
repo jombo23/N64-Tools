@@ -254,6 +254,7 @@ public:
 	CMidiParse(void);
 	~CMidiParse(void);
 
+	void DuckDodgersMidiToMidi(byte* inputMID, int inputSize, CString outFileName, int& numberInstruments, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool extendTracksToHighest, bool usePitchBendSensitity, int pitchBendSensitity, unsigned long division);
 	void GEMidiToMidi(byte* inputMID, int inputSize, CString outFileName, int& numberInstruments, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool extendTracksToHighest, bool usePitchBendSensitity, int pitchBendSensitity);
 	void BTMidiToMidi(byte* inputMID, int inputSize, CString outFileName, int& numberInstruments, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool extendTracksToHighest, bool usePitchBendSensitity, int pitchBendSensitity);
 	void MIDxMidiToMidi(byte* inputMID, int inputSize, CString outFileName, int& numberInstruments);
@@ -275,6 +276,8 @@ public:
 	bool MidiToKonami(CString input, CString output, bool loop, unsigned long loopPoint, int& numberTracks, unsigned char separationAmount, unsigned char echoLength);
 	void GEMidiToDebugTextFile(CString midiFile, CString textFileOut, bool extendTracksToHighest);
 	void GEMidiToDebugTextFile(byte* inputMID, int inputSize, CString textFileOut, bool extendTracksToHighest);
+	void DuckDodgersMidiToDebugTextFile(CString midiFile, CString textFileOut, bool extendTracksToHighest);
+	void DuckDodgersMidiToDebugTextFile(byte* inputMID, int inputSize, CString textFileOut, bool extendTracksToHighest);
 	void MidiToDebugTextFile(CString midiFile, CString textFileOut);
 	void ExportToBin(CString gameName, unsigned char* buffer, unsigned long address, unsigned long size, CString fileName, bool& compressed, unsigned long extra);
 	void ExportToMidi(CString gameName, unsigned char* gamebuffer, int gamebufferSize, unsigned long address, unsigned long size, CString fileName, CString gameType, int& numberInstruments, unsigned long division, bool& compressed, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool calculateInstrumentCountOnly, bool separateByInstrument, bool generateDebugTextFile, unsigned long extra, unsigned long extra2, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, bool isPreview);
