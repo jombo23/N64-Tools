@@ -548,7 +548,7 @@ bool CN64SoundListToolDlg::OpenROMFilename(CString filename, bool quiet)
 	ROM = new unsigned char[romSize];
 	int result = fread(ROM, 1, romSize, inFile);
 
-	if ((CharArrayToLong(&ROM[0]) == 0x37804012) || (filename.Find(".u2") != -1) || (filename.Find(".u3") != -1) || (filename.Find(".u4") != -1))
+	if ((CharArrayToLong(&ROM[0]) == 0x37804012) && (filename.Find(".u2") != -1) && (filename.Find(".u3") != -1) && (filename.Find(".u4") != -1))
 	{
 		for (int x = 0; x < romSize; x=x+2)
 		{
