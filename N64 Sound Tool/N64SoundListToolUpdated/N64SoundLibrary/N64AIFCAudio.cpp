@@ -16427,7 +16427,7 @@ ALBank* CN64AIFCAudio::ReadAudioWDCSFX(unsigned char* ctl, unsigned long& ctlSiz
 	return alBank;
 }
 
-ALBank* CN64AIFCAudio::ReadAudioWDCInstruments(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments)
+ALBank* CN64AIFCAudio::ReadAudioWDCInstruments(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments, unsigned long mask)
 {
 	std::vector<int> instrumentOffset;
 	instrumentOffset.push_back(numberInstruments); // shared samples
@@ -16441,7 +16441,6 @@ ALBank* CN64AIFCAudio::ReadAudioWDCInstruments(unsigned char* ctl, unsigned long
 
 	ALBank* alBank = new ALBank();
 	alBank->soundBankFormat = WDCINSTRUMENTS;
-	alBank->count = instrumentOffset.size() - 1;
 	alBank->flags = 0;
 	alBank->pad = 0;
 	alBank->samplerate = 44100;
@@ -16449,25 +16448,13 @@ ALBank* CN64AIFCAudio::ReadAudioWDCInstruments(unsigned char* ctl, unsigned long
 	alBank->eadPercussion = NULL;
 	alBank->countEADPercussion = 0;
 
-	alBank->inst = new ALInst*[alBank->count];
-
-	for (int x = 0; x < alBank->count; x++)
 	{
-		alBank->inst[x] = new ALInst();
-		alBank->inst[x]->samplerate = 0;
-		alBank->inst[x]->sounds = NULL;
-	}
-
-	for (int x = 0; x < alBank->count; x++)
-	{
-		alBank->inst[x]->soundCount = 0;
-
 		std::vector<int> currentInstrumentOffsetStarts;
 		std::vector<int> predictorOffsets;
 		std::vector<int> sampleOffsets;
 
 		// Precheck sound count
-		int currentInstrumentOffset = instrumentOffset[x];
+		int currentInstrumentOffset = instrumentOffset[mask];
 		while (CSharedFunctions::CharArrayToLong(&ctl[currentInstrumentOffset]) != 0xFFFFFFFF)
 		{
 			int instrumentStart = currentInstrumentOffset;
@@ -16498,7 +16485,6 @@ ALBank* CN64AIFCAudio::ReadAudioWDCInstruments(unsigned char* ctl, unsigned long
 			int ROMSAMPLEDATAOFFSET = currentInstrumentOffset;
 			int ROMSAMPLEDATALENGTH = inputSize / 9 * 9;
 
-			alBank->inst[x]->soundCount++;
 			predictorOffsets.push_back(ROMPREDICTOROFFSET);
 			sampleOffsets.push_back(ROMSAMPLEDATAOFFSET);
 			currentInstrumentOffsetStarts.push_back(instrumentStart);
@@ -16509,49 +16495,61 @@ ALBank* CN64AIFCAudio::ReadAudioWDCInstruments(unsigned char* ctl, unsigned long
 				currentInstrumentOffset++;
 		}
 
-		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+		alBank->count = currentInstrumentOffsetStarts.size();
+		alBank->inst = new ALInst*[alBank->count];
 
-		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		for (int x = 0; x < alBank->count; x++)
 		{
-			alBank->inst[x]->sounds[y] = new ALSound();
+			alBank->inst[x] = new ALInst();
+			alBank->inst[x]->samplerate = 0;
+			alBank->inst[x]->sounds = NULL;
 
-			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
-			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
-			alBank->inst[x]->sounds[y]->flags = 0;
+			alBank->inst[x]->soundCount = 1;
 
-			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
-			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
-			alBank->inst[x]->sounds[y]->wav.base = currentInstrumentOffsetStarts[y];
+			alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
 
-			CWDCAudioDecompression wdcDecompression;
-			
-			int ROMPREDICTOROFFSET = predictorOffsets[y];
-			int ROMPREDICTORLENGTH = 0x80;
-			int ROMSAMPLEDATAOFFSET = sampleOffsets[y];
-
-			unsigned long readValue = CSharedFunctions::CharArrayToLong(ctl, currentInstrumentOffsetStarts[y] + 4);
-			int lowestBits = ((readValue) & 0x1F);
-			int inputSize = ((readValue + 0x1F) >> 5) * 9;
-
-			int outputSize = inputSize * 9;
-
-			alBank->inst[x]->sounds[y]->wav.len = inputSize;
-			alBank->inst[x]->sounds[y]->wav.decompressedLength = outputSize;
-			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
-			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[ROMSAMPLEDATAOFFSET], alBank->inst[x]->sounds[y]->wav.len);
-			
-			alBank->inst[x]->sounds[y]->wav.adpcmWave = new ALADPCMWaveInfo();
-			alBank->inst[x]->sounds[y]->wav.adpcmWave->loop = NULL;
-			alBank->inst[x]->sounds[y]->wav.adpcmWave->book = new ALADPCMBook();
-			alBank->inst[x]->sounds[y]->wav.adpcmWave->book->order = 2;
-			alBank->inst[x]->sounds[y]->wav.adpcmWave->book->npredictors = 4;
-			alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors = new signed short[0x40];
-			for (int p = 0; p < 0x40; p++)
+			int y = 0;
 			{
-				alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[p] = CSharedFunctions::CharArrayToShort(ctl, ROMPREDICTOROFFSET + p * 2);
-			}
+				alBank->inst[x]->sounds[y] = new ALSound();
 
-			alBank->inst[x]->sounds[y]->wav.type = AL_WDC;
+				alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+				alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+				alBank->inst[x]->sounds[y]->flags = 0;
+
+				alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+				alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+				alBank->inst[x]->sounds[y]->wav.base = currentInstrumentOffsetStarts[x];
+
+				CWDCAudioDecompression wdcDecompression;
+				
+				int ROMPREDICTOROFFSET = predictorOffsets[x];
+				int ROMPREDICTORLENGTH = 0x80;
+				int ROMSAMPLEDATAOFFSET = sampleOffsets[x];
+
+				unsigned long readValue = CSharedFunctions::CharArrayToLong(ctl, currentInstrumentOffsetStarts[x] + 4);
+				int lowestBits = ((readValue) & 0x1F);
+				int inputSize = ((readValue + 0x1F) >> 5) * 9;
+
+				int outputSize = inputSize * 9;
+
+				alBank->inst[x]->sounds[y]->wav.len = inputSize;
+				alBank->inst[x]->sounds[y]->wav.decompressedLength = outputSize;
+				alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+				memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[ROMSAMPLEDATAOFFSET], alBank->inst[x]->sounds[y]->wav.len);
+				
+				alBank->inst[x]->sounds[y]->wav.adpcmWave = new ALADPCMWaveInfo();
+				alBank->inst[x]->sounds[y]->wav.adpcmWave->loop = NULL;
+				alBank->inst[x]->sounds[y]->wav.adpcmWave->book = new ALADPCMBook();
+				alBank->inst[x]->sounds[y]->wav.adpcmWave->book->order = 2;
+				alBank->inst[x]->sounds[y]->wav.adpcmWave->book->npredictors = 4;
+				alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors = new signed short[0x40];
+				for (int p = 0; p < 0x40; p++)
+				{
+					alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[p] = CSharedFunctions::CharArrayToShort(ctl, ROMPREDICTOROFFSET + p * 2);
+				}
+
+				alBank->inst[x]->sounds[y]->wav.type = AL_WDC;
+			}
 		}
 	}
 	return alBank;

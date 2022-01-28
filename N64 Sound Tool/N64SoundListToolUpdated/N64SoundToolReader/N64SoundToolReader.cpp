@@ -744,7 +744,7 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			}
 			else if (gameConfig.gameType.CompareNoCase("WDCInstruments") == 0)
 			{
-				results[numberResults].bank = n64AudioLibrary.ReadAudioWDCInstruments(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig.soundBanks[x].numberInstruments);
+				results[numberResults].bank = n64AudioLibrary.ReadAudioWDCInstruments(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig.soundBanks[x].numberInstruments, gameConfig.soundBanks[x].mask);
 			}
 			else if (gameConfig.gameType.CompareNoCase("ExciteBikeSFX") == 0)
 			{

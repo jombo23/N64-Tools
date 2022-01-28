@@ -10455,7 +10455,7 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					}
 					else if (gameConfig[y].gameType.CompareNoCase("WDCInstruments") == 0)
 					{
-						results[numberResults].bank = n64AudioLibrary.ReadAudioWDCInstruments(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig[y].soundBanks[x].numberInstruments);
+						results[numberResults].bank = n64AudioLibrary.ReadAudioWDCInstruments(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig[y].soundBanks[x].numberInstruments, gameConfig[y].soundBanks[x].mask);
 					}
 					else if (gameConfig[y].gameType.CompareNoCase("ExciteBikeSFX") == 0)
 					{
