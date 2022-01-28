@@ -213,6 +213,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MKMythologiesDecode.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\n643docompression.cpp"
 				>
 			</File>
@@ -352,6 +356,10 @@
 			</File>
 			<File
 				RelativePath=".\MidwayDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MKMythologiesDecode.h"
 				>
 			</File>
 			<File

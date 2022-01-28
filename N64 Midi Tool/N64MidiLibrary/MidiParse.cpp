@@ -27,6 +27,7 @@
 #include "QuakeDecoder.h"
 #include "ViewpointDecoder.h"
 #include "HexenDecoder.h"
+#include "MKMythologiesDecode.h"
 
 #include <algorithm>
 #include <map>
@@ -18394,6 +18395,38 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			RncDecoder decode;
 			unsigned char* outputDecompressed = new unsigned char[0x50000];
 			int expectedSize = decode.unpackM1(&gamebuffer[address], outputDecompressed, 0x0000, fileSizeCompressed);
+			
+			FILE* outFile = fopen(fileName, "wb");
+			if (outFile == NULL)
+			{
+				MessageBox(NULL, "Cannot Write File", "Error", NULL);
+				return;
+			}
+			for (int x = 0; x < expectedSize; x++)
+			{
+				fwrite(&outputDecompressed[x], 1, 1, outFile);
+			}
+			fclose(outFile);
+
+			GEMidiToMidi(outputDecompressed, expectedSize, fileName, numberInstruments, hasLoopPoint, loopStart, loopEnd, extendTracksToHighest, usePitchBendSensitity, pitchBendSensitity);
+			if (generateDebugTextFile)
+				GEMidiToDebugTextFile(outputDecompressed, expectedSize, fileName + " TrackParseDebug.txt", extendTracksToHighest);
+
+			delete [] outputDecompressed;
+		}
+		else
+		{
+			
+		}
+	}
+	else if (gameType.CompareNoCase("RobotechN64Midi") == 0)
+	{
+		if (compressed)
+		{
+			int fileSizeCompressed = -1;
+			CMKMythologiesDecode decode;
+			unsigned char* outputDecompressed = new unsigned char[0x50000];
+			int expectedSize = decode.dec(&gamebuffer[address], fileSizeCompressed, extra, outputDecompressed);
 			
 			FILE* outFile = fopen(fileName, "wb");
 			if (outFile == NULL)

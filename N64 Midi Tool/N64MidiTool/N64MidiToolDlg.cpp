@@ -1613,6 +1613,7 @@ void CN64MidiToolDlg::ConvertIntoSpot(CString inputFile)
 			(gameConfig[gameNumber].gameType == "MidiLZSSWilliams") ||
 			(gameConfig[gameNumber].gameType == "TitusMidi") ||
 			(gameConfig[gameNumber].gameType == "RNCMidi") ||
+			(gameConfig[gameNumber].gameType == "RobotechN64Midi") ||
 			(gameConfig[gameNumber].gameType == "RNCSeq") ||
 			(gameConfig[gameNumber].gameType == "MultipartZLibXMFastTracker2") ||
 			(gameConfig[gameNumber].gameType == "DCM") ||
@@ -2351,10 +2352,14 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 		MessageBox("Unsupported Titus Midi Compressed import");
 		return;
 	}
-
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("RNCMidi") == 0)
 	{
 		MessageBox("Unsupported RNCMidi Compressed import");
+		return;
+	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("RobotechN64Midi") == 0)
+	{
+		MessageBox("Unsupported RobotechN64Midi Compressed import");
 		return;
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("RNCSeq") == 0)
