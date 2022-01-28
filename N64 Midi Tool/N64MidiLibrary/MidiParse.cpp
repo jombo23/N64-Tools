@@ -26,6 +26,7 @@
 #include "AidynToDCMConvertor.h"
 #include "QuakeDecoder.h"
 #include "ViewpointDecoder.h"
+#include "HexenDecoder.h"
 
 #include <algorithm>
 #include <map>
@@ -1709,7 +1710,7 @@ void CMidiParse::ParseSngTrack(int trackNumber, int& numberInstruments, std::vec
 			currentTempo = (unsigned long)(60000000.0 / (float)120.0);
 
 			// Mini not using tempo?
-			if (sngStyle == SngStyle::Normal || ((sngStyle == SngStyle::Old) && (trackNumber > 0)) || ((sngStyle == SngStyle::OldDD) && (trackNumber > 0)))
+			if (sngStyle == SngStyle::Normal || ((sngStyle == SngStyle::Old) && (trackNumber > 0)) || ((sngStyle == SngStyle::HexenSng) && (trackNumber > 0)) || ((sngStyle == SngStyle::OldDD) && (trackNumber > 0)))
 			{
 				for (int y = 0; y < tempoPositions.size(); y++)
 				{
@@ -1812,7 +1813,7 @@ void CMidiParse::ParseSngTrack(int trackNumber, int& numberInstruments, std::vec
 					unsigned char note = buffer[drumNoteOffset + 5];
 
 					int instrument;
-					if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::OldBfx) || (sngStyle == SngStyle::PtrBfx))
+					if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng) || (sngStyle == SngStyle::OldBfx) || (sngStyle == SngStyle::PtrBfx))
 					{
 						instrument = instrumentIndex;
 						if (instrument > numberInstruments)
@@ -1983,7 +1984,7 @@ void CMidiParse::ParseSngTrack(int trackNumber, int& numberInstruments, std::vec
 				//fprintf(outFile, " Instrument");
 				//fprintf(outFile, " %02X (Looked up %02X)", buffer[spot], instrumentLookup[buffer[spot]]);
 
-				if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::OldBfx) || (sngStyle == SngStyle::PtrBfx))
+				if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng) || (sngStyle == SngStyle::OldBfx) || (sngStyle == SngStyle::PtrBfx))
 				{
 					currentInstrument = GetSngVariableLength(buffer, spot);
 					if (currentInstrument > numberInstruments)
@@ -2055,7 +2056,7 @@ void CMidiParse::ParseSngTrack(int trackNumber, int& numberInstruments, std::vec
 
 				currentTempo = (unsigned long)(60000000.0 / (float)tempo);
 
-				if (((sngStyle == SngStyle::Normal) && (trackNumber == -1)) || ((sngStyle == SngStyle::Old) && (trackNumber == 0))|| ((sngStyle == SngStyle::OldDD) && (trackNumber == 0)))// Master Track
+				if (((sngStyle == SngStyle::Normal) && (trackNumber == -1)) || ((sngStyle == SngStyle::Old) && (trackNumber == 0))  || ((sngStyle == SngStyle::HexenSng) && (trackNumber == 0)) || ((sngStyle == SngStyle::OldDD) && (trackNumber == 0)))// Master Track
 				{
 					tempoPositions.push_back(TimeAndValue(absoluteTime, currentTempo));
 				}
@@ -3175,6 +3176,231 @@ void CMidiParse::SngToDebugTextFile(CString gameName, unsigned long address, byt
 
 		fclose(outFile);
 	}
+	else if ((CharArrayToLong(&inputMID[0x0]) == 0x00000010) && (CharArrayToLong(&inputMID[0x4]) == 0x00000050) && (CharArrayToLong(&inputMID[0x8]) == 0x00000094)) // HexenSng Style
+	{
+		FILE* outFile = fopen(textFileOut, "w");
+		if (outFile == NULL)
+		{
+			MessageBox(NULL,"Can't open output file " + textFileOut, "Error", NULL);
+			return;
+		}
+
+		fprintf(outFile, gameName + " - " + addressStr + "\n");
+		fprintf(outFile, "HexenSng Song Style\n\n");
+
+		unsigned long numberTracks = CharArrayToLong(&inputMID[0x0]);
+		//unsigned long numberInstruments = CharArrayToLong(&inputMID[0x8]);
+		unsigned long trackPointer = 0x10;
+		unsigned long volumePointer = CharArrayToLong(&inputMID[0x4]);
+		unsigned long pitchBendPointer = 0;
+		unsigned long drumPointer = CharArrayToLong(&inputMID[0xC]);
+		unsigned long adsrPointer = CharArrayToLong(&inputMID[0x8]);
+
+		//unsigned long instrumentPointer = CharArrayToLong(&inputMID[0x20]);
+		unsigned long instrumentPointer = 0x00000000;
+		
+		//FILE* outFile = fopen("C:\\temp\\trackparse.txt", "w");
+
+		/*//fprintf(outFile, "Instruments: %08X\n", instrumentPointer);
+		for (int x = 0; x < numberInstruments; x++)
+		{
+			//fprintf(outFile, "%02X: %04X\n", x, CharArrayToShort(&inputMID[instrumentPointer + (2 * x)]));
+		}
+
+		//fprintf(outFile, "\n\n---------------------------\nMaster Track: %08X\n---------------------------\n", masterTrackPointer);
+
+		unsigned long trackDataPointerFirst = CharArrayToLong(&inputMID[trackPointer]);
+		SngTrackToDebugTextFile(outFile, inputMID, masterTrackPointer, trackDataPointerFirst, instrumentPointer, adsrPointer, drumPointer);
+		*/
+
+		unsigned long tempo = 0;
+
+		for (int x = 0; x < numberTracks; x++)
+		{
+			unsigned long trackDataPointer = CharArrayToLong(&inputMID[trackPointer + (x * 4)]);
+
+			unsigned long volumeDataPointer = CharArrayToLong(&inputMID[volumePointer + (x * 4)]);
+			unsigned long volumeEnd = 0;
+
+			unsigned long pitchBendDataPointer = 0; //CharArrayToLong(&inputMID[pitchBendPointer + (x * 4)]);
+			unsigned long pitchBendEnd = 0;
+
+			std::vector<SngTimeValue> volumeByAbsoluteTime;
+			if (volumeDataPointer != 0)
+			{
+				for (int y = (x + 1); y < numberTracks; y++)
+				{
+					unsigned long volumeDataPointerTest = CharArrayToLong(&inputMID[volumePointer + (y * 4)]);
+			
+					if (volumeDataPointerTest != 0)
+					{
+						volumeEnd = volumeDataPointerTest;
+						break;
+					}
+				}
+
+				if (volumeEnd == 0)
+				{
+					if (pitchBendDataPointer != 0)
+					{
+						for (int y = 0; y < numberTracks; y++)
+						{
+							unsigned long pitchBendDataPointerTest = CharArrayToLong(&inputMID[pitchBendPointer + (y * 4)]);
+
+							if (pitchBendDataPointerTest != 0)
+							{
+								volumeEnd = pitchBendDataPointerTest;
+								break;
+							}
+						}
+					}
+
+					if (volumeEnd == 0)
+					{
+						// First track
+						volumeEnd = CharArrayToLong(&inputMID[trackPointer]);;
+					}
+				}
+			}
+
+			std::vector<SngTimeValue> pitchBendByAbsoluteTime;
+			if (pitchBendDataPointer != 0)
+			{
+				for (int y = (x + 1); y < numberTracks; y++)
+				{
+					unsigned long pitchBendDataPointerTest = CharArrayToLong(&inputMID[pitchBendPointer + (y * 4)]);
+			
+					if (pitchBendDataPointerTest != 0)
+					{
+						pitchBendEnd = pitchBendDataPointerTest;
+						break;
+					}
+				}
+
+				if (pitchBendEnd == 0)
+				{
+					pitchBendEnd = CharArrayToLong(&inputMID[trackPointer]);
+				}
+			}
+
+			
+			unsigned long trackEnd = 0x00000000;
+			if (trackDataPointer != 0x00000000)
+			{
+				if (x < (numberTracks - 1))
+				{
+					trackEnd = CharArrayToLong(&inputMID[trackPointer + ((x + 1) * 4)]);
+
+					if (trackEnd == 0x00000000)
+						trackEnd = inputSize;
+				}
+				else
+				{
+					trackEnd = inputSize;
+				}
+			}
+
+
+			fprintf(outFile, "\n\n------------------------------------------------------\nTrack %d: %08X Volume Start %08X Volume End %08X\n------------------------------------------------------\n", x + 1, trackDataPointer, volumeDataPointer, volumeEnd);
+
+			if (volumeDataPointer != 0)
+			{
+				//fprintf(outFile, "\nVolume\n");
+				unsigned long absoluteTime = 0;
+				unsigned long spot = volumeDataPointer;
+				while (spot < volumeEnd)
+				{
+					unsigned char volume = inputMID[spot];
+					bool singleLength = !(volume & 0x80);
+
+					volume = volume & 0x7F;
+					spot++;
+
+					int length = 1;
+					if (!singleLength)
+					{
+						length = GetSngVariableLength(inputMID, spot) + 2;
+
+						if (length < 0x82)
+						{
+							fprintf(outFile, "%08X Time: %08X Volume %02X Length %02X (%d)\n", spot-1, absoluteTime, volume, inputMID[spot], length);
+							spot++;
+						}
+						else
+						{
+							fprintf(outFile, "%08X Time: %08X Volume %02X Length %02X%02X (%d)\n", spot-1, absoluteTime, volume, inputMID[spot], inputMID[spot+1], length);
+							spot += 2;
+						}
+					}
+					else
+					{
+						fprintf(outFile, "%08X Time: %08X Volume %02X Length 01*\n", spot-1, absoluteTime, volume);
+					}
+
+					SngTimeValue volumePair;
+					volumePair.value = volume;
+					volumePair.startAbsoluteTime = absoluteTime;
+					volumePair.endAbsoluteTime = absoluteTime + length;
+					volumeByAbsoluteTime.push_back(volumePair);
+
+					absoluteTime += length;
+				}
+			}
+
+
+
+			if (pitchBendDataPointer != 0)
+			{
+				fprintf(outFile, "\nPitch Bend\n");
+				unsigned long absoluteTime = 0;
+				unsigned long spot = pitchBendDataPointer;
+				while (spot < pitchBendEnd)
+				{
+					unsigned char pitchBend = inputMID[spot];
+					bool singleLength = !(pitchBend & 0x80);
+
+					pitchBend = pitchBend & 0x7F;
+					spot++;
+
+					int length = 1;
+					if (!singleLength)
+					{
+						length = GetSngVariableLength(inputMID, spot) + 2;
+
+						if (length < 0x82)
+						{
+							fprintf(outFile, "%08X Time: %08X PitchBend %02X (%d) Length %02X (%d)\n", spot-1, absoluteTime, pitchBend, (signed char)(pitchBend - 0x40), inputMID[spot], length);
+							spot++;
+						}
+						else
+						{
+							fprintf(outFile, "%08X Time: %08X PitchBend %02X (%d) Length %02X%02X (%d)\n", spot-1, absoluteTime, pitchBend, (signed char)(pitchBend - 0x40), inputMID[spot], inputMID[spot+1], length);
+							spot += 2;
+						}
+					}
+					else
+					{
+						fprintf(outFile, "%08X Time: %08X PitchBend %02X (%d) Length 01*\n", spot-1, absoluteTime, pitchBend, (signed char)(pitchBend - 0x40));
+					}
+
+					SngTimeValue pitchBendPair;
+					pitchBendPair.value = pitchBend;
+					pitchBendPair.startAbsoluteTime = absoluteTime;
+					pitchBendPair.endAbsoluteTime = pitchBendPair.startAbsoluteTime + length;
+					pitchBendByAbsoluteTime.push_back(pitchBendPair);
+
+					absoluteTime += length;
+				}
+			}
+
+
+			fprintf(outFile, "\nTrack Data\n");
+
+			SngTrackToDebugTextFile(outFile, inputMID, trackDataPointer, trackEnd, instrumentPointer, adsrPointer, drumPointer, SngStyle::HexenSng, -1);
+		}
+
+		fclose(outFile);
+	}
 	else // Old Style
 	{
 		unsigned long numberTracks = CharArrayToLong(&inputMID[0x0]);
@@ -3483,7 +3709,7 @@ void CMidiParse::SngTrackToDebugTextFile(FILE* outFile, unsigned char* inputMID,
 				unsigned char pan = inputMID[drumNoteOffset + 4];
 				unsigned char note = inputMID[drumNoteOffset + 5];
 
-				if (sngStyle == SngStyle::Old)
+				if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 					fprintf(outFile, " Drum Instrument %02X Address %08X Pan %02X Note %02X", instrumentIndex, drumNoteOffset, pan, note);
 				else
 					fprintf(outFile, " Drum Instrument %02X (Looked up %02X) Address %08X Pan %02X Note %02X", instrumentIndex, CharArrayToShort(&inputMID[instrumentPointer + (instrumentIndex * 2)]), drumNoteOffset, pan, note);
@@ -3509,7 +3735,7 @@ void CMidiParse::SngTrackToDebugTextFile(FILE* outFile, unsigned char* inputMID,
 				//XX, Instrument # In List
 				fprintf(outFile, " Instrument");
 				int instrument = GetSngVariableLength(inputMID, spot);
-				if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::OldBfx) || (sngStyle == SngStyle::PtrBfx))
+				if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng) || (sngStyle == SngStyle::OldBfx) || (sngStyle == SngStyle::PtrBfx))
 				{
 					if (instrument < 0x80)
 					{
@@ -3628,7 +3854,7 @@ void CMidiParse::SngTrackToDebugTextFile(FILE* outFile, unsigned char* inputMID,
 			else if (command == 0x8B)
 			{
 				//LL Set Length notes following and disable in list (variable time)
-				if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::OldDD))
+				if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng) || (sngStyle == SngStyle::OldDD))
 				{
 					fprintf(outFile, " Set Length Notes and Disable in Note Format");
 					
@@ -5321,6 +5547,221 @@ void CMidiParse::SngToMidi(byte* inputMID, int inputSize, CString outFileName, i
 			}
 
 			delete [] instrumentLookup;
+		}
+		else if ((CharArrayToLong(&inputMID[0x0]) == 0x00000010) && (CharArrayToLong(&inputMID[0x4]) == 0x00000050) && (CharArrayToLong(&inputMID[0x8]) == 0x00000094)) // HexenSng Style
+		{
+			unsigned long numberTracks = CharArrayToLong(&inputMID[0x0]);
+			//unsigned long numberInstruments = CharArrayToLong(&inputMID[0x8]);
+			unsigned long trackPointer = 0x10;
+			unsigned long volumePointer = CharArrayToLong(&inputMID[0x4]);
+			unsigned long pitchBendPointer = 0;
+			unsigned long drumPointer = CharArrayToLong(&inputMID[0xC]);
+			unsigned long adsrPointer = CharArrayToLong(&inputMID[0x8]);
+
+			//unsigned long instrumentPointer = CharArrayToLong(&inputMID[0x20]);
+			unsigned long instrumentPointer = 0x00000000;
+			
+			//FILE* outFile = fopen("C:\\temp\\trackparse.txt", "w");
+
+			/*//fprintf(outFile, "Instruments: %08X\n", instrumentPointer);
+			for (int x = 0; x < numberInstruments; x++)
+			{
+				//fprintf(outFile, "%02X: %04X\n", x, CharArrayToShort(&inputMID[instrumentPointer + (2 * x)]));
+			}
+
+			//fprintf(outFile, "\n\n---------------------------\nMaster Track: %08X\n---------------------------\n", masterTrackPointer);
+
+			unsigned long trackDataPointerFirst = CharArrayToLong(&inputMID[trackPointer]);
+			SngTrackToDebugTextFile(outFile, inputMID, masterTrackPointer, trackDataPointerFirst, instrumentPointer, adsrPointer, drumPointer);
+			*/
+
+			unsigned long tempo = 0;
+
+			for (int x = 0; x < numberTracks; x++)
+			{
+				unsigned long trackDataPointer = CharArrayToLong(&inputMID[trackPointer + (x * 4)]);
+
+				unsigned long volumeDataPointer = CharArrayToLong(&inputMID[volumePointer + (x * 4)]);
+				unsigned long volumeEnd = 0;
+
+				unsigned long pitchBendDataPointer = 0; //CharArrayToLong(&inputMID[pitchBendPointer + (x * 4)]);
+				unsigned long pitchBendEnd = 0;
+
+				std::vector<SngTimeValue> volumeByAbsoluteTime;
+				if (volumeDataPointer != 0)
+				{
+					for (int y = (x + 1); y < numberTracks; y++)
+					{
+						unsigned long volumeDataPointerTest = CharArrayToLong(&inputMID[volumePointer + (y * 4)]);
+				
+						if (volumeDataPointerTest != 0)
+						{
+							volumeEnd = volumeDataPointerTest;
+							break;
+						}
+					}
+
+					if (volumeEnd == 0)
+					{
+						if (pitchBendDataPointer != 0)
+						{
+							for (int y = 0; y < numberTracks; y++)
+							{
+								unsigned long pitchBendDataPointerTest = CharArrayToLong(&inputMID[pitchBendPointer + (y * 4)]);
+
+								if (pitchBendDataPointerTest != 0)
+								{
+									volumeEnd = pitchBendDataPointerTest;
+									break;
+								}
+							}
+						}
+
+						if (volumeEnd == 0)
+						{
+							// First track
+							volumeEnd = CharArrayToLong(&inputMID[trackPointer]);;
+						}
+					}
+				}
+
+				std::vector<SngTimeValue> pitchBendByAbsoluteTime;
+				if (pitchBendDataPointer != 0)
+				{
+					for (int y = (x + 1); y < numberTracks; y++)
+					{
+						unsigned long pitchBendDataPointerTest = CharArrayToLong(&inputMID[pitchBendPointer + (y * 4)]);
+				
+						if (pitchBendDataPointerTest != 0)
+						{
+							pitchBendEnd = pitchBendDataPointerTest;
+							break;
+						}
+					}
+
+					if (pitchBendEnd == 0)
+					{
+						pitchBendEnd = CharArrayToLong(&inputMID[trackPointer]);
+					}
+				}
+
+				
+				unsigned long trackEnd = 0x00000000;
+				if (trackDataPointer != 0x00000000)
+				{
+					if (x < (numberTracks - 1))
+					{
+						trackEnd = CharArrayToLong(&inputMID[trackPointer + ((x + 1) * 4)]);
+
+						if (trackEnd == 0x00000000)
+							trackEnd = inputSize;
+					}
+					else
+					{
+						trackEnd = inputSize;
+					}
+				}
+
+
+				//fprintf(outFile, "\n\n------------------------------------------------------\nTrack %d: %08X Volume Start %08X Volume End %08X\n------------------------------------------------------\n", x + 1, trackDataPointer, volumeDataPointer, volumeEnd);
+
+				if (volumeDataPointer != 0)
+				{
+					//fprintf(outFile, "\nVolume\n");
+					unsigned long absoluteTime = 0;
+					unsigned long spot = volumeDataPointer;
+					while (spot < volumeEnd)
+					{
+						unsigned char volume = inputMID[spot];
+						bool singleLength = !(volume & 0x80);
+
+						volume = volume & 0x7F;
+						spot++;
+
+						int length = 1;
+						if (!singleLength)
+						{
+							length = GetSngVariableLength(inputMID, spot) + 2;
+
+							if (length < 0x82)
+							{
+								//fprintf(outFile, "%08X Time: %08X Volume %02X Length %02X (%d)\n", spot-1, absoluteTime, volume, inputMID[spot], length);
+								spot++;
+							}
+							else
+							{
+								//fprintf(outFile, "%08X Time: %08X Volume %02X Length %02X%02X (%d)\n", spot-1, absoluteTime, volume, inputMID[spot], inputMID[spot+1], length);
+								spot += 2;
+							}
+						}
+						else
+						{
+							//fprintf(outFile, "%08X Time: %08X Volume %02X Length 01*\n", spot-1, absoluteTime, volume);
+						}
+
+						SngTimeValue volumePair;
+						volumePair.value = volume;
+						volumePair.startAbsoluteTime = absoluteTime;
+						volumePair.endAbsoluteTime = absoluteTime + length;
+						volumeByAbsoluteTime.push_back(volumePair);
+
+						absoluteTime += length;
+					}
+				}
+
+
+
+				if (pitchBendDataPointer != 0)
+				{
+					//fprintf(outFile, "\nPitch Bend\n");
+					unsigned long absoluteTime = 0;
+					unsigned long spot = pitchBendDataPointer;
+					while (spot < pitchBendEnd)
+					{
+						unsigned char pitchBend = inputMID[spot];
+						bool singleLength = !(pitchBend & 0x80);
+
+						pitchBend = pitchBend & 0x7F;
+						spot++;
+
+						int length = 1;
+						if (!singleLength)
+						{
+							length = GetSngVariableLength(inputMID, spot) + 2;
+
+							if (length < 0x82)
+							{
+								//fprintf(outFile, "%08X Time: %08X PitchBend %02X (%d) Length %02X (%d)\n", spot-1, absoluteTime, pitchBend, (signed char)(pitchBend - 0x40), inputMID[spot], length);
+								spot++;
+							}
+							else
+							{
+								//fprintf(outFile, "%08X Time: %08X PitchBend %02X (%d) Length %02X%02X (%d)\n", spot-1, absoluteTime, pitchBend, (signed char)(pitchBend - 0x40), inputMID[spot], inputMID[spot+1], length);
+								spot += 2;
+							}
+						}
+						else
+						{
+							//fprintf(outFile, "%08X Time: %08X PitchBend %02X (%d) Length 01*\n", spot-1, absoluteTime, pitchBend, (signed char)(pitchBend - 0x40));
+						}
+
+						SngTimeValue pitchBendPair;
+						pitchBendPair.value = pitchBend;
+						pitchBendPair.startAbsoluteTime = absoluteTime;
+						pitchBendPair.endAbsoluteTime = pitchBendPair.startAbsoluteTime + length;
+						pitchBendByAbsoluteTime.push_back(pitchBendPair);
+
+						absoluteTime += length;
+					}
+				}
+
+
+				//fprintf(outFile, "\nTrack Data\n");
+
+				ParseSngTrack(x, numberInstruments, tempoPositions, sngNoteList, inputMID, trackDataPointer, trackEnd, NULL, adsrPointer, drumPointer, volumeByAbsoluteTime, pitchBendByAbsoluteTime, SngStyle::HexenSng, noteUniqueId, -1);
+			}
+
+			//fclose(outFile);
 		}
 		else // Old Style
 		{
@@ -8136,6 +8577,64 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 			// ADSR Release Rate
 			outputBuffer[outputPosition++] = 0x03;
 		}
+		else if (sngStyle == SngStyle::HexenSng)
+		{
+			if ((numChannels % 0x10) != 0)
+				numChannels = numChannels + (0x10 - (numChannels % 0x10));
+
+			WriteLongToBuffer(outputBuffer, 0x0, numChannels);
+			outputPosition += 4;
+
+			// Track Offset
+			trackOffsetsPointersStart = 0x00000010;
+			WriteLongToBuffer(outputBuffer, 0x4, trackOffsetsPointersStart);
+
+			outputPosition = 0x10;
+			outputPosition += (numChannels * 0x4);
+
+			// Write Volume tracks
+			WriteLongToBuffer(outputBuffer, 0x4, outputPosition);
+
+			volumePointersStart = outputPosition;
+			outputPosition += (numChannels * 0x4);
+
+			// Write PitchBend tracks
+			//WriteLongToBuffer(outputBuffer, 0xC, outputPosition);
+
+			//pitchBendPointersStart = outputPosition;
+			//outputPosition += (numChannels * 0x4);
+
+			// Skip Drums
+			WriteLongToBuffer(outputBuffer, 0xC, outputPosition);
+
+			// Empty drums
+			WriteLongToBuffer(outputBuffer, outputPosition, 0);
+			outputPosition += 4;
+
+			// Skip ADSR
+			WriteLongToBuffer(outputBuffer, 0x8, outputPosition);
+
+			// ADSR Rate
+			outputBuffer[outputPosition++] = 0x01;
+
+			// ADSR Start Level
+			outputBuffer[outputPosition++] = 0x7F;
+
+			// ADSR Attack Rate
+			outputBuffer[outputPosition++] = 0x01;
+
+			// ADSR Peak Level
+			outputBuffer[outputPosition++] = 0x7F;
+
+			// ADSR Decay Rate
+			outputBuffer[outputPosition++] = 0x20;
+
+			// ADSR Sustain Level
+			outputBuffer[outputPosition++] = 0x7F;
+
+			// ADSR Release Rate
+			outputBuffer[outputPosition++] = 0x03;
+		}
 		else if (sngStyle == SngStyle::OldBfx)
 		{
 			WriteLongToBuffer(outputBuffer, 0x0, numChannels);
@@ -8191,7 +8690,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 		// Data starts now
 		unsigned long absoluteTime = 0;
 
-		if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+		if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 		{
 			for (int x = 0; x < numChannels; x++)
 			{
@@ -8566,7 +9065,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 
 		for (int x = 0; x < numChannels; x++)
 		{
-			if (sngStyle == SngStyle::Old)
+			if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 			{
 				if (channels[x].size() == 0)
 				{
@@ -8589,7 +9088,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 			{
 				WriteLongToBuffer(outputBuffer, trackOffsetsPointersStart + (x * 8), outputPosition);	
 			}
-			else if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::OldBfx))
+			else if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng) || (sngStyle == SngStyle::OldBfx))
 			{
 				WriteLongToBuffer(outputBuffer, trackOffsetsPointersStart + (x * 4), outputPosition);	
 			}
@@ -8610,7 +9109,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 						outputBuffer[outputPosition++] = 0x95;
 						outputBuffer[outputPosition++] = 0xFF;
 
-						if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+						if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 						{
 							sharedChannelVelocity = false;
 							outputBuffer[outputPosition++] = 0x99;
@@ -8624,7 +9123,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 
 						while (delta > 0)
 						{
-							if (sngStyle == SngStyle::Old)
+							if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 							{
 								if (!sharedChannelVelocity)
 								{
@@ -8652,7 +9151,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 						outputBuffer[outputPosition++] = 0x95;
 						outputBuffer[outputPosition++] = 0xFF;
 
-						if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+						if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 						{
 							sharedChannelVelocity = false;
 							outputBuffer[outputPosition++] = 0x99;
@@ -8665,7 +9164,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 
 					while (delta > 0)
 					{
-						if (sngStyle == SngStyle::Old)
+						if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 						{
 							if (!sharedChannelVelocity)
 							{
@@ -8692,7 +9191,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 						delta = WriteSngVariableLength(outputBuffer, outputPosition, delta);
 					}
 
-					if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+					if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 					{
 						if (sharedChannelVelocity)
 						{
@@ -8723,7 +9222,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 					outputBuffer[outputPosition++] = 0x95;
 					outputBuffer[outputPosition++] = 0xFF;
 
-					if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+					if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 					{
 						sharedChannelVelocity = false;
 						outputBuffer[outputPosition++] = 0x99;
@@ -8734,7 +9233,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 						setLength = false;
 						outputBuffer[outputPosition++] = 0xAC;
 					}
-					else if (sngStyle == SngStyle::Old)
+					else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 					{
 						setLength = false;
 						outputBuffer[outputPosition++] = 0x8B;
@@ -8752,7 +9251,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 				outputBuffer[outputPosition++] = 0x87;
 				outputBuffer[outputPosition++] = 0x01;
 
-				if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+				if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 				{
 					// Reenable velocity on notes
 					sharedChannelVelocity = false;
@@ -8763,7 +9262,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 						setLength = false;
 						outputBuffer[outputPosition++] = 0xAC;
 					}
-					else if (sngStyle == SngStyle::Old)
+					else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 					{
 						setLength = false;
 						outputBuffer[outputPosition++] = 0x8B;
@@ -8779,7 +9278,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 				outputBuffer[outputPosition++] = 0x8D;
 				outputBuffer[outputPosition++] = 0x00;
 
-				if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+				if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 				{
 					outputBuffer[outputPosition++] = 0x90;
 					outputBuffer[outputPosition++] = 0x00;
@@ -8804,7 +9303,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 
 				for (int y = 0; y < channels[x].size(); y++)
 				{
-					if (sngStyle == SngStyle::Old)
+					if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 					{
 						if (x == 0)
 						{
@@ -8827,7 +9326,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 														setLength = false;
 														outputBuffer[outputPosition++] = 0xAC;
 													}
-													else if (sngStyle == SngStyle::Old)
+													else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 													{
 														setLength = false;
 														outputBuffer[outputPosition++] = 0x8B;
@@ -8842,7 +9341,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 											{
 												outputBuffer[outputPosition++] = 0x60;
 
-												if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+												if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 												{
 													// Don't try and share, but if is, is ok
 													if (!sharedChannelVelocity)
@@ -8879,7 +9378,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 													setLength = false;
 													outputBuffer[outputPosition++] = 0xAC;
 												}
-												else if (sngStyle == SngStyle::Old)
+												else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 												{
 													setLength = false;
 													outputBuffer[outputPosition++] = 0x8B;
@@ -8894,7 +9393,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 										{
 											outputBuffer[outputPosition++] = 0x60;
 
-											if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+											if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 											{
 												// Don't try and share, but if is, is ok
 												if (!sharedChannelVelocity)
@@ -8963,7 +9462,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 									setLength = false;
 									outputBuffer[outputPosition++] = 0xAC;
 								}
-								else if (sngStyle == SngStyle::Old)
+								else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 								{
 									setLength = false;
 									outputBuffer[outputPosition++] = 0x8B;
@@ -8978,7 +9477,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 						{
 							outputBuffer[outputPosition++] = 0x60;
 
-							if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+							if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 							{
 								// Don't try and share, but if is, is ok
 								if (!sharedChannelVelocity)
@@ -9001,7 +9500,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 						outputBuffer[outputPosition++] = 0x95;
 						outputBuffer[outputPosition++] = 0xFF;
 
-						if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+						if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 						{
 							sharedChannelVelocity = false;
 							outputBuffer[outputPosition++] = 0x99;
@@ -9011,7 +9510,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 								setLength = false;
 								outputBuffer[outputPosition++] = 0xAC;
 							}
-							else if (sngStyle == SngStyle::Old)
+							else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 							{
 								setLength = false;
 								outputBuffer[outputPosition++] = 0x8B;
@@ -9070,7 +9569,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 									{
 										outputBuffer[outputPosition++] = 0xAC;
 									}
-									else if (sngStyle == SngStyle::Old)
+									else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 									{
 										outputBuffer[outputPosition++] = 0x8B;
 										outputBuffer[outputPosition++] = 0x00;
@@ -9129,7 +9628,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 
 						if (!sharedChannelVelocity)
 						{
-							if (sngStyle == SngStyle::Old)
+							if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 							{
 								if (countSameVelocity >= 3)
 								{
@@ -9149,7 +9648,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 					
 						if (!sharedChannelVelocity)
 						{
-							if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+							if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 							{
 								// Should be same as previous velocity, the rest velocity
 								outputBuffer[outputPosition] = channels[x][y].velocity;
@@ -9193,7 +9692,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 								}
 							}
 						}
-						else if ((sngStyle == SngStyle::OldBfx) || (sngStyle == SngStyle::Old))
+						else if ((sngStyle == SngStyle::OldBfx) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 						{
 							outputBuffer[outputPosition++] = 0x81;
 
@@ -9248,7 +9747,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 								{
 									outputBuffer[outputPosition++] = 0xAC;
 								}
-								else if (sngStyle == SngStyle::Old)
+								else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 								{
 									outputBuffer[outputPosition++] = 0x8B;
 									outputBuffer[outputPosition++] = 0x00;
@@ -9304,7 +9803,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 							break;
 					}
 
-					if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+					if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 					{
 						if (sharedChannelVelocity)
 						{
@@ -9318,7 +9817,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 
 					if (!sharedChannelVelocity)
 					{
-						if (sngStyle == SngStyle::Old)
+						if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 						{
 							if (countSameVelocity >= 3)
 							{
@@ -9364,7 +9863,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 
 					if (!sharedChannelVelocity)
 					{
-						if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+						if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 						{
 							outputBuffer[outputPosition] = tempSongInfo.velocity;
 							if (sngStyle == SngStyle::Normal)
@@ -9393,7 +9892,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 					{
 						outputBuffer[outputPosition++] = 0xAC;
 					}
-					else if (sngStyle == SngStyle::Old)
+					else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 					{
 						outputBuffer[outputPosition++] = 0x8B;
 						outputBuffer[outputPosition++] = 0x00;
@@ -9415,7 +9914,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 								setLength = false;
 								outputBuffer[outputPosition++] = 0xAC;
 							}
-							else if (sngStyle == SngStyle::Old)
+							else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 							{
 								setLength = false;
 								outputBuffer[outputPosition++] = 0x8B;
@@ -9429,7 +9928,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 					while (delta > 0)
 					{
 						outputBuffer[outputPosition++] = 0x60;
-						if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+						if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 						{
 							if (!sharedChannelVelocity)
 							{
@@ -9451,7 +9950,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 					outputBuffer[outputPosition++] = 0x95;
 					outputBuffer[outputPosition++] = 0xFF;
 
-					if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+					if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 					{
 						sharedChannelVelocity = false;
 						outputBuffer[outputPosition++] = 0x99;
@@ -9461,7 +9960,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 							setLength = false;
 							outputBuffer[outputPosition++] = 0xAC;
 						}
-						else if (sngStyle == SngStyle::Old)
+						else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 						{
 							setLength = false;
 							outputBuffer[outputPosition++] = 0x8B;
@@ -9483,7 +9982,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 							setLength = false;
 							outputBuffer[outputPosition++] = 0xAC;
 						}
-						else if (sngStyle == SngStyle::Old)
+						else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 						{
 							setLength = false;
 							outputBuffer[outputPosition++] = 0x8B;
@@ -9497,7 +9996,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 				while (delta > 0)
 				{
 					outputBuffer[outputPosition++] = 0x60;
-					if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old))
+					if ((sngStyle == SngStyle::Normal) || (sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
 					{
 						if (!sharedChannelVelocity)
 						{
@@ -15826,6 +16325,27 @@ void CMidiParse::ExportToBin(CString gameName, unsigned char* buffer, unsigned l
 
 			delete [] outputDecompressed;
 		}
+		else if (gameName.CompareNoCase("HexenSng") == 0)
+		{
+			int fileSizeCompressed = -1;
+			CHexenDecoder decode;
+			unsigned char* outputDecompressed = new unsigned char[0x50000];
+			int expectedSize = decode.decode(&buffer[address], outputDecompressed);
+
+			FILE* outFile = fopen(fileName, "wb");
+			if (outFile == NULL)
+			{
+				MessageBox(NULL, "Cannot Write File", "Error", NULL);
+				return;
+			}
+			for (int x = 0; x < expectedSize; x++)
+			{
+				fwrite(&outputDecompressed[x], 1, 1, outFile);
+			}
+			fclose(outFile);
+
+			delete [] outputDecompressed;
+		}
 		else if (gameName.CompareNoCase("ASMICSng") == 0)
 		{
 			int fileSizeCompressed = -1;
@@ -16384,6 +16904,26 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			RncDecoder decode;
 			unsigned char* outputDecompressed = new unsigned char[0x50000];
 			int expectedSize = decode.unpackM1(&gamebuffer[address], outputDecompressed, 0x0000, fileSizeCompressed);
+			
+			SngToMidi(outputDecompressed, expectedSize, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra);
+			if (generateDebugTextFile)
+				SngToDebugTextFile(gameName, address, outputDecompressed, expectedSize, fileName + " TrackParseDebug.txt", extra);
+
+			delete [] outputDecompressed;
+		}
+		else
+		{
+			
+		}
+	}
+	else if (gameType.CompareNoCase("HexenSng") == 0)
+	{
+		if (compressed)
+		{
+			int fileSizeCompressed = -1;
+			CHexenDecoder decode;
+			unsigned char* outputDecompressed = new unsigned char[0x50000];
+			int expectedSize = decode.decode(&gamebuffer[address], outputDecompressed);
 			
 			SngToMidi(outputDecompressed, expectedSize, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra);
 			if (generateDebugTextFile)

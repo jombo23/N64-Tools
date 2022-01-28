@@ -20,6 +20,7 @@
 #include "..\N64MidiLibrary\NaganoDecoder.h"
 #include "..\N64MidiLibrary\QuakeDecoder.h"
 #include "..\N64MidiLibrary\ViewpointDecoder.h"
+#include "..\N64MidiLibrary\HexenDecoder.h"
 
 CMidiParse CN64MidiToolReader::midiParse;
 GECompression CN64MidiToolReader::compress;
@@ -1047,6 +1048,34 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 				RncDecoder decode;
 				unsigned char* outputDecompressed = new unsigned char[0x50000];
 				int expectedSize = decode.unpackM1(&buffer[gameConfig[gameNumber].midiBanks[x].start], outputDecompressed, 0x0000, fileSizeCompressed);
+
+				midiParse.SngToMidi(outputDecompressed, expectedSize, "asdasdaw43.mid", numberInstTemp, true, separateByInstrument, gameConfig[gameNumber].midiBanks[x].extra);
+
+				if (numberInstTemp > numberInstruments)
+					numberInstruments = numberInstTemp;
+				delete [] outputDecompressed;
+				::DeleteFile("asdasdaw43.mid");
+			}
+		}
+	}
+	else if (gameName.CompareNoCase("HexenSng") == 0)
+	{
+		compressed = true;
+
+		for (int x = 0; x < gameConfig[gameNumber].numberMidis; x++)
+		{
+			CString tempSpotStr;
+			tempSpotStr.Format("%08X:%08X", gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start));
+			addMidiStrings.push_back(tempSpotStr);
+			numberMidiStrings++;
+
+			if (calculateInstrumentCount)
+			{
+				int numberInstTemp = 0;
+				int fileSizeCompressed = -1;
+				CHexenDecoder decode;
+				unsigned char* outputDecompressed = new unsigned char[0x50000];
+				int expectedSize = decode.decode(&buffer[gameConfig[gameNumber].midiBanks[x].start], outputDecompressed);
 
 				midiParse.SngToMidi(outputDecompressed, expectedSize, "asdasdaw43.mid", numberInstTemp, true, separateByInstrument, gameConfig[gameNumber].midiBanks[x].extra);
 

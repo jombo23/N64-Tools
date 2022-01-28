@@ -193,6 +193,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\HexenDecoder.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\LZARIDecoder.cpp"
 				>
 			</File>
@@ -324,6 +328,10 @@
 			</File>
 			<File
 				RelativePath=".\H20Decoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\HexenDecoder.h"
 				>
 			</File>
 			<File

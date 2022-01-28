@@ -258,6 +258,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\HexenDecoder.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\MarioTennisDecoder.cpp"
 				>
 			</File>
@@ -432,6 +436,10 @@
 			</File>
 			<File
 				RelativePath=".\H20Decoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\HexenDecoder.h"
 				>
 			</File>
 			<File

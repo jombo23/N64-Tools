@@ -760,6 +760,120 @@ BOOL CGEDecompressorDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
+	/*FILE* inTemp = fopen("C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\Hexen (U) [!].z64", "rb");
+	unsigned char* Buffer = new unsigned char[0x02000000];
+	fread(Buffer, 1, 0x02000000, inTemp);
+	fclose(inTemp);
+
+	unsigned char* outputBuffer = new unsigned char[0x1000000];
+	CHexenDecoder hexenDec;
+	int sizeDecode = hexenDec.decode(&Buffer[0x7B31F0], outputBuffer);
+
+	FILE* a = fopen("C:\\temp\\hexendecompressed.bin", "wb");
+	fwrite(outputBuffer, 1, sizeDecode, a);
+	fflush(a);
+	fclose(a);
+	delete [] outputBuffer;
+	delete [] Buffer;*/
+
+	/*FILE* inTemp = fopen("C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\Turok 3\\Turok 3 June 6 2000 Fix 2 RNC.rom", "rb");
+	unsigned char* Buffer = new unsigned char[0x02000000];
+	fread(Buffer, 1, 0x02000000, inTemp);
+	fclose(inTemp);
+
+	std::vector<int> offsetTestLocations;
+	offsetTestLocations.push_back(0xD96CB4);
+	offsetTestLocations.push_back(0x10E3A74);
+	offsetTestLocations.push_back(0x132EC44);
+	offsetTestLocations.push_back(0x13CF164);
+	offsetTestLocations.push_back(0x14F5E34);
+	offsetTestLocations.push_back(0x15BBC6C);
+	offsetTestLocations.push_back(0x1626D34);
+	offsetTestLocations.push_back(0x1776DB4);
+	offsetTestLocations.push_back(0x179EAFC);
+	offsetTestLocations.push_back(0x180BF8C);
+	offsetTestLocations.push_back(0x181F334);
+	offsetTestLocations.push_back(0x1838CAC);
+	offsetTestLocations.push_back(0x1893EA4);
+	offsetTestLocations.push_back(0x1A08FD4);
+	offsetTestLocations.push_back(0x1A8A8E4);
+	offsetTestLocations.push_back(0x1B7DAD4);
+	offsetTestLocations.push_back(0x1C9E20C);
+	offsetTestLocations.push_back(0x1C9EF94);
+	offsetTestLocations.push_back(0x1CABF94);
+	offsetTestLocations.push_back(0x1CAE96C);
+	offsetTestLocations.push_back(0x1CC7BBC);
+	offsetTestLocations.push_back(0x1CD4F4C);
+	offsetTestLocations.push_back(0x1CF32F4);
+	offsetTestLocations.push_back(0x1D1F0B4);
+	offsetTestLocations.push_back(0x1D9D99C);
+	//offsetTestLocations.push_back(0x00D96DDC); // Good one
+
+
+	RncDecoder rnc;
+	for (int indexer = 0; indexer < offsetTestLocations.size(); indexer++)
+	{
+		FILE* outFile = fopen("C:\\temp\\fix.txt", "a");
+		fprintf(outFile, "---%08X---\n", offsetTestLocations[indexer]);
+		fflush(outFile);
+		fclose(outFile);
+			
+		int offsetTest = offsetTestLocations[indexer];
+		int expectedCompressed;
+		int expectedDecompressed;
+		
+		int failure = rnc.getLengths(&Buffer[offsetTest], expectedDecompressed, expectedCompressed);
+		if (!failure)
+		{
+			for (int testSpot = 18; testSpot < (18 + expectedCompressed - 1); testSpot++)
+			{
+				// 1byte errors
+				//for (int check = 0; check < 255; check++)
+				// 2byte errors
+				for (int check = 0; check < 65535; check++)
+				{
+					unsigned char* inputTest = new unsigned char[18 + expectedCompressed + 100000];
+					for (int x = 0; x < (18 + expectedCompressed); x++)
+						inputTest[x] = Buffer[offsetTest+x];
+
+					//1byte error
+					//inputTest[testSpot] = ((check) & 0xFF);
+
+					//2byte errors
+					inputTest[testSpot] = ((check >> 8) & 0xFF);
+					inputTest[testSpot + 1] = check & 0xFF;
+
+					unsigned char* outputDecompressed = new unsigned char[0x1000000];
+					int compressedSize = -1;
+					
+					int fileSize = rnc.unpackM1(inputTest, outputDecompressed, 0x0000, compressedSize);
+
+					if (fileSize > 0)
+					{
+						int badSpot = offsetTest + testSpot;
+						badSpot = badSpot;
+
+						FILE* outFile = fopen("C:\\temp\\fix.txt", "a");
+						fprintf(outFile, "%08X-%04X(%04X):%04X\n", offsetTest, offsetTest + testSpot, testSpot, check);
+						fflush(outFile);
+						fclose(outFile);
+						CString tempStr;
+						tempStr.Format("%08X_%04X_%04X_%04X", offsetTest, offsetTest + testSpot, testSpot, check);
+						FILE* outBin = fopen("C:\\temp\\" + tempStr + ".bin", "wb");
+						fwrite(outputDecompressed, 1, expectedDecompressed, outBin);
+						fflush(outBin);
+						fclose(outBin);
+					}
+
+					delete [] outputDecompressed;
+					delete [] inputTest;
+				}
+			}
+		}
+	}
+
+	delete [] Buffer;*/
+
 	/*FILE* inTemp = fopen("C:\\temp\\SE0924.PTR", "rb");
 	unsigned char* tempChar = new unsigned char[0x00004FDC];
 	fread(tempChar, 1, 0x00004FDC, inTemp);
@@ -1192,6 +1306,7 @@ fclose(outComb);
 	m_gameselection.AddString("New Tetris");
 	m_gameselection.AddString("Command and Conquer");
 	m_gameselection.AddString("Rogue Squadron");
+	m_gameselection.AddString("Hexen");
 
 
 	m_gameselection.SetCurSel(2);
@@ -3690,10 +3805,38 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 		}
 		else if (gameNameStr == "Banjo Tooie")
 		{
+			int romSize = 0;
+			unsigned char* GameBuffer = NULL;
+			CString folderPath;
+			if (ReadROM(gameNameStr, strROMPath, GameBuffer, romSize, folderPath))
+			{
+				ReceivedNewROM(dlg, strROMPath, GameBuffer, romSize);
+			}
+			int region = GameBuffer[0x3E];
+			delete [] GameBuffer;
+
 			int game = GetZLibGameName(gameNameStr);
 			compressed.SetGame(game);
-			DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x5188, 0x11A24 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
-			DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x1E899B0, 0x1E8A77C , 4, BANJOTOOIE, 0x1E899B0, 0, 1, 0x10);
+			if (region == 0x4A) // (J)
+			{
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x00005148, 0x00012AE4 , 4, BANJOTOOIE, 0x00012AE4, 8, 4, 0);
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x01E308D0, 0x01E316A0 , 4, BANJOTOOIE, 0x01E308D0, 0, 1, 0x10);
+			}
+			else if (region == 0x55) // (A)
+			{
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x00005148, 0x00012AE4 , 4, BANJOTOOIE, 0x00012AE4, 8, 4, 0);
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x01E18A80, 0x01E1984C , 4, BANJOTOOIE, 0x01E18A80, 0, 1, 0x10);
+			}
+			else if (region == 0x50) // (E)
+			{
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x00005148, 0x00012AE4 , 4, BANJOTOOIE, 0x00012AE4, 8, 4, 0);
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x01E8DA70, 0x01E8E840 , 4, BANJOTOOIE, 0x01E8DA70, 0, 1, 0x10);
+			}
+			else if (region == 0x45) // (U)
+			{
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x5188, 0x11A24 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x1E899B0, 0x1E8A77C , 4, BANJOTOOIE, 0x1E899B0, 0, 1, 0x10);
+			}
 			
 			return 0;
 		}
@@ -3756,7 +3899,7 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 						AddRowData(dlg, offset, (next - offset), (next - offset), "", mp3Name, "MP3");
 					}
 				}
-				else if ((GameBuffer[0x20] == 0x43) && (GameBuffer[0x2B] == 0x20)) // retail NTSC
+				else if ((GameBuffer[0x20] == 0x43) && (GameBuffer[0x2B] == 0x20) && (GameBuffer[0x3E] == 0x45)) // retail NTSC
 				{
 					int game = GetZLibGameName(gameNameStr);
 					compressed.SetGame(game);
@@ -3888,7 +4031,53 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 				}
 				else if ((GameBuffer[0x20] == 0x43) && (GameBuffer[0x2B] == 0x44)) // Debug Conker
 				{
-					
+					for (unsigned long x = 0x0136A6B8; x < 0x0136B528; x+=8)
+					{	
+						if (dlg->killThread)
+							break;
+
+						unsigned long offset = (0x0136A6B8 + CharArrayToLong(&GameBuffer[x]));
+						CString mp3Name;
+						mp3Name.Format("%s%06X.mp3", folderPath, offset);
+						// write mp3s
+						CString tempFullFileName;
+						FILE* outFileTemp = fopen(mp3Name, "wb");
+
+						unsigned long next;
+						if (x == 0x0136B520)
+							next = 0x02A00508;
+						else
+							next = (0x0136A6B8 + CharArrayToLong(&GameBuffer[x+0x8]));
+						fwrite(&GameBuffer[offset], 1, (next - offset), outFileTemp);
+						fclose(outFileTemp);
+
+						AddRowData(dlg, offset, (next - offset), (next - offset), "", mp3Name, "MP3");
+					}
+				}
+				else if ((GameBuffer[0x20] == 0x43) && (GameBuffer[0x2B] == 0x20) && (GameBuffer[0x3E] == 0x50)) // retail PAL
+				{
+					for (unsigned long x = 0x013313B8; x < 0x01332228; x+=8)
+					{	
+						if (dlg->killThread)
+							break;
+
+						unsigned long offset = (0x013313B8 + CharArrayToLong(&GameBuffer[x]));
+						CString mp3Name;
+						mp3Name.Format("%s%06X.mp3", folderPath, offset);
+						// write mp3s
+						CString tempFullFileName;
+						FILE* outFileTemp = fopen(mp3Name, "wb");
+
+						unsigned long next;
+						if (x == 0x01332220)
+							next = 0x029B0C78;
+						else
+							next = (0x013313B8 + CharArrayToLong(&GameBuffer[x+0x8]));
+						fwrite(&GameBuffer[offset], 1, (next - offset), outFileTemp);
+						fclose(outFileTemp);
+
+						AddRowData(dlg, offset, (next - offset), (next - offset), "", mp3Name, "MP3");
+					}
 				}
 				
 				ToUpdateProgressBar(dlg, 100, 100);
@@ -5385,6 +5574,95 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 					{
 						AddRowData(dlg, x, fileSizeCompressed, fileSizeUncompressed, "", tempLocation, type);
 					}
+				}
+				
+				delete [] GameBuffer;
+			}	
+		}
+		else if (gameNameStr == "Hexen")
+		{
+			// US Only
+			int game = 1; // placeholder
+			int romSize = 0;
+			unsigned char* GameBuffer = NULL;
+			CString folderPath;
+
+			if (ReadROM(gameNameStr, strROMPath, GameBuffer, romSize, folderPath))
+			{
+				ReceivedNewROM(dlg, strROMPath, GameBuffer, romSize);
+				
+				int fileTableStart = 0x007A3500;
+				int fileTableEnd = 0x007B31F0;
+				int fileDataStart = 0x00173D70;
+
+				if (GameBuffer[0x0000003E] == 0x45) // US
+				{
+					fileTableStart = 0x007A3500;
+					fileTableEnd = 0x007B31F0;
+					fileDataStart = 0x00173D70;
+				}
+				else if (GameBuffer[0x0000003E] == 0x4A) //J
+				{
+					fileTableStart = 0x007B6D68;
+					fileTableEnd = 0x007C7228;
+					fileDataStart = 0x00184CC0;
+				}
+				else if (GameBuffer[0x0000003E] == 0x44) //G
+				{
+					fileTableStart = 0x007A1650;
+					fileTableEnd = 0x007B13C0;
+					fileDataStart = 0x00172C50;
+				}
+				else if (GameBuffer[0x0000003E] == 0x46) //F
+				{
+					fileTableStart = 0x007A40A8;
+					fileTableEnd = 0x007B3D98;
+					fileDataStart = 0x00176040;
+				}
+				else if (GameBuffer[0x0000003E] == 0x50) //E
+				{
+					fileTableStart = 0x007A0410;
+					fileTableEnd = 0x007B0100;
+					fileDataStart = 0x00174AD0;
+				}
+
+				for (unsigned long x = fileTableStart; x < fileTableEnd; x+=0x10)
+				{	
+					if (dlg->killThread)
+						break;
+					ToUpdateProgressBar(dlg, x, romSize);
+					CString tempLocation;
+					int fileSizeCompressed = -1;
+					CString type = "WAD";
+					
+					int fileDataOffset = fileDataStart + CharArrayToLong(&GameBuffer[x]);
+					if (fileDataStart == fileDataOffset)
+						continue;
+
+					CHexenDecoder hexDecoder;
+					unsigned char* output = new unsigned char [0x100000];
+					int fileSizeUncompressed = hexDecoder.decode(&GameBuffer[fileDataOffset], output);
+
+					CString internalName = (char*)&GameBuffer[x + 8];
+
+					if (internalName == "")
+						tempLocation.Format("%s%06X.bin", folderPath, fileDataOffset);
+					else
+						tempLocation.Format("%s%06X_%s.bin", folderPath, fileDataOffset, internalName);
+
+					FILE* outFile = fopen(tempLocation, "wb");
+					if (outFile)
+					{
+						fwrite(output, 1, fileSizeUncompressed, outFile);
+						fclose(outFile);
+					}
+
+					if (fileSizeUncompressed > 0)
+					{
+						AddRowData(dlg, fileDataOffset, fileSizeCompressed, fileSizeUncompressed, internalName, tempLocation, type);
+					}
+
+					delete [] output;
 				}
 				
 				delete [] GameBuffer;

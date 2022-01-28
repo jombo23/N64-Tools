@@ -249,7 +249,7 @@ struct TrackEvent // referenced in order, but first = 2710, doors refer to 27XX 
 class MIDI_API CMidiParse
 {
 public:
-	enum SngStyle { Normal, Old, OldBfx, Bfx, PtrBfx, OldDD };
+	enum SngStyle { Normal, Old, OldBfx, Bfx, PtrBfx, OldDD, HexenSng };
 
 	CMidiParse(void);
 	~CMidiParse(void);

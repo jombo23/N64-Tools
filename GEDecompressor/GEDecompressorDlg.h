@@ -32,6 +32,7 @@
 #include "NintendoEncoder.h"
 #include "NaganoDecoder.h"
 #include "ViewpointDecoder.h"
+#include "HexenDecoder.h"
 
 #include <algorithm>
 
