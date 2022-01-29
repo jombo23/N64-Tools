@@ -17292,7 +17292,7 @@ ALBank* CN64AIFCAudio::ReadAudioRNCDean(unsigned char* ROM, unsigned char* ctl, 
 			}
 
 			int sampleRate = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x0]);
-			alBank->inst[x]->samplerate = sampleRate / 2;
+			alBank->inst[x]->samplerate = sampleRate;
 
 			int unknown = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x4]);
 			int audioDataSize = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x8]);
@@ -17349,7 +17349,7 @@ ALBank* CN64AIFCAudio::ReadAudioDeanTable(unsigned char* ROM, unsigned char* ctl
 			unsigned char* outputDecompressed = &ROM[offset];
 
 			int sampleRate = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x0]);
-			alBank->inst[x]->samplerate = sampleRate / 2;
+			alBank->inst[x]->samplerate = sampleRate;
 
 			int unknown = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x4]);
 			int audioDataSize = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x8]);
@@ -17403,7 +17403,7 @@ ALBank* CN64AIFCAudio::ReadAudioDeanIndividual(unsigned char* ROM, unsigned char
 			unsigned char* outputDecompressed = &ROM[ctlOffset];
 
 			int sampleRate = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x0]);
-			alBank->inst[x]->samplerate = sampleRate / 2;
+			alBank->inst[x]->samplerate = sampleRate;
 
 			int unknown = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x4]);
 			int audioDataSize = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x8]);

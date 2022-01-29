@@ -10358,9 +10358,17 @@ void CN64SoundListToolDlg::OpenROMSpecific(SoundGameConfig gameConfig)
 {
 	CString tempGameName = gameConfig.gameName;
 	tempGameName.Replace(" Speech", "");
+	tempGameName.Replace(" DEAN", "");
+	tempGameName.Replace(" DEAN Individual", "");
 	tempGameName.Replace(" Sfx", "");
+	tempGameName.Replace(" SAM", "");
+	tempGameName.Replace(" SFX", "");
+	tempGameName.Replace(" SNG", "");
 	tempGameName.Replace(" (Compressed Banks)", "");
-
+	tempGameName.Replace(" Compressed", "");
+	tempGameName.Replace(" Instruments", "");
+	tempGameName.Replace(" - With Copying IPL ROM from 0x140000 to 0x3F4000 to this", "");
+	tempGameName.Replace("iQue Menu - ", "");
 	if (!OpenROMPlusDlg(tempGameName + " [!].z64"))
 		return;
 
