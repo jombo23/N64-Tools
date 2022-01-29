@@ -930,6 +930,7 @@ bool CAcclaimDEANAudioDecompression::DecompressSound(unsigned char* ROM, int rom
 
 	CSharedFunctions::WriteLongToBuffer(RAM, 0x80210794 & 0xFFFFFF, ramOffset);
 	memcpy(&RAM[ramOffset & 0xFFFFFF], &ROM[romOffset], compressedSize);
+	CSharedFunctions::WriteLongToBuffer(RAM, 0x80210790 & 0xFFFFFF, compressedSize);
 	CSharedFunctions::WriteLongToBuffer(RAM, 0x80210C68 & 0xFFFFFF, compressedSize / 2);
 
 	unsigned long A0 = 0x802106B0;

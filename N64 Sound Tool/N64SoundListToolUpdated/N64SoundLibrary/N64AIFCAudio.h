@@ -97,6 +97,8 @@
 #define RAW16BITPCM 67
 #define CLAYFIGHTER 68
 #define RNCDEAN 69
+#define DEANTABLE 70
+#define DEANINDIVIDUAL 71
 
 #pragma once
 
@@ -501,6 +503,8 @@ public:
 	static ALBank* ReadAudioN64SN64Zlib(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments, unsigned long mask);
 	static ALBank* ReadAudioRNC(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber);
 	static ALBank* ReadAudioRNCDean(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset);
+	static ALBank* ReadAudioDeanTable(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset);
+	static ALBank* ReadAudioDeanIndividual(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset);
 	static ALBank* ReadAudioClayfighter(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int numberInstruments);
 	static ALBank* ReadAudioSno(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, unsigned long expectedSize);
 	static ALBank* ReadAudioRNCN64Ptr(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl);

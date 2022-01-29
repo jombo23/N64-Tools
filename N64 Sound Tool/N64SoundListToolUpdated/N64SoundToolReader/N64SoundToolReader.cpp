@@ -694,6 +694,14 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioRNCDean(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset);
 			}
+			else if (gameConfig.gameType.CompareNoCase("DeanTable") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioDeanTable(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset);
+			}
+			else if (gameConfig.gameType.CompareNoCase("DeanIndividual") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioDeanIndividual(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset);
+			}
 			else if (gameConfig.gameType.CompareNoCase("Clayfighter") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioClayfighter(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments);
