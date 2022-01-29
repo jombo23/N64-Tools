@@ -787,7 +787,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 			}
 
 			CString tempSpotStr;
-			if ((gameConfig[gameNumber].midiBanks[x].extra != 0) && (gameConfig[gameNumber].midiBanks[x].extra2 != 0))
+			if ((gameConfig[gameNumber].midiBanks[x].extra != 0) || (gameConfig[gameNumber].midiBanks[x].extra2 != 0))
 				tempSpotStr.Format("%08X:%08X:%08X:%08X", start, (end - start), gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2);
 			else if (gameConfig[gameNumber].midiBanks[x].extra != 0)
 				tempSpotStr.Format("%08X:%08X:%08X", start, (end - start), gameConfig[gameNumber].midiBanks[x].extra);
@@ -800,19 +800,30 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 			{
 				int numberInstTemp = 0;
 				int fileSizeCompressed = end - start;
-				CNaganoDecoder decode;
-				unsigned char* outputDecompressed = new unsigned char[0x50000];
-				int expectedSize = decode.dec(&buffer[start], fileSizeCompressed, outputDecompressed);
 
-				/*FILE* a = fopen("C:\\temp\\a.bin", "wb");
-				fwrite(outputDecompressed, 1, expectedSize, a);
-				fclose(a);*/
+				if (gameConfig[gameNumber].midiBanks[x].extra2 == 1)
+				{
+					compressed = false;
+					// uncompressed tracks
+					midiParse.KonamiToMidi(buffer, bufferSize, &buffer[start], fileSizeCompressed, "asdasdaw43.mid", numberInstTemp, true, separateByInstrument, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, gameConfig[gameNumber].midiBanks[x].extra);
+				}
+				else
+				{
+					CNaganoDecoder decode;
+					unsigned char* outputDecompressed = new unsigned char[0x50000];
+					int expectedSize = decode.dec(&buffer[start], fileSizeCompressed, outputDecompressed);
 
-				midiParse.KonamiToMidi(buffer, bufferSize, outputDecompressed, expectedSize, "asdasdaw43.mid", numberInstTemp, true, separateByInstrument, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, gameConfig[gameNumber].midiBanks[x].extra);
+					/*FILE* a = fopen("C:\\temp\\a.bin", "wb");
+					fwrite(outputDecompressed, 1, expectedSize, a);
+					fclose(a);*/
+	
+					midiParse.KonamiToMidi(buffer, bufferSize, outputDecompressed, expectedSize, "asdasdaw43.mid", numberInstTemp, true, separateByInstrument, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, gameConfig[gameNumber].midiBanks[x].extra);
+
+					delete [] outputDecompressed;
+				}
 
 				if (numberInstTemp > numberInstruments)
 					numberInstruments = numberInstTemp;
-				delete [] outputDecompressed;
 				::DeleteFile("asdasdaw43.mid");
 			}
 		}

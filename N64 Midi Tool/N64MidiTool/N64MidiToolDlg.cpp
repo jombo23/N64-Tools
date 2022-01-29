@@ -3146,11 +3146,20 @@ void CN64MidiToolDlg::OnBnClickedButtonscandirformidis()
 						&& (binary[x+4] == 0x2D)) // lz/lh*/
 					//if (CharArrayToLong(&binary[x]) == 0x4D4F5254) //MORT
 					//if (CharArrayToLong(&binary[x]) == 0x53424E4B) //SBNK
+					/*if ( // DEAN with this header
+						(
+						((CharArrayToLong(&binary[x]) == 0x00005622) || (CharArrayToLong(&binary[x]) == 0x00002B11))
+						&& 
+						(CharArrayToShort(&binary[x+4]) == 0x0000)&& 
+						(CharArrayToShort(&binary[x+6]) != 0x0000)
+						)
+						)*/
 					if (
-						(CharArrayToShort(&binary[x]) == 0x5433) && (
-						((CharArrayToShort(&binary[x+0x12]) == 0x5622) || (CharArrayToShort(&binary[x+0x12]) == 0x7D00) || (CharArrayToShort(&binary[x+0x12]) == 0x2B11) || (CharArrayToShort(&binary[x+0x12]) == 0x3E80) || (CharArrayToShort(&binary[x+0x12]) == 0x55F0) || (CharArrayToShort(&binary[x+0x12]) == 0x1588) || (CharArrayToShort(&binary[x+0x12]) == 0x1770) || (CharArrayToShort(&binary[x+0x12]) == 0x396C) || (CharArrayToShort(&binary[x+0x12]) == 0x1F40) || (CharArrayToShort(&binary[x+0x12]) == 0xAC44) || (CharArrayToShort(&binary[x+0x12]) == 0x1558) || (CharArrayToShort(&binary[x+0x12]) == 0x2B77)) //T3
-						|| ((CharArrayToShort(&binary[x+0x22]) == 0x5622) || (CharArrayToShort(&binary[x+0x22]) == 0x7D00) || (CharArrayToShort(&binary[x+0x22]) == 0x2B11) || (CharArrayToShort(&binary[x+0x22]) == 0x3E80) || (CharArrayToShort(&binary[x+0x22]) == 0x55F0) || (CharArrayToShort(&binary[x+0x22]) == 0x1588) || (CharArrayToShort(&binary[x+0x22]) == 0x1770) || (CharArrayToShort(&binary[x+0x22]) == 0x396C) || (CharArrayToShort(&binary[x+0x22]) == 0x1F40) || (CharArrayToShort(&binary[x+0x22]) == 0xAC44) || (CharArrayToShort(&binary[x+0x22]) == 0x1558) || (CharArrayToShort(&binary[x+0x22]) == 0x2B77)) //T3
-						|| ((CharArrayToShort(&binary[x+0x32]) == 0x5622) || (CharArrayToShort(&binary[x+0x32]) == 0x7D00) || (CharArrayToShort(&binary[x+0x32]) == 0x2B11) || (CharArrayToShort(&binary[x+0x32]) == 0x3E80) || (CharArrayToShort(&binary[x+0x32]) == 0x55F0) || (CharArrayToShort(&binary[x+0x32]) == 0x1588) || (CharArrayToShort(&binary[x+0x32]) == 0x1770) || (CharArrayToShort(&binary[x+0x32]) == 0x396C) || (CharArrayToShort(&binary[x+0x32]) == 0x1F40) || (CharArrayToShort(&binary[x+0x32]) == 0xAC44) || (CharArrayToShort(&binary[x+0x32]) == 0x1558) || (CharArrayToShort(&binary[x+0x32]) == 0x2B77)) //T3
+						(//Konami
+						(CharArrayToLong(&binary[x]) == 0x3D800000)
+						&& (CharArrayToLong(&binary[x + 4]) == 0x3D879C7C)
+						&& (CharArrayToLong(&binary[x + 8]) == 0x3D8FACD6)
+						&& (CharArrayToLong(&binary[x + 0xC]) == 0x3D9837EF)
 						)
 						)
 					//if ((CharArrayToLong(&binary[x]) == 0x53444632) && ((x % 0x10) == 0))
