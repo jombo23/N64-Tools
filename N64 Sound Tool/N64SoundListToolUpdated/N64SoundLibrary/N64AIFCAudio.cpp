@@ -17218,7 +17218,7 @@ ALBank* CN64AIFCAudio::ReadAudioClayfighter(unsigned char* ROM, unsigned char* c
 	return alBank;
 }
 
-ALBank* CN64AIFCAudio::ReadRNCAudio(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber)
+ALBank* CN64AIFCAudio::ReadAudioRNC(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber)
 {
 	unsigned char* outputDecompressed = new unsigned char[0x2000000];
 	int fileSizeCompressed = -1;
@@ -17235,6 +17235,77 @@ ALBank* CN64AIFCAudio::ReadRNCAudio(unsigned char* ROM, unsigned char* ctl, unsi
 	ALBank* alBank = ReadAudio(ROM, &outputDecompressed[0], decompressedSize, 0, tbl, 0, 0, bankNumber);
 	alBank->soundBankFormat = STANDARDRNCCOMPRESSED;
 	delete [] outputDecompressed;
+	return alBank;
+}
+
+ALBank* CN64AIFCAudio::ReadAudioRNCDean(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset)
+{
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = RNCDEAN;
+	alBank->count = ((tblOffset - ctlOffset) / 0xC);
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 11025;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+
+		alBank->inst[x]->soundCount = 1;
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		int y = 0;
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			
+			unsigned long offset = ctlOffset + CSharedFunctions::CharArrayToLong(ctl, (ctlOffset + (x * 0xC)));
+			unsigned long decompressedSize = CSharedFunctions::CharArrayToLong(ctl, (ctlOffset + (x * 0xC)) + 4);
+			unsigned long crc = CSharedFunctions::CharArrayToLong(ctl, (ctlOffset + (x * 0xC)) + 8);
+			alBank->inst[x]->sounds[y]->wav.base = offset;
+			
+			unsigned char* outputDecompressed = new unsigned char[0x2000000];
+
+			if (CSharedFunctions::CharArrayToLong(ctl, offset) == 0x52415721) // RAW!
+			{
+				int rawLength = CSharedFunctions::CharArrayToLong(ctl, offset + 4);
+				memcpy(outputDecompressed, &ctl[offset+8], rawLength);
+			}
+			else
+			{
+				int fileSizeCompressed = -1;
+				RncDecoder rnc;
+				int decodedSize = rnc.unpackM1(&ctl[offset], outputDecompressed, 0x0, fileSizeCompressed);
+			}
+
+			int sampleRate = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x0]);
+			alBank->inst[x]->samplerate = sampleRate / 2;
+
+			int unknown = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x4]);
+			int audioDataSize = CSharedFunctions::CharArrayToLong(&outputDecompressed[0x8]);
+
+			alBank->inst[x]->sounds[y]->wav.len = audioDataSize;
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &outputDecompressed[0xC], alBank->inst[x]->sounds[y]->wav.len);
+
+			alBank->inst[x]->sounds[y]->wav.type = AL_ACCLAIM_DEAN;
+
+			delete [] outputDecompressed;
+		}
+	}
 	return alBank;
 }
 
