@@ -2267,6 +2267,21 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_UNSIGNED_RAW8)
+			{
+				int flags = 0;
+
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if ((alWave->type == AL_EXCITEBIKE_SAM) || (alWave->type == AL_EXCITEBIKE_SFX) || (alWave->type == AL_EXCITEBIKE_SNG))
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -2560,6 +2575,21 @@ bool CN64AIFCAudio::ExtractPercussionRawPCMData(CString mainFolder, ALBank* alBa
 
 					}
 				}
+
+				fclose(outFileTempRaw);
+			}
+			else if (alWave->type == AL_UNSIGNED_RAW8)
+			{
+				int flags = 0;
+
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
 
 				fclose(outFileTempRaw);
 			}
@@ -3703,6 +3733,70 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_UNSIGNED_RAW8)
+			{
+				int flags = 0;
+
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				unsigned char wavHeader[0x28];
+
+				wavHeader[0x0] = 0x52;
+				wavHeader[0x1] = 0x49;
+				wavHeader[0x2] = 0x46;
+				wavHeader[0x3] = 0x46;
+				unsigned long chunkSize = 0x28 + alWave->len;
+				wavHeader[0x4] = ((chunkSize >> 0) & 0xFF);
+				wavHeader[0x5] = ((chunkSize >> 8) & 0xFF);
+				wavHeader[0x6] = ((chunkSize >> 16) & 0xFF);
+				wavHeader[0x7] = ((chunkSize >> 24) & 0xFF);
+				wavHeader[0x8] = 0x57;
+				wavHeader[0x9] = 0x41;
+				wavHeader[0xA] = 0x56;
+				wavHeader[0xB] = 0x45;
+				wavHeader[0xC] = 0x66;
+				wavHeader[0xD] = 0x6D;
+				wavHeader[0xE] = 0x74;
+				wavHeader[0xF] = 0x20;
+				wavHeader[0x10] = 0x10;
+				wavHeader[0x11] = 0x00;
+				wavHeader[0x12] = 0x00;
+				wavHeader[0x13] = 0x00;
+				wavHeader[0x14] = 0x01;
+				wavHeader[0x15] = 0x00;
+				wavHeader[0x16] = 0x01;
+				wavHeader[0x17] = 0x00;
+				wavHeader[0x18] = (((unsigned long)samplingRateFloat >> 0) & 0xFF);
+				wavHeader[0x19] = (((unsigned long)samplingRateFloat >> 8) & 0xFF);
+				wavHeader[0x1A] = (((unsigned long)samplingRateFloat >> 16) & 0xFF);
+				wavHeader[0x1B] = (((unsigned long)samplingRateFloat >> 24) & 0xFF);
+				wavHeader[0x1C] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 0) & 0xFF);
+				wavHeader[0x1D] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 8) & 0xFF);
+				wavHeader[0x1E] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 16) & 0xFF);
+				wavHeader[0x1F] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 24) & 0xFF);
+				wavHeader[0x20] = (1 + (flags & 1));
+				wavHeader[0x21] = 0x00;
+				wavHeader[0x22] = (((flags & 1) + 1) * 8);
+				wavHeader[0x23] = 0x00;
+				wavHeader[0x24] = 0x64;
+				wavHeader[0x25] = 0x61;
+				wavHeader[0x26] = 0x74;
+				wavHeader[0x27] = 0x61;
+
+				fwrite(wavHeader, 1, 0x28, outFileTempRaw );
+
+				unsigned long length = alWave->len;
+				fwrite(&length, 1, 4, outFileTempRaw);
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+				
+				fclose(outFileTempRaw);
+			}
 
 			return true;
 
@@ -4834,6 +4928,70 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_UNSIGNED_RAW8)
+			{
+				int flags = 0;
+
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				unsigned char wavHeader[0x28];
+
+				wavHeader[0x0] = 0x52;
+				wavHeader[0x1] = 0x49;
+				wavHeader[0x2] = 0x46;
+				wavHeader[0x3] = 0x46;
+				unsigned long chunkSize = 0x28 + alWave->len;
+				wavHeader[0x4] = ((chunkSize >> 0) & 0xFF);
+				wavHeader[0x5] = ((chunkSize >> 8) & 0xFF);
+				wavHeader[0x6] = ((chunkSize >> 16) & 0xFF);
+				wavHeader[0x7] = ((chunkSize >> 24) & 0xFF);
+				wavHeader[0x8] = 0x57;
+				wavHeader[0x9] = 0x41;
+				wavHeader[0xA] = 0x56;
+				wavHeader[0xB] = 0x45;
+				wavHeader[0xC] = 0x66;
+				wavHeader[0xD] = 0x6D;
+				wavHeader[0xE] = 0x74;
+				wavHeader[0xF] = 0x20;
+				wavHeader[0x10] = 0x10;
+				wavHeader[0x11] = 0x00;
+				wavHeader[0x12] = 0x00;
+				wavHeader[0x13] = 0x00;
+				wavHeader[0x14] = 0x01;
+				wavHeader[0x15] = 0x00;
+				wavHeader[0x16] = 0x01;
+				wavHeader[0x17] = 0x00;
+				wavHeader[0x18] = (((unsigned long)samplingRateFloat >> 0) & 0xFF);
+				wavHeader[0x19] = (((unsigned long)samplingRateFloat >> 8) & 0xFF);
+				wavHeader[0x1A] = (((unsigned long)samplingRateFloat >> 16) & 0xFF);
+				wavHeader[0x1B] = (((unsigned long)samplingRateFloat >> 24) & 0xFF);
+				wavHeader[0x1C] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 0) & 0xFF);
+				wavHeader[0x1D] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 8) & 0xFF);
+				wavHeader[0x1E] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 16) & 0xFF);
+				wavHeader[0x1F] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 24) & 0xFF);
+				wavHeader[0x20] = (1 + (flags & 1));
+				wavHeader[0x21] = 0x00;
+				wavHeader[0x22] = (((flags & 1) + 1) * 8);
+				wavHeader[0x23] = 0x00;
+				wavHeader[0x24] = 0x64;
+				wavHeader[0x25] = 0x61;
+				wavHeader[0x26] = 0x74;
+				wavHeader[0x27] = 0x61;
+
+				fwrite(wavHeader, 1, 0x28, outFileTempRaw );
+
+				unsigned long length = alWave->len;
+				fwrite(&length, 1, 4, outFileTempRaw);
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 
 			return true;
 
@@ -5498,6 +5656,70 @@ bool CN64AIFCAudio::ExtractPercussion(CString mainFolder, ALBank* alBank, int so
 
 					}
 				}
+
+				fclose(outFileTempRaw);
+			}
+			else if (alWave->type == AL_UNSIGNED_RAW8)
+			{
+				int flags = 0;
+
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				unsigned char wavHeader[0x28];
+
+				wavHeader[0x0] = 0x52;
+				wavHeader[0x1] = 0x49;
+				wavHeader[0x2] = 0x46;
+				wavHeader[0x3] = 0x46;
+				unsigned long chunkSize = 0x28 + alWave->len;
+				wavHeader[0x4] = ((chunkSize >> 0) & 0xFF);
+				wavHeader[0x5] = ((chunkSize >> 8) & 0xFF);
+				wavHeader[0x6] = ((chunkSize >> 16) & 0xFF);
+				wavHeader[0x7] = ((chunkSize >> 24) & 0xFF);
+				wavHeader[0x8] = 0x57;
+				wavHeader[0x9] = 0x41;
+				wavHeader[0xA] = 0x56;
+				wavHeader[0xB] = 0x45;
+				wavHeader[0xC] = 0x66;
+				wavHeader[0xD] = 0x6D;
+				wavHeader[0xE] = 0x74;
+				wavHeader[0xF] = 0x20;
+				wavHeader[0x10] = 0x10;
+				wavHeader[0x11] = 0x00;
+				wavHeader[0x12] = 0x00;
+				wavHeader[0x13] = 0x00;
+				wavHeader[0x14] = 0x01;
+				wavHeader[0x15] = 0x00;
+				wavHeader[0x16] = 0x01;
+				wavHeader[0x17] = 0x00;
+				wavHeader[0x18] = (((unsigned long)samplingRateFloat >> 0) & 0xFF);
+				wavHeader[0x19] = (((unsigned long)samplingRateFloat >> 8) & 0xFF);
+				wavHeader[0x1A] = (((unsigned long)samplingRateFloat >> 16) & 0xFF);
+				wavHeader[0x1B] = (((unsigned long)samplingRateFloat >> 24) & 0xFF);
+				wavHeader[0x1C] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 0) & 0xFF);
+				wavHeader[0x1D] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 8) & 0xFF);
+				wavHeader[0x1E] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 16) & 0xFF);
+				wavHeader[0x1F] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 24) & 0xFF);
+				wavHeader[0x20] = (1 + (flags & 1));
+				wavHeader[0x21] = 0x00;
+				wavHeader[0x22] = (((flags & 1) + 1) * 8);
+				wavHeader[0x23] = 0x00;
+				wavHeader[0x24] = 0x64;
+				wavHeader[0x25] = 0x61;
+				wavHeader[0x26] = 0x74;
+				wavHeader[0x27] = 0x61;
+
+				fwrite(wavHeader, 1, 0x28, outFileTempRaw );
+
+				unsigned long length = alWave->len;
+				fwrite(&length, 1, 4, outFileTempRaw);
+
+				fwrite(&alWave->wavData, 1, alWave->len, outFileTempRaw);
 
 				fclose(outFileTempRaw);
 			}
@@ -6184,6 +6406,70 @@ bool CN64AIFCAudio::ExtractLoopPercussion(CString mainFolder, ALBank* alBank, in
 					}
 				}
 
+				fclose(outFileTempRaw);
+			}
+			else if (alWave->type == AL_UNSIGNED_RAW8)
+			{
+				int flags = 0;
+
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				unsigned char wavHeader[0x28];
+
+				wavHeader[0x0] = 0x52;
+				wavHeader[0x1] = 0x49;
+				wavHeader[0x2] = 0x46;
+				wavHeader[0x3] = 0x46;
+				unsigned long chunkSize = 0x28 + alWave->len;
+				wavHeader[0x4] = ((chunkSize >> 0) & 0xFF);
+				wavHeader[0x5] = ((chunkSize >> 8) & 0xFF);
+				wavHeader[0x6] = ((chunkSize >> 16) & 0xFF);
+				wavHeader[0x7] = ((chunkSize >> 24) & 0xFF);
+				wavHeader[0x8] = 0x57;
+				wavHeader[0x9] = 0x41;
+				wavHeader[0xA] = 0x56;
+				wavHeader[0xB] = 0x45;
+				wavHeader[0xC] = 0x66;
+				wavHeader[0xD] = 0x6D;
+				wavHeader[0xE] = 0x74;
+				wavHeader[0xF] = 0x20;
+				wavHeader[0x10] = 0x10;
+				wavHeader[0x11] = 0x00;
+				wavHeader[0x12] = 0x00;
+				wavHeader[0x13] = 0x00;
+				wavHeader[0x14] = 0x01;
+				wavHeader[0x15] = 0x00;
+				wavHeader[0x16] = 0x01;
+				wavHeader[0x17] = 0x00;
+				wavHeader[0x18] = (((unsigned long)samplingRateFloat >> 0) & 0xFF);
+				wavHeader[0x19] = (((unsigned long)samplingRateFloat >> 8) & 0xFF);
+				wavHeader[0x1A] = (((unsigned long)samplingRateFloat >> 16) & 0xFF);
+				wavHeader[0x1B] = (((unsigned long)samplingRateFloat >> 24) & 0xFF);
+				wavHeader[0x1C] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 0) & 0xFF);
+				wavHeader[0x1D] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 8) & 0xFF);
+				wavHeader[0x1E] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 16) & 0xFF);
+				wavHeader[0x1F] = ((((unsigned long)samplingRateFloat * (1 + (flags & 1))) >> 24) & 0xFF);
+				wavHeader[0x20] = (1 + (flags & 1));
+				wavHeader[0x21] = 0x00;
+				wavHeader[0x22] = (((flags & 1) + 1) * 8);
+				wavHeader[0x23] = 0x00;
+				wavHeader[0x24] = 0x64;
+				wavHeader[0x25] = 0x61;
+				wavHeader[0x26] = 0x74;
+				wavHeader[0x27] = 0x61;
+
+				fwrite(wavHeader, 1, 0x28, outFileTempRaw );
+
+				unsigned long length = alWave->len;
+				fwrite(&length, 1, 4, outFileTempRaw);
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+				
 				fclose(outFileTempRaw);
 			}
 
@@ -17160,6 +17446,55 @@ ALBank* CN64AIFCAudio::ReadAudio16BitPCM(unsigned char* ctl, unsigned long& ctlS
 	return alBank;
 }
 
+ALBank* CN64AIFCAudio::ReadAudio8BitPCM(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, int tblOffset, int numberInstruments)
+{
+	ALBank* alBank = new ALBank();
+	alBank->soundBankFormat = RAW8BITPCM;
+	alBank->count = 1;
+	alBank->flags = 0;
+	alBank->pad = 0;
+	alBank->samplerate = 11025;
+	alBank->percussion = 0;
+	alBank->eadPercussion = NULL;
+	alBank->countEADPercussion = 0;
+
+	alBank->inst = new ALInst*[alBank->count];
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x] = new ALInst();
+		alBank->inst[x]->samplerate = 0;
+		alBank->inst[x]->sounds = NULL;
+	}
+
+	for (int x = 0; x < alBank->count; x++)
+	{
+		alBank->inst[x]->soundCount = 1;
+		alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
+
+		for (int y = 0; y < alBank->inst[x]->soundCount; y++)
+		{
+			alBank->inst[x]->sounds[y] = new ALSound();
+
+			alBank->inst[x]->sounds[y]->hasWavePrevious = false;
+			alBank->inst[x]->sounds[y]->hasWaveSecondary = false;
+			alBank->inst[x]->sounds[y]->flags = 0;
+
+			alBank->inst[x]->sounds[y]->wav.adpcmWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.rawWave = NULL;
+			alBank->inst[x]->sounds[y]->wav.base = ctlOffset;
+
+			alBank->inst[x]->sounds[y]->wav.len = tblOffset - ctlOffset;
+
+			alBank->inst[x]->sounds[y]->wav.wavData = new unsigned char[alBank->inst[x]->sounds[y]->wav.len];
+			memcpy(alBank->inst[x]->sounds[y]->wav.wavData, &ctl[ctlOffset], alBank->inst[x]->sounds[y]->wav.len);
+			
+			alBank->inst[x]->sounds[y]->wav.type = AL_UNSIGNED_RAW8;
+		}
+	}
+	return alBank;
+}
+
 ALBank* CN64AIFCAudio::ReadAudioRNCN64PtrOffset(unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, unsigned long offset)
 {
 	unsigned char* outputDecompressed = new unsigned char[0x2000000];
@@ -17418,7 +17753,7 @@ ALBank* CN64AIFCAudio::ReadAudioDeanIndividual(unsigned char* ROM, unsigned char
 	return alBank;
 }
 
-ALBank* CN64AIFCAudio::ReadRNXAudio(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber)
+ALBank* CN64AIFCAudio::ReadAudioRNX(unsigned char* ROM, unsigned char* ctl, unsigned long& ctlSize, int ctlOffset, unsigned char* tbl, int bankNumber)
 {
 	unsigned char* outputDecompressedA = new unsigned char[0x2000000];
 	unsigned char* outputDecompressedB = new unsigned char[0x2000000];

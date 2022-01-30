@@ -708,7 +708,7 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			}
 			else if (gameConfig.gameType.CompareNoCase("RNXCompressed") == 0)
 			{
-				results[numberResults].bank = n64AudioLibrary.ReadRNXAudio(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments);
+				results[numberResults].bank = n64AudioLibrary.ReadAudioRNX(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments);
 			}
 			else if (gameConfig.gameType.CompareNoCase("MegaManN64WavePtrTableV2") == 0)
 			{
@@ -821,6 +821,10 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			else if (gameConfig.gameType.CompareNoCase("TetrisphereRaw816") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioTetrisphereRaw816(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments);
+			}
+			else if (gameConfig.gameType.CompareNoCase("8BitPCM") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudio8BitPCM(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig.soundBanks[x].numberInstruments);
 			}
 			else if (gameConfig.gameType.CompareNoCase("16BitPCM") == 0)
 			{

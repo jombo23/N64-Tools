@@ -3902,7 +3902,7 @@ void CN64SoundListToolDlg::ShowSoundBankControls()
 		m_sampleAttackVolumeStatic.ShowWindow(SW_HIDE);
 		m_sampleDecayVolumeStatic.ShowWindow(SW_HIDE);
 	}
-	else if ((alBankCurrent->soundBankFormat == H20RAW816) || (alBankCurrent->soundBankFormat == TETRISPHERERAW816) || (alBankCurrent->soundBankFormat == RAW16BITPCM))
+	else if ((alBankCurrent->soundBankFormat == H20RAW816) || (alBankCurrent->soundBankFormat == TETRISPHERERAW816) || (alBankCurrent->soundBankFormat == RAW16BITPCM) || (alBankCurrent->soundBankFormat == RAW8BITPCM))
 	{
 		mHalfVADPCMPrecision.ShowWindow(SW_HIDE);
 		mCheckUnknownEADFlag.ShowWindow(SW_HIDE);
@@ -10676,7 +10676,7 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					}
 					else if (gameConfig[y].gameType.CompareNoCase("RNXCompressed") == 0)
 					{
-						results[numberResults].bank = n64AudioLibrary.ReadRNXAudio(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig[y].soundBanks[x].numberInstruments);
+						results[numberResults].bank = n64AudioLibrary.ReadAudioRNX(ROM, &ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig[y].soundBanks[x].numberInstruments);
 					}
 					else if (gameConfig[y].gameType.CompareNoCase("MegaManN64WavePtrTableV2") == 0)
 					{
@@ -10793,6 +10793,10 @@ void CN64SoundListToolDlg::OnFileExtractallknowngames()
 					else if (gameConfig[y].gameType.CompareNoCase("TetrisphereRaw816") == 0)
 					{
 						results[numberResults].bank = n64AudioLibrary.ReadAudioTetrisphereRaw816(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig[y].soundBanks[x].numberInstruments);
+					}
+					else if (gameConfig[y].gameType.CompareNoCase("8BitPCM") == 0)
+					{
+						results[numberResults].bank = n64AudioLibrary.ReadAudio8BitPCM(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset, gameConfig[y].soundBanks[x].numberInstruments);
 					}
 					else if (gameConfig[y].gameType.CompareNoCase("16BitPCM") == 0)
 					{
