@@ -493,6 +493,7 @@ void CN64MidiToolDlg::OnBnClickedButtonloadrom()
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("FLA2Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("RNCSngOffset") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("LZSS_0BSng") == 0)
+			|| (gameConfig[gameNumber].gameType.CompareNoCase("LZSS_0Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("AVL_0Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("VigilanteSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("ViewpointSng") == 0)
@@ -623,6 +624,7 @@ void CN64MidiToolDlg::OnBnClickedButtonloadrom()
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("FLA2Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("RNCSngOffset") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("LZSS_0BSng") == 0)
+			|| (gameConfig[gameNumber].gameType.CompareNoCase("LZSS_0Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("AVL_0Sng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("VigilanteSng") == 0)
 			|| (gameConfig[gameNumber].gameType.CompareNoCase("ViewpointSng") == 0)
@@ -1606,6 +1608,7 @@ void CN64MidiToolDlg::ConvertIntoSpot(CString inputFile)
 			(gameConfig[gameNumber].gameType == "ZLibIndexedSng") ||
 			(gameConfig[gameNumber].gameType == "MultiPartTigSng") ||
 			(gameConfig[gameNumber].gameType == "LZSS_0BSng") ||
+			(gameConfig[gameNumber].gameType == "LZSS_0Sng") ||
 			(gameConfig[gameNumber].gameType == "AVL_0Sng") ||
 			(gameConfig[gameNumber].gameType == "VigilanteSng") ||
 			(gameConfig[gameNumber].gameType == "ViewpointSng") ||
@@ -2109,6 +2112,11 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("LZSS_0BSng") == 0)
 	{
 		MessageBox("Unsupported LZSS_0BSng import");
+		return;
+	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("LZSS_0Sng") == 0)
+	{
+		MessageBox("Unsupported LZSS_0Sng import");
 		return;
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("AVL_0Sng") == 0)

@@ -17892,6 +17892,28 @@ void CMidiParse::ExportToBin(CString gameName, unsigned char* buffer, unsigned l
 			delete [] outputDecompressed;
 
 		}
+		else if (gameName.CompareNoCase("LZSS_0Sng") == 0)
+		{
+			int fileSizeCompressed = size;
+			CMidwayDecoder decode;
+			unsigned char* outputDecompressed = new unsigned char[0x50000];
+			int expectedSize = decode.dec(&buffer[address], fileSizeCompressed, outputDecompressed, "LZSS_0");
+			
+			FILE* outFile = fopen(fileName, "wb");
+			if (outFile == NULL)
+			{
+				MessageBox(NULL, "Cannot Write File", "Error", NULL);
+				return;
+			}
+			for (int x = 0; x < expectedSize; x++)
+			{
+				fwrite(&outputDecompressed[x], 1, 1, outFile);
+			}
+			fclose(outFile);
+
+			delete [] outputDecompressed;
+
+		}
 		else if (gameName.CompareNoCase("AVL_0Sng") == 0)
 		{
 			int fileSizeCompressed = size;
@@ -19186,6 +19208,26 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			CMidwayDecoder decode;
 			unsigned char* outputDecompressed = new unsigned char[0x50000];
 			int expectedSize = decode.dec(&gamebuffer[address+4], fileSizeCompressed, outputDecompressed, "LZSS_0");
+			
+			SngToMidi(outputDecompressed, expectedSize, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra);
+			if (generateDebugTextFile)
+				SngToDebugTextFile(gameName, address, outputDecompressed, expectedSize, fileName + " TrackParseDebug.txt", extra);
+
+			delete [] outputDecompressed;
+		}
+		else
+		{
+			
+		}
+	}
+	else if (gameType.CompareNoCase("LZSS_0Sng") == 0)
+	{
+		if (compressed)
+		{
+			int fileSizeCompressed = size;
+			CMidwayDecoder decode;
+			unsigned char* outputDecompressed = new unsigned char[0x50000];
+			int expectedSize = decode.dec(&gamebuffer[address], fileSizeCompressed, outputDecompressed, "LZSS_0", 0);
 			
 			SngToMidi(outputDecompressed, expectedSize, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, extra);
 			if (generateDebugTextFile)
