@@ -794,6 +794,10 @@ void CN64SoundToolReader::ReadSoundbanks(unsigned char* ROM, int romSize, SoundG
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioAVL_0Ptr(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset]);
 			}
+			else if (gameConfig.gameType.CompareNoCase("MP3") == 0)
+			{
+				results[numberResults].bank = n64AudioLibrary.ReadAudioMP3(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, results[numberResults].tblOffset);
+			}
 			else if (gameConfig.gameType.CompareNoCase("RNCN64OffsetWave") == 0)
 			{
 				results[numberResults].bank = n64AudioLibrary.ReadAudioRNCN64PtrOffset(&ROM[0], results[numberResults].ctlSize, results[numberResults].ctlOffset, &ROM[results[numberResults].tblOffset], gameConfig.soundBanks[x].numberInstruments);

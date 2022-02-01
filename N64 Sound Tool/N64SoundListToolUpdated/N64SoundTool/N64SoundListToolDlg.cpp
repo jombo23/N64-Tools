@@ -10442,6 +10442,7 @@ void CN64SoundListToolDlg::OpenROMSpecific(SoundGameConfig gameConfig)
 	CString tempGameName = gameConfig.gameName;
 	tempGameName.Replace(" Speech", "");
 	tempGameName.Replace(" Raw", "");
+	tempGameName.Replace(" MP3", "");
 	tempGameName.Replace(" Music", "");
 	tempGameName.Replace(" DEAN", "");
 	tempGameName.Replace(" DEAN Individual", "");
