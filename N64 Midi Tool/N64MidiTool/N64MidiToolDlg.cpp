@@ -10,6 +10,7 @@
 #include "..\N64MidiToolReader\N64MidiToolReader.h"
 #include "..\N64MidiLibrary\NaganoDecoder.h"
 #include "..\N64MidiLibrary\NintendoEncoder.h"
+#include "..\N64MidiLibrary\HexenDecoder.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -1587,6 +1588,50 @@ void CN64MidiToolDlg::ConvertIntoSpot(CString inputFile)
 			delete [] sourceBuffer;
 			delete [] outputBuffer;
 		}
+		else if (gameConfig[gameNumber].gameType == "HexenSng")
+		{
+			int sizeInputFile = GetSizeFile(inputFile);
+
+			FILE* inFile = fopen(inputFile, "rb");
+			if (inFile == NULL)
+			{
+				MessageBox("Error reading file");
+				return;
+			}
+
+			unsigned char* sourceBuffer = new unsigned char[sizeInputFile];
+			fread(sourceBuffer, 1, sizeInputFile, inFile);
+			fclose(inFile);
+
+			CHexenDecoder hexenDecoder;
+			unsigned char* outputBuffer = new unsigned char[0x500000];
+
+			int sizeCompressed = 0;
+			hexenDecoder.encode(sourceBuffer, sizeInputFile, outputBuffer, sizeCompressed);
+
+			if (sizeCompressed <= 0)
+			{
+				MessageBox("Unsuccessful compression");
+				delete [] sourceBuffer;
+				delete [] outputBuffer;
+				return;
+			}
+
+			if (sizeCompressed > size)
+			{
+				CString errorStr;
+				errorStr.Format("Cannot import, %08X is larger than %08X", sizeCompressed, size);
+				MessageBox(errorStr);
+				delete [] sourceBuffer;
+				delete [] outputBuffer;
+				return;
+			}
+
+			memcpy(&buffer[address], outputBuffer, sizeCompressed);
+
+			delete [] sourceBuffer;
+			delete [] outputBuffer;
+		}
 		else if (
 			(gameConfig[gameNumber].gameType == "RNCSng") ||
 			(gameConfig[gameNumber].gameType == "ASMICSng") ||
@@ -2484,6 +2529,7 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 	else if (
 		(gameConfig[gameNumber].gameType.CompareNoCase("Sng") == 0)
 		|| (gameConfig[gameNumber].gameType.CompareNoCase("Yay0Sng") == 0)
+		|| (gameConfig[gameNumber].gameType.CompareNoCase("HexenSng") == 0)
 		)
 	{
 		if (buffer == NULL)
@@ -2538,7 +2584,11 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 			MessageBox("Cannot import Binary Effects");
 			return;
 		}
-		else if (CharArrayToLong(&buffer[address + 0x8]) == 0x00000020) // Bfx
+		else if (gameConfig[gameNumber].gameType.CompareNoCase("HexenSng") == 0) // Hexen Style Compressed
+		{
+			sngStyle = CMidiParse::SngStyle::HexenSng;
+		}
+		else if (CharArrayToLong(&buffer[address + 0x8]) == 0x00000020) // OldDD
 		{
 			sngStyle = CMidiParse::SngStyle::OldDD;
 

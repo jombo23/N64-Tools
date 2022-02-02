@@ -9622,7 +9622,6 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 
 			// Track Offset
 			trackOffsetsPointersStart = 0x00000010;
-			WriteLongToBuffer(outputBuffer, 0x4, trackOffsetsPointersStart);
 
 			outputPosition = 0x10;
 			outputPosition += (numChannels * 0x4);
@@ -9636,7 +9635,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 			// Write PitchBend tracks
 			//WriteLongToBuffer(outputBuffer, 0xC, outputPosition);
 
-			//pitchBendPointersStart = outputPosition;
+			pitchBendPointersStart = -1;
 			//outputPosition += (numChannels * 0x4);
 
 			// Skip Drums
@@ -9731,6 +9730,14 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 			{
 				unsigned long volumeDataOffset = outputPosition;
 
+				if (sngStyle == SngStyle::HexenSng)
+				{
+					if (volumeData[x].size() == 0)
+					{
+						volumeData[x].push_back(TimeAndValue(0, 0x7F));
+					}
+				}
+
 				if (volumeData[x].size() == 0)
 					WriteLongToBuffer(outputBuffer, (volumePointersStart + (x * 0x4)), 0x00000000);
 				else
@@ -9810,30 +9817,67 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 
 
 
-		
-			absoluteTime = 0;
-
-			for (int x = 0; x < numChannels; x++)
+			if (sngStyle != SngStyle::HexenSng)		
 			{
-				unsigned long pitchBendDataOffset = outputPosition;
+				absoluteTime = 0;
 
-				if (pitchBendData[x].size() == 0)
-					WriteLongToBuffer(outputBuffer, (pitchBendPointersStart + (x * 0x4)), 0x00000000);
-				else				
-					WriteLongToBuffer(outputBuffer, (pitchBendPointersStart + (x * 0x4)), pitchBendDataOffset);
-
-				if (pitchBendData[x].size() > 0)
+				for (int x = 0; x < numChannels; x++)
 				{
-					if (pitchBendData[x][0].absoluteTime > 0)
+					unsigned long pitchBendDataOffset = outputPosition;
+
+					if (pitchBendData[x].size() == 0)
+						WriteLongToBuffer(outputBuffer, (pitchBendPointersStart + (x * 0x4)), 0x00000000);
+					else				
+						WriteLongToBuffer(outputBuffer, (pitchBendPointersStart + (x * 0x4)), pitchBendDataOffset);
+
+					if (pitchBendData[x].size() > 0)
 					{
-						// Write initial length
-						int totalPitchBendLength = pitchBendData[x][0].absoluteTime;
+						if (pitchBendData[x][0].absoluteTime > 0)
+						{
+							// Write initial length
+							int totalPitchBendLength = pitchBendData[x][0].absoluteTime;
+
+							while (totalPitchBendLength > 0)
+							{
+								// Default
+								outputBuffer[outputPosition] = 0x40;
+						
+								int pitchBendLength = totalPitchBendLength;
+
+								if (pitchBendLength > 0x8000)
+									pitchBendLength = 0x8000;
+
+								if (pitchBendLength == 1)
+								{
+									outputPosition++;
+								}
+								else
+								{
+									outputBuffer[outputPosition] |= 0x80;
+									outputPosition++;
+									WriteSngVariableLength(outputBuffer, outputPosition, (pitchBendLength - 2));
+								}
+
+								totalPitchBendLength -= pitchBendLength;
+							}
+						}
+					}
+
+					for (int y = 0; y < pitchBendData[x].size(); y++)
+					{
+						outputBuffer[outputPosition] = pitchBendData[x][y].value;
+						int totalPitchBendLength;
+						if (y != (pitchBendData[x].size()-1))
+						{
+							totalPitchBendLength = pitchBendData[x][y+1].absoluteTime - pitchBendData[x][y].absoluteTime;
+						}
+						else
+						{
+							totalPitchBendLength = highestAbsoluteTime;
+						}
 
 						while (totalPitchBendLength > 0)
 						{
-							// Default
-							outputBuffer[outputPosition] = 0x40;
-					
 							int pitchBendLength = totalPitchBendLength;
 
 							if (pitchBendLength > 0x8000)
@@ -9852,41 +9896,6 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 
 							totalPitchBendLength -= pitchBendLength;
 						}
-					}
-				}
-
-				for (int y = 0; y < pitchBendData[x].size(); y++)
-				{
-					outputBuffer[outputPosition] = pitchBendData[x][y].value;
-					int totalPitchBendLength;
-					if (y != (pitchBendData[x].size()-1))
-					{
-						totalPitchBendLength = pitchBendData[x][y+1].absoluteTime - pitchBendData[x][y].absoluteTime;
-					}
-					else
-					{
-						totalPitchBendLength = highestAbsoluteTime;
-					}
-
-					while (totalPitchBendLength > 0)
-					{
-						int pitchBendLength = totalPitchBendLength;
-
-						if (pitchBendLength > 0x8000)
-							pitchBendLength = 0x8000;
-
-						if (pitchBendLength == 1)
-						{
-							outputPosition++;
-						}
-						else
-						{
-							outputBuffer[outputPosition] |= 0x80;
-							outputPosition++;
-							WriteSngVariableLength(outputBuffer, outputPosition, (pitchBendLength - 2));
-						}
-
-						totalPitchBendLength -= pitchBendLength;
 					}
 				}
 			}
@@ -10268,7 +10277,7 @@ bool CMidiParse::MidiToSng(CString input, CString output, bool loop, unsigned lo
 						setLength = false;
 						outputBuffer[outputPosition++] = 0xAC;
 					}
-					else if ((sngStyle == SngStyle::Old) || (sngStyle == SngStyle::HexenSng))
+					else if (sngStyle == SngStyle::Old)
 					{
 						setLength = false;
 						outputBuffer[outputPosition++] = 0x8B;

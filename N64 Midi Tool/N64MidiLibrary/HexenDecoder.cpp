@@ -87,38 +87,76 @@ unsigned char CHexenDecoder::d_code[256] = {
     0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
 	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08};
 
-    void CHexenDecoder::init()
+	//# tables for encoding
+	unsigned char CHexenDecoder::p_len[0x40] = {
+    	0x03, 0x04, 0x04, 0x04, 0x05, 0x05, 0x05, 0x05,
+    	0x05, 0x05, 0x05, 0x05, 0x06, 0x06, 0x06, 0x06,
+    	0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+    	0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+    	0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+    	0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+    	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+    	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+	};
+
+	unsigned char CHexenDecoder::p_code[0x40] = {
+    	0x00, 0x20, 0x30, 0x40, 0x50, 0x58, 0x60, 0x68,
+    	0x70, 0x78, 0x80, 0x88, 0x90, 0x94, 0x98, 0x9C,
+    	0xA0, 0xA4, 0xA8, 0xAC, 0xB0, 0xB4, 0xB8, 0xBC,
+    	0xC0, 0xC2, 0xC4, 0xC6, 0xC8, 0xCA, 0xCC, 0xCE,
+    	0xD0, 0xD2, 0xD4, 0xD6, 0xD8, 0xDA, 0xDC, 0xDE,
+    	0xE0, 0xE2, 0xE4, 0xE6, 0xE8, 0xEA, 0xEC, 0xEE,
+    	0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7,
+    	0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF,
+	};
+
+    void CHexenDecoder::init(int fill, int lookahead, int threshold)
 	{
+		this->outa = 0;
+		this->outb = 0;
+		this->outc = 0;
+
+		this->lookahead = lookahead;
+        this->threshold = threshold;
+		this->fill = fill;
+		this->_N_CHAR = 256 + lookahead - threshold;   //# 0x17E
+        this->_T = (_N_CHAR << 1) - 1;            //# 0x2FB
+        this->_R = _T - 1;                        //# 0x2FA
         //// Initialize each list w/ zeroes before filling.
-		freq.resize(0x2FB + 1);
-		for (int x = 0; x < 0x2FB + 1;  x++)
-			freq[x] = 0x00;
+		freq.resize(_T + 1);
+		for (int x = 0; x < _T + 1; x++)
+			freq[x] = 0;
 
-		prnt.resize(0x2FB + 0x17E);
-		for (int x = 0; x < 0x2FB + 0x17E;  x++)
-			prnt[x] = 0x00;
+        prnt.resize(_T + _N_CHAR);
+		for (int x = 0; x < _T + _N_CHAR; x++)
+			prnt[x] = 0;
 
-		son.resize(0x2FB);
-		for (int x = 0; x < 0x2FB;  x++)
-			son[x] = 0x00;
+        son.resize(_T);
+		for (int x = 0; x < _T; x++)
+			son[x] = 0;
 
-        for (int i = 0; i < 0x17E; i++)
+        for (int i = 0; i < _N_CHAR; i++)
 		{
             freq[i] = 1;
-            prnt[i+0x2FB] = i;
-            son[i] = 0x2FB + i;
+            prnt[i+_T] = i;
+            son[i] = _T + i;
 		}
-        for (int i = 0x17E; i < 0x2FB; i++)
+        for (int i = _N_CHAR; i < _T; i++)
 		{
-            int j = (i - 0x17E) << 1;
-            int k = 0x17E + j;
+            int j = (i - _N_CHAR) << 1;
+            int k = _N_CHAR + j;
             freq[i] = freq[j] + freq[j+1];
             prnt[j] = i;
             prnt[j+1] = i;
             son[i] = j;
 		}
-        prnt[0x2FA] = 0;
-        freq[0x2FB] = -1;
+        prnt[_R] = 0;
+        freq[_T] = -1;
+        //# Set up ring.  Only first 0xF80 need to be set to fill value.
+        tbl.resize(0x1000);
+		for (int x = 0; x < 0x1000; x++)
+			tbl[x] = fill;
+        tbl_p = 0x1000 - lookahead;
         //// Data stream things for decoding.
         data = NULL;
         bitc = 0;
@@ -280,31 +318,26 @@ unsigned char CHexenDecoder::d_code[256] = {
 			length = CharArrayToLong(&input[0]);
             p = 4;
 		}
-        // Set up ring.  Only first 0xF80 need to be set to ' '.
-		unsigned char tbl[0x1000];
-		for (int x = 0; x < 0x1000; x++)
-			tbl[x] = 0x20;
-        int tbl_p = 0xF80;
-        // Init data stream & huffman tables.
 
 		init();
         this->data = &input[p];
 
+        int l_adj = 0xFF - threshold;   //# 0xFD
         while (outputPosition < length)
 		{
             int i = _h_chr();
             if (i < 0x100)
 			{
-				output[outputPosition++] = i;
+                output[outputPosition++] = i;
                 tbl[tbl_p] = i;
                 tbl_p += 1;
                 tbl_p &= 0xFFF;
 			}
-            else
+			else
 			{
                 int j = _h_pos();
-                p = (tbl_p - j - 1) & 0xFFF;
-                i -= 0xFD;	// len + 3
+                int p = (tbl_p - j - 1) & 0xFFF;
+                i -= l_adj; //# len + 1 + threshold
                 for (int x = 0; x < i; x++)
 				{
                     output[outputPosition++] = tbl[p];
@@ -316,5 +349,264 @@ unsigned char CHexenDecoder::d_code[256] = {
 				}
 			}
 		}
+
+		tbl.clear();
+
 		return outputPosition;
+	}
+
+	void CHexenDecoder::_write(unsigned char* output, int& outputPosition, int value, int count)
+	{
+        value &= (1 << count) - 1; //   # sanitize
+        outb |= (value << outc);
+        outc += count;
+        while (outc > 7)
+		{
+            output[outputPosition++] = outb & 0xFF;
+            outb >>= 8;
+            outc -= 8;
+		}
+	}
+
+    void CHexenDecoder::_flush(unsigned char* output, int& outputPosition)
+	{
+        //"""Flushes remaining output to self.out, resetting buffer value & count.
+        //Returns a bytes copy of output."""
+        if (outc) 
+			output[outputPosition++] = outb;
+        outb = 0;
+        outc = 0;
+	}
+
+	void CHexenDecoder::_enc_chr(unsigned char* output, int& outputPosition, int idx)
+	{
+        int i = prnt[_T + idx];
+        int j = 0;
+		int k = 0;
+        while (true)
+		{
+            j <<= 1;
+            j |= (i & 1);
+            k += 1;
+            i = prnt[i];
+            if (i == _R)
+				break;
+		}
+        _write(output, outputPosition, j, k);
+        _h_update(idx);
+	}
+
+    void CHexenDecoder::_enc_pos(unsigned char* output, int& outputPosition, int idx)
+	{
+        int v = idx >> 6;
+        int i = 8 - p_len[v];
+        int j = (idx & 0x3F) << (i + 2);
+        j += p_code[v] << 8;
+        _write(output, outputPosition, j >> 8, 8);
+        _write(output, outputPosition, idx & 0x3F, 6 - i);
+	}
+
+	int RFind(unsigned char* array, unsigned char* needle, int needleLen, int startIndex, int sourceLength)
+	{
+		int resultIndex = -1;
+		int index;
+
+		while (startIndex < (sourceLength - needleLen + 1))
+		{
+			// find needle's starting element
+			int index = -1;
+			for (int r = startIndex; r < (sourceLength - needleLen + 1); r++)
+			{
+				if (array[r] == needle[0])
+				{
+					index = r;
+					break;
+				}
+			}
+
+			// if we did not find even the first element of the needle, then the search is failed
+			if (index == -1)
+				return resultIndex;
+
+			int i, p;
+			// check for needle
+			for (i = 0, p = index; i < needleLen; i++, p++)
+			{
+				if (array[p] != needle[i])
+				{
+					break;
+				}
+			}
+
+			if (i == needleLen)
+			{
+				resultIndex = index;
+				// needle was found
+			}
+
+			// continue to search for needle
+			//sourceLength -= (index - startIndex + 1);
+			startIndex = index + 1;
+		}
+		return resultIndex;
+	}
+
+	int RFind(std::vector<unsigned char> array, std::vector<unsigned char> needle, int needleLen, int startIndex, int sourceLength)
+	{
+		unsigned char* arrayBytes = new unsigned char[sourceLength];
+		unsigned char* needleBytes = new unsigned char[needleLen];
+
+		for (int x = 0; x < sourceLength; x++)
+			arrayBytes[x] = array[x];
+
+		for (int x = 0; x < needleLen; x++)
+			needleBytes[x] = needle[x];
+
+		return RFind(arrayBytes, needleBytes, needleLen, startIndex, sourceLength);
+
+		delete [] arrayBytes;
+		delete [] needleBytes;
+	}
+
+	int Count(unsigned char* array, unsigned char* needle, int needleLen, int startIndex, int sourceLength)
+	{
+		int totalCount = 0;
+		int index;
+
+		while (startIndex < (sourceLength - needleLen + 1))
+		{
+			// find needle's starting element
+			int index = -1;
+			for (int r = startIndex; r < (sourceLength - needleLen + 1); r++)
+			{
+				if (array[r] == needle[0])
+				{
+					index = r;
+					break;
+				}
+			}
+
+			// if we did not find even the first element of the needle, then the search is failed
+			if (index == -1)
+				return totalCount;
+
+			int i, p;
+			// check for needle
+			for (i = 0, p = index; i < needleLen; i++, p++)
+			{
+				if (array[p] != needle[i])
+				{
+					break;
+				}
+			}
+
+			if (i == needleLen)
+			{
+				totalCount++;
+				// needle was found
+			}
+
+			// continue to search for needle
+			//sourceLength -= (index - startIndex + 1);
+			startIndex = index + 1;
+		}
+		return totalCount;
+	}
+
+	int Count(std::vector<unsigned char> array, std::vector<unsigned char> needle, int needleLen, int startIndex, int sourceLength)
+	{
+		unsigned char* arrayBytes = new unsigned char[sourceLength];
+		unsigned char* needleBytes = new unsigned char[needleLen];
+
+		for (int x = 0; x < sourceLength; x++)
+			arrayBytes[x] = array[x];
+
+		for (int x = 0; x < needleLen; x++)
+			needleBytes[x] = needle[x];
+
+		return Count(arrayBytes, needleBytes, needleLen, startIndex, sourceLength);
+
+		delete [] arrayBytes;
+		delete [] needleBytes;
+	}
+
+	void CHexenDecoder::_find()
+	{
+        m_len = 1;
+        int p = tbl_p;
+        int floorvalue = max(0, tbl_p - 0x1000);
+        int ceilvalue = min(p + lookahead, tbl.size());
+        int q = ceilvalue - p;
+        if (q <= threshold)
+			return;
+
+		std::vector<int> samp;
+		samp.resize(ceilvalue - p);
+		for (int x = p; x < ceilvalue; x++)
+			samp[x - p] = tbl[x];
+        //samp = tbl[p:ceil]; //# Just slice this subsample.
+        for (int i = threshold + 1; i < q; i++)
+		{
+			std::vector<unsigned char> subSamp;
+			subSamp.resize(i);
+			for (int x = 0; x < i; x++)
+				subSamp[x] = samp[x];
+			int v = Count(tbl, subSamp, (int)subSamp.size(), floorvalue, p+i);
+            if (v == 1)
+				break;
+            int j = RFind(tbl, subSamp, subSamp.size(), floorvalue, p);
+			if (j != -1)
+			{
+				m_len = i;
+				m_pos = p - j - 1;
+			}
+		}
+	}
+
+	void CHexenDecoder::WriteLongToBuffer(unsigned char* Buffer, unsigned long address, unsigned long data)
+	{
+		Buffer[address] = ((data >> 24) & 0xFF);
+		Buffer[address+1] = ((data >> 16) & 0xFF);
+		Buffer[address+2] = ((data >> 8) & 0xFF);
+		Buffer[address+3] = ((data) & 0xFF);
+	}
+
+	int CHexenDecoder::encode(unsigned char* input, int inputLength, unsigned char* output, int& outputPosition)
+	{
+		init();
+		data = input;
+
+		outputPosition = 0;
+		WriteLongToBuffer(output, outputPosition, inputLength);
+		outputPosition += 4;
+        
+        //if not data:  return huff._flush()
+        int l_adj = 0xFF - threshold;   //# 0xFD
+        int limit = lookahead - 1;      //# 0x7F
+        //# Set up ring and extend it slightly.
+		tbl.resize(tbl_p + inputLength);
+		for (int x = 0; x < inputLength; x++) //tbl[tbl_p:] = data
+			tbl[x + tbl_p] = data[x];
+        
+        int k = tbl.size();
+        //# Compress data.
+        while (tbl_p < k)
+		{
+            _find();
+            if (m_len <= threshold)
+			{
+                m_len = 1;
+                _enc_chr(output, outputPosition, tbl[tbl_p]);
+			}
+            else
+			{
+                _enc_chr(output, outputPosition, m_len + l_adj);
+                _enc_pos(output, outputPosition, m_pos);
+			}
+            tbl_p += m_len;
+		}
+        output[outputPosition++] = outb;
+
+		tbl.clear();
+        return outputPosition;
 	}
