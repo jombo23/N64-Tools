@@ -761,6 +761,62 @@ BOOL CGEDecompressorDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	/*FILE* inTemp = fopen("C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\Hexen (U) [!].z64", "rb");
+	unsigned char* Buffer = new unsigned char[0x01000000];
+	fread(Buffer, 1, 0x01000000, inTemp);
+	fclose(inTemp);
+
+	unsigned char* outputDecompressed = new unsigned char[0x080000];
+	CHexenDecoder hexenDecode;
+	int uncompressedSize = hexenDecode.decode(&Buffer[0x773D20], outputDecompressed, -1);
+	//int uncompressedSize = hexenDecode.decode(&Buffer[0x7B31F0], outputDecompressed, -1);
+
+	FILE* a = fopen("C:\\temp\\hexen.bin", "wb");
+	fwrite(outputDecompressed, 1, uncompressedSize, a);
+	fflush(a);
+	fclose(a);
+
+	unsigned char* outputCompressed = new unsigned char[0x080000];
+	int fileSizeCompressed = -1;
+	hexenDecode.encode(outputDecompressed, uncompressedSize, outputCompressed, fileSizeCompressed);
+
+	
+	a = fopen("C:\\temp\\hexenenc.bin", "wb");
+	fwrite(outputCompressed, 1, fileSizeCompressed, a);
+	fflush(a);
+	fclose(a);
+
+	delete [] outputDecompressed;
+	outputDecompressed = new unsigned char[0x080000];
+	uncompressedSize = hexenDecode.decode(outputCompressed, outputDecompressed, -1);
+
+	a = fopen("C:\\temp\\hexenre.bin", "wb");
+	fwrite(outputDecompressed, 1, uncompressedSize, a);
+	fflush(a);
+	fclose(a);
+	
+	delete [] outputDecompressed;
+	delete [] outputCompressed
+	delete [] Buffer;*/
+
+	/*FILE* inTemp = fopen("C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\Robotech - Crystal Dreams (Beta).z64", "rb");
+	unsigned char* Buffer = new unsigned char[0x01000000];
+	fread(Buffer, 1, 0x01000000, inTemp);
+	fclose(inTemp);
+
+	unsigned char* outputDecompressed = new unsigned char[0x100000];
+	int fileSizeCompressed = -1;
+	CMKMythologiesDecode compression;
+	int uncompressedSize = 0x0000057D;
+	compression.dec(&Buffer[0x008B40C8], fileSizeCompressed, uncompressedSize, outputDecompressed);
+
+	FILE* a = fopen("C:\\temp\\mid.bin", "wb");
+	fwrite(outputDecompressed, 1, uncompressedSize, a);
+	fflush(a);
+	fclose(a);
+	delete [] outputDecompressed;
+	delete [] Buffer;*/
+
+	/*FILE* inTemp = fopen("C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\Hexen (U) [!].z64", "rb");
 	unsigned char* Buffer = new unsigned char[0x02000000];
 	fread(Buffer, 1, 0x02000000, inTemp);
 	fclose(inTemp);
