@@ -833,7 +833,7 @@ bool CAcclaimDEANAudioDecompression::SaveProcessedWav(unsigned char* processedWa
 	wavHeader[0x1] = 0x49;
 	wavHeader[0x2] = 0x46;
 	wavHeader[0x3] = 0x46;
-	unsigned long chunkSize = 0x28 + processedWavDataLength;
+	unsigned long chunkSize = 0x2C + processedWavDataLength;
 	wavHeader[0x4] = ((chunkSize >> 0) & 0xFF);
 	wavHeader[0x5] = ((chunkSize >> 8) & 0xFF);
 	wavHeader[0x6] = ((chunkSize >> 16) & 0xFF);
