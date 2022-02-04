@@ -405,6 +405,18 @@ void CN64SoundbankToolDlg::InitializeSpecificGames()
 				line.Replace(":", "");
 				gameConfig[countGames].poolOffset = CN64SoundToolReader::StringHexToLong(line);
 			}
+			else if (line.Find("ProjSize") != -1)
+			{
+				line.Replace("ProjSize", "");
+				line.Replace(":", "");
+				gameConfig[countGames].projSize = CN64SoundToolReader::StringHexToLong(line);
+			}
+			else if (line.Find("PoolSize") != -1)
+			{
+				line.Replace("PoolSize", "");
+				line.Replace(":", "");
+				gameConfig[countGames].poolSize = CN64SoundToolReader::StringHexToLong(line);
+			}
 		}
 		else
 		{
@@ -3077,7 +3089,7 @@ void CN64SoundbankToolDlg::ParseSoundMacroList(std::vector<Factor5SoundMacro> so
 	}
 }
 
-bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vector<ALBank*> alBanks, std::vector<int> soundBankIndexes, unsigned char* buffer, int romSize, unsigned long projOffset, unsigned long poolOffset, FILE* outFileDebug)
+bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vector<ALBank*> alBanks, std::vector<int> soundBankIndexes, unsigned char* buffer, int romSize, unsigned long projOffset, unsigned long poolOffset, int projSize, int poolSize, FILE* outFileDebug)
 {
 	CString gameName;
 	m_game.GetWindowText(gameName);
@@ -3122,22 +3134,88 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 
 	float timeMultiplier = atof(tempStr);
 
-	GECompression compression;
-	compression.SetPath(mainFolder);
+	unsigned char* proj = NULL;
+	unsigned char* pool = NULL;
+
+	bool isCompressed = false;
+	int zlibGame = 0;
 	if (buffer[poolOffset] == 0x78)
-		compression.SetGame(STUNTRACER64);
+	{
+		isCompressed = true;
+		zlibGame = STUNTRACER64;
+	}
+	else if (gameConfigSoundFound.gameType == "Musyx")
+	{
+		isCompressed = false;
+	}
+	else if (gameConfigSoundFound.gameType == "ZLibMusyx")
+	{
+		isCompressed = true;
+		zlibGame = GAUNTLETLEGENDS;
+	}
+	else if (gameConfigSoundFound.gameType == "ZLib78DAMusyx")
+	{
+		isCompressed = true;
+		zlibGame = STUNTRACER64;
+	}
+	else if (gameConfigSoundFound.gameType == "MusyxREZLib")
+	{
+		isCompressed = true;
+		zlibGame = STUNTRACER64;
+	}
+	else if (gameConfigSoundFound.gameType == "MusyxSmallZlib")
+	{
+		isCompressed = true;
+		zlibGame = STUNTRACER64;
+	}
+	else if (gameConfigSoundFound.gameType == "LzMusyx")
+	{
+		isCompressed = true;
+	}
+	if (!isCompressed)
+	{
+		proj = new unsigned char[projSize];
+		memcpy(proj, &buffer[projOffset], projSize);
+		pool = new unsigned char[poolSize];
+		memcpy(pool, &buffer[poolOffset], poolSize);
+	}
 	else
-		compression.SetGame(RESIDENTEVIL2);
+	{
+		projSize = 0;
+		poolSize = 0;
 
-	compression.SetCompressedBuffer(&buffer[projOffset], romSize - projOffset);
-	int projSize = 0;
-	int projCompressedSize = 0;
-	unsigned char* proj = compression.OutputDecompressedBuffer(projSize, projCompressedSize);
+		if (gameConfigSoundFound.gameType == "LzMusyx")
+		{
+			proj = new unsigned char[0x100000];
+			pool = new unsigned char[0x100000];
+			MidwayLZ midwayLz;
+			projSize = midwayLz.dec(&buffer[projOffset], romSize - projOffset, proj);
+			poolSize = midwayLz.dec(&buffer[poolOffset], romSize - poolOffset, pool);
+		}
+		else
+		{
+			GECompression compression;
+			compression.SetPath(mainFolder);
+			if ((buffer[poolOffset] == 0x78) && (buffer[poolOffset+1] == 0xDA))
+			{
+				compression.SetGame(STUNTRACER64);
+			}
+			else
+			{
+				compression.SetGame(zlibGame);
+			}
 
-	compression.SetCompressedBuffer(&buffer[poolOffset], romSize - poolOffset);
-	int poolSize = 0;
-	int poolCompressedSize = 0;
-	unsigned char* pool = compression.OutputDecompressedBuffer(poolSize, poolCompressedSize);
+			compression.SetCompressedBuffer(&buffer[projOffset], romSize - projOffset);
+			projSize = 0;
+			int projCompressedSize = 0;
+			proj = compression.OutputDecompressedBuffer(projSize, projCompressedSize);
+
+			compression.SetCompressedBuffer(&buffer[poolOffset], romSize - poolOffset);
+			poolSize = 0;
+			int poolCompressedSize = 0;
+			pool = compression.OutputDecompressedBuffer(poolSize, poolCompressedSize);
+		}
+	}
 	
 
 	unsigned int soundMacrosOffset = CharArrayToLong(&pool[0]);
@@ -3983,7 +4061,7 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 
 						ParseSoundMacroList(soundMacroList->soundMacros, poolTables, sampleId, attackTime, decayTime, sustainPercentage, releaseTime, macroPan);
 
-						if (sampleId > alBankCurrent->count)
+						if (sampleId >= alBankCurrent->count)
 						{
 							sampleId = -1;
 						}
@@ -5754,7 +5832,12 @@ void CN64SoundbankToolDlg::OnCbnSelchangeCombosound()
 				mWriteDLSCombinedBanksButton.ShowWindow(SW_SHOW);
 				mMergePreviewBanksCheck.ShowWindow(SW_SHOW);
 			}
-			else if (gameConfigMidi[x].gameType.CompareNoCase("Factor5Zlb") == 0)
+			else if (
+				(gameConfigMidi[x].gameType.CompareNoCase("Factor5Zlb") == 0)
+				|| (gameConfigMidi[x].gameType.CompareNoCase("Factor5ZlbGCStyle") == 0)
+				|| (gameConfigMidi[x].gameType.CompareNoCase("Factor5LZGCStyle") == 0)
+				|| (gameConfigMidi[x].gameType.CompareNoCase("Factor5ZlbNoHeaderGCStyle") == 0)
+				)
 			{
 				mOutputLoop.ShowWindow(SW_HIDE);
 				mOutputLoopCount.ShowWindow(SW_HIDE);
@@ -6320,7 +6403,12 @@ void CN64SoundbankToolDlg::OnBnClickedButtonwritedlssoundfont3()
 				fclose(outDebugFile);
 			}
 		}
-		else if (gameConfigMidi[gameNumber].gameType.CompareNoCase("Factor5Zlb") == 0)
+		else if (
+					(gameConfigMidi[gameNumber].gameType.CompareNoCase("Factor5Zlb") == 0)
+				|| (gameConfigMidi[gameNumber].gameType.CompareNoCase("Factor5ZlbGCStyle") == 0)
+				|| (gameConfigMidi[gameNumber].gameType.CompareNoCase("Factor5LZGCStyle") == 0)
+				|| (gameConfigMidi[gameNumber].gameType.CompareNoCase("Factor5ZlbNoHeaderGCStyle") == 0)
+				)
 		{
 			for (int x = 0; x < gameConfigBank.soundfontBank.size(); x++)
 			{
@@ -6340,7 +6428,7 @@ void CN64SoundbankToolDlg::OnBnClickedButtonwritedlssoundfont3()
 			FILE* outDebugFile = NULL;
 			if (mDebug.GetCheck())
 				outDebugFile = fopen(m_svFile.GetPathName() + "Debug.txt", "w");
-			WriteDLSCombinedFactor5(m_svFile.GetPathName(), alBanks, bankIndexes, buffer, romSize, gameConfigBank.projOffset, gameConfigBank.poolOffset, outDebugFile);
+			WriteDLSCombinedFactor5(m_svFile.GetPathName(), alBanks, bankIndexes, buffer, romSize, gameConfigBank.projOffset, gameConfigBank.poolOffset, gameConfigBank.projSize, gameConfigBank.poolSize, outDebugFile);
 			if (outDebugFile)
 			{
 				fflush(outDebugFile);
