@@ -2353,6 +2353,8 @@ bool CExciteBikeSAMAudioDecompression::DecodeBIGSound(unsigned char* ROM, unsign
 			unsigned long outputSpot = 0x80138B90;
 			
 			int copySize = CSharedFunctions::CharArrayToLong(&RAM[0x800F0EB0 & 0xFFFFFF]) * 4;
+			if (copySize > 0x1000) // first time around reporting too high
+				copySize = 0x1000;
 			memcpy(&result[resultSize], &RAM[0x80138B90 & 0xFFFFFF], copySize);
 			resultSize += copySize;
 
