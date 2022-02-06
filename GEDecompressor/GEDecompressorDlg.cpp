@@ -760,6 +760,43 @@ BOOL CGEDecompressorDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
+	/*FILE* inTemp = fopen("C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\South Park Rally (U) [!].z64", "rb");
+	unsigned char* Buffer = new unsigned char[0x01000000];
+	fread(Buffer, 1, 0x01000000, inTemp);
+	fclose(inTemp);
+
+	unsigned char* outputDecompressed = new unsigned char[0x080000];
+
+	CSPRallyCompression spRallyCompression;
+	int uncompressedSize = spRallyCompression.decode(&Buffer[0x00C4BBCC], -1, outputDecompressed);
+
+	FILE* a = fopen("C:\\temp\\sprally.bin", "wb");
+	fwrite(outputDecompressed, 1, uncompressedSize, a);
+	fflush(a);
+	fclose(a);
+
+	unsigned char* outputCompressed = new unsigned char[0x080000];
+	int fileSizeCompressed = spRallyCompression.encode(outputDecompressed, uncompressedSize, outputCompressed);
+
+	
+	a = fopen("C:\\temp\\sprallyenc.bin", "wb");
+	fwrite(outputCompressed, 1, fileSizeCompressed, a);
+	fflush(a);
+	fclose(a);
+
+	delete [] outputDecompressed;
+	outputDecompressed = new unsigned char[0x080000];
+	uncompressedSize = spRallyCompression.decode(outputCompressed, 0xC43C, outputDecompressed);
+
+	a = fopen("C:\\temp\\sprallyre.bin", "wb");
+	fwrite(outputDecompressed, 1, uncompressedSize, a);
+	fflush(a);
+	fclose(a);
+	
+	delete [] outputDecompressed;
+	delete [] outputCompressed;
+	delete [] Buffer;*/
+
 	/*FILE* inTemp = fopen("C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\Hexen (U) [!].z64", "rb");
 	unsigned char* Buffer = new unsigned char[0x01000000];
 	fread(Buffer, 1, 0x01000000, inTemp);

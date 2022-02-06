@@ -33,6 +33,7 @@
 #include "NaganoDecoder.h"
 #include "ViewpointDecoder.h"
 #include "HexenDecoder.h"
+#include "SPRallyCompression.h"
 
 #include <algorithm>
 
