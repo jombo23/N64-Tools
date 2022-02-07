@@ -2117,7 +2117,7 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 
 		int spot = 0xC + (numberInstruments * 8);
 
-		unsigned char* result = new unsigned char[0x400000];
+		unsigned char* result = new unsigned char[0x2000000];
 		int resultSize = 0;
 
 		while (true)
@@ -2177,7 +2177,7 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 				timeStampNext = CSharedFunctions::CharArrayToShort(&sngFile[sngFileOffset + spot + 4]);
 			}
 
-			for (int y = 0; y < (timeStampNext - timeStamp) * 32; y++)
+			for (int y = 0; y < (timeStampNext - timeStamp) * 128; y++)
 			{
 				int countData = 0;
 				int resultSoundData = 0;
