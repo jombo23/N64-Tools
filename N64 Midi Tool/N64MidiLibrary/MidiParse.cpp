@@ -28,7 +28,7 @@
 #include "ViewpointDecoder.h"
 #include "HexenDecoder.h"
 #include "MKMythologiesDecode.h"
-
+#include "SPRallyAudioDecompression.h"
 #include <algorithm>
 #include <map>
 #include <math.h>
@@ -19866,6 +19866,14 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 		{
 
 		}
+	}
+	else if (gameType.CompareNoCase("ImpulseTracker") == 0)
+	{
+		unsigned long fileTableHashMultiplier = 3;
+
+		CSPRallyAudioDecompression spRallyAudioDecompression;
+		spRallyAudioDecompression.DecodeImpulseTracker(gamebuffer, fileTableHashMultiplier, extra, address, fileName);
+		
 	}
 	else if (gameType.CompareNoCase("Aidyn") == 0)
 	{

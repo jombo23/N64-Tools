@@ -249,6 +249,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SPRallyAudioDecompression.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SPRallyCompression.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -396,6 +404,14 @@
 			</File>
 			<File
 				RelativePath=".\SnowDecoder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SPRallyAudioDecompression.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SPRallyCompression.h"
 				>
 			</File>
 			<File

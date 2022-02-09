@@ -1982,6 +1982,18 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 			numberMidiStrings++;
 		}
 	}
+	else if (gameName.CompareNoCase("ImpulseTracker") == 0)
+	{
+		compressed = true;
+		//midiParse.ImportMidiConfig("aerofightersassault.txt");
+		for (int x = 0; x < gameConfig[gameNumber].numberMidis; x++)
+		{
+			CString tempSpotStr;
+			tempSpotStr.Format("%08X:%08X:%08X", gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), gameConfig[gameNumber].midiBanks[x].extra);
+			addMidiStrings.push_back(tempSpotStr);
+			numberMidiStrings++;
+		}
+	}
 	else if (gameName.CompareNoCase("Aidyn") == 0)
 	{
 		compressed = false;

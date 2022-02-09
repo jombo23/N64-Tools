@@ -1,5 +1,7 @@
 #include "StdAfx.h"
 #include "SharedFunctions.h"
+#include <string>
+#include <sstream>
 #include <math.h>
 
 CSharedFunctionsMidi::CSharedFunctionsMidi(void)
@@ -78,7 +80,6 @@ int CSharedFunctionsMidi::HexToInt(char inChar)
 
 unsigned short CSharedFunctionsMidi::StringToUnsignedShort(CString inString)
 {
-	inString.Trim();
 	int tempA = inString.GetLength();
 	if (inString.GetLength() < 4)
 	{
@@ -104,7 +105,6 @@ unsigned short CSharedFunctionsMidi::StringToUnsignedShort(CString inString)
 
 unsigned char CSharedFunctionsMidi::StringToSignedChar(CString inString)
 {
-	inString.Trim();
 	int tempA = inString.GetLength();
 	if (inString.GetLength() < 2)
 	{
@@ -130,7 +130,6 @@ unsigned char CSharedFunctionsMidi::StringToSignedChar(CString inString)
 
 unsigned char CSharedFunctionsMidi::StringToUnsignedChar(CString inString)
 {
-	inString.Trim();
 	int tempA = inString.GetLength();
 	if (inString.GetLength() < 2)
 	{
@@ -178,6 +177,183 @@ unsigned long CSharedFunctionsMidi::StringHexToLong(CString inString)
 		tempLong = tempLong | hexInt<<((7-x)*4);
 	}
 	return tempLong;
+}
+
+void CSharedFunctionsMidi::WriteLongToBuffer(unsigned char* Buffer, unsigned long address, unsigned long data)
+{
+
+	if (address > 0x80800000)
+		return;
+
+	address = address & 0xFFFFFFF;
+
+	Buffer[address] = ((data >> 24) & 0xFF);
+	Buffer[address+1] = ((data >> 16) & 0xFF);
+	Buffer[address+2] = ((data >> 8) & 0xFF);
+	Buffer[address+3] = ((data) & 0xFF);
+}
+
+void CSharedFunctionsMidi::WriteShortToBuffer(unsigned char* Buffer, unsigned long address, unsigned short data)
+{
+	if (address > 0x80800000)
+		return;
+
+	address = address & 0xFFFFFFF;
+
+	Buffer[address] = ((data >> 8) & 0xFF);
+	Buffer[address+1] = ((data) & 0xFF);	
+}
+
+void CSharedFunctionsMidi::WriteCharToBuffer(unsigned char* Buffer, unsigned long address, unsigned char data)
+{
+
+	if (address > 0x80800000)
+		return;
+
+	address = address & 0xFFFFFFF;
+
+	Buffer[address] = ((data) & 0xFF);	
+}
+
+
+unsigned short CSharedFunctionsMidi::CharArrayToShort(unsigned char* currentSpot)
+{
+	return ((currentSpot[0] << 8) | currentSpot[1]);
+}
+
+unsigned long CSharedFunctionsMidi::CharArrayToLong(unsigned char* currentSpot)
+{
+	return ((((((currentSpot[0] << 8) | currentSpot[1]) << 8) | currentSpot[2]) << 8) | currentSpot[3]);
+}
+
+unsigned long CSharedFunctionsMidi::CharArrayToChar(unsigned char* currentSpot)
+{
+	return currentSpot[0];
+}
+
+unsigned short CSharedFunctionsMidi::CharArrayToShort(unsigned char* Buffer, int address)
+{
+	if (address > 0x80800000)
+		return 0;
+
+	address = address & 0xFFFFFFF;
+
+	return ((Buffer[address + 0] << 8) | Buffer[address + 1]);
+}
+
+unsigned long CSharedFunctionsMidi::CharArrayToLong(unsigned char* Buffer, int address)
+{
+	if (address > 0x80800000)
+		return 0;
+
+	address = address & 0xFFFFFFF;
+
+	/*if (std::find(addressesWrite.begin(), addressesWrite.end(), address) == addressesWrite.end())
+	{
+		if (std::find(addresses.begin(), addresses.end(), address) == addresses.end())
+		{
+			addresses.push_back(address);
+			addressesValues.push_back(((((((Buffer[address + 0] << 8) | Buffer[address + 1]) << 8) | Buffer[address + 2]) << 8) | Buffer[address + 3]));
+		}
+	}*/
+
+	return ((((((Buffer[address + 0] << 8) | Buffer[address + 1]) << 8) | Buffer[address + 2]) << 8) | Buffer[address + 3]);
+}
+
+unsigned long CSharedFunctionsMidi::CharArrayToChar(unsigned char* Buffer, int address)
+{
+	if (address > 0x80800000)
+		return 0;
+
+	address = address & 0xFFFFFFF;
+
+	return Buffer[address];
+}
+
+unsigned long CSharedFunctionsMidi::Flip32Bit(unsigned long inLong)
+{
+	return (((inLong & 0xFF000000) >> 24) | ((inLong & 0x00FF0000) >> 8) | ((inLong & 0x0000FF00) << 8) | ((inLong & 0x000000FF) << 24));
+}
+
+void CSharedFunctionsMidi::WriteFloatToBuffer(unsigned char* Buffer, unsigned long address, float data)
+{
+	WriteLongToBuffer(Buffer, address, (*reinterpret_cast<unsigned long*> (&data)));
+}
+
+void CSharedFunctionsMidi::WriteDoubleToBuffer(unsigned char* Buffer, unsigned long address, double data)
+{
+	if (address > 0x80800000)
+		return;
+
+	address = address & 0xFFFFFFF;
+
+	unsigned __int64 tempHex = (*reinterpret_cast<unsigned __int64*> (&data));
+	WriteLongToBuffer(Buffer, address, ((unsigned long)(tempHex >> 32) & 0xFFFFFFFF));
+	WriteLongToBuffer(Buffer, address + 4, ((unsigned long)(tempHex) & 0xFFFFFFFF));
+}
+
+float CSharedFunctionsMidi::CharArrayToFloat(unsigned char* currentSpot)
+{
+	unsigned long tempLong = CharArrayToLong(currentSpot);
+	return (*reinterpret_cast<float*> (&tempLong));
+}
+
+float CSharedFunctionsMidi::CharArrayToFloat(unsigned char* Buffer, int address)
+{
+	if (address > 0x80800000)
+		return 0;
+
+	address = address & 0xFFFFFFF;
+
+	unsigned long tempLong = CharArrayToLong(&Buffer[address]);
+	return (*reinterpret_cast<float*> (&tempLong));
+}
+
+double CSharedFunctionsMidi::CharArrayToDouble(unsigned char* Buffer, int address)
+{
+	if (address > 0x80800000)
+		return 0;
+
+	address = address & 0xFFFFFFF;
+
+	unsigned __int64 tempLongLong = (((unsigned __int64)CharArrayToLong(&Buffer[address]) << 32) | (unsigned __int64)CharArrayToLong(&Buffer[address + 4]));
+	return (*reinterpret_cast<double*> (&tempLongLong));
+}
+
+void CSharedFunctionsMidi::StringToByteArray(unsigned char* dataArray, CString hexStr)
+{
+	std::string str = (LPCSTR)hexStr;
+
+	int length = str.length();
+	// make sure the input string has an even digit numbers
+	if(length%2 == 1)
+	{
+		str = "0" + str;
+		length++;
+	}
+
+	// allocate memory for the output array
+	int size = length/2;
+
+	std::stringstream sstr(str);
+	for(int i=0; i < size; i++)
+	{
+		char ch1, ch2;
+		sstr >> ch1 >> ch2;
+		int dig1, dig2;
+		if(isdigit(ch1)) dig1 = ch1 - '0';
+		else if(ch1>='A' && ch1<='F') dig1 = ch1 - 'A' + 10;
+		else if(ch1>='a' && ch1<='f') dig1 = ch1 - 'a' + 10;
+		if(isdigit(ch2)) dig2 = ch2 - '0';
+		else if(ch2>='A' && ch2<='F') dig2 = ch2 - 'A' + 10;
+		else if(ch2>='a' && ch2<='f') dig2 = ch2 - 'a' + 10;
+		dataArray[i] = dig1*16 + dig2;
+	}
+}
+
+unsigned short CSharedFunctionsMidi::Flip16Bit(unsigned short ShortValue)
+{
+	return ((ShortValue >> 8) | ((ShortValue << 8)));
 }
 
 double CSharedFunctionsMidi::round(double number)
