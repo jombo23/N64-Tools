@@ -19872,7 +19872,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 		unsigned long fileTableHashMultiplier = 3;
 
 		CSPRallyAudioDecompression spRallyAudioDecompression;
-		spRallyAudioDecompression.DecodeImpulseTracker(gamebuffer, fileTableHashMultiplier, extra, address, fileName);
+		spRallyAudioDecompression.DecodeImpulseTracker(gamebuffer, fileTableHashMultiplier, extra, address, fileName, extra2);
 		
 	}
 	else if (gameType.CompareNoCase("Aidyn") == 0)

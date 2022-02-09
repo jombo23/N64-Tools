@@ -421,7 +421,7 @@ bool CSPRallyAudioDecompression::DecodeSoundFile(unsigned char* ROM, SPRallySoun
 	return result;
 }
 
-bool CSPRallyAudioDecompression::DecodeImpulseTracker(unsigned char* ROM, unsigned long fileTableHashMultiplier, int fileTableStart, unsigned long musicOffset, CString outputFile)
+bool CSPRallyAudioDecompression::DecodeImpulseTracker(unsigned char* ROM, unsigned long fileTableHashMultiplier, int fileTableStart, unsigned long musicOffset, CString outputFile, int sampleTableOffset)
 {
 	std::vector<SPRallyFileTableEntry> fileTable = GetFileTableEntries(ROM, fileTableStart, fileTableHashMultiplier);
 
@@ -525,7 +525,7 @@ bool CSPRallyAudioDecompression::DecodeImpulseTracker(unsigned char* ROM, unsign
 		0x17 Sweep
 		0x18-0x1B Loop Start
 		0x1C-0x1F Loop Length*/
-		int sampleInfoOffsetROM = 0x00084134 + (x * 0x20);
+		int sampleInfoOffsetROM = sampleTableOffset + (x * 0x20);
 		int unknownFlag1 = ROM[sampleInfoOffsetROM];
 		int unknownFlag2 = ROM[sampleInfoOffsetROM + 1];
 		int volume = ROM[sampleInfoOffsetROM + 2];

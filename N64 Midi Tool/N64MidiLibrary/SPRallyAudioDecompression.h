@@ -59,5 +59,5 @@ public:
 	SPRallyFileTableEntry GetSoundFile(unsigned char* ROM, SPRallySoundTableEntry soundTableEntry, std::vector<SPRallyFileTableEntry> fileTable, unsigned long fileTableHashMultiplier, CString& nameROMStr, int& index);
 	SPRallyFileTableEntry GetFileEntry(unsigned char* ROM, CString nameROMStr, std::vector<SPRallyFileTableEntry> fileTable, unsigned long fileTableHashMultiplier, int& index);
 	bool DecodeSoundFile(unsigned char* ROM, SPRallySoundTableEntry soundTableEntry, std::vector<SPRallyFileTableEntry> fileTable, unsigned long fileTableHashMultiplier, int fileTableStart, float samplingRateFloat, CString outputFile);
-	bool DecodeImpulseTracker(unsigned char* ROM, unsigned long fileTableHashMultiplier, int fileTableStart, unsigned long musicOffset, CString outputFile);
+	bool DecodeImpulseTracker(unsigned char* ROM, unsigned long fileTableHashMultiplier, int fileTableStart, unsigned long musicOffset, CString outputFile, int sampleTableOffset);
 };
