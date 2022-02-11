@@ -28,7 +28,7 @@
 #include "ViewpointDecoder.h"
 #include "HexenDecoder.h"
 #include "MKMythologiesDecode.h"
-#include "SPRallyAudioDecompression.h"
+#include "SPRallyMusicDecompression.h"
 #include <algorithm>
 #include <map>
 #include <math.h>
@@ -5917,6 +5917,100 @@ void CMidiParse::SSEQToDebugTextFile(unsigned char* ROM, int romSize, CString ga
 
 			fprintf(outFile, "\n");
 			offsetData += 0x14;
+
+			SSEQTrackToDebugTextFile(outFile, inputMID, offsetData, inputSize, extraGameMidiInfo, writeOutLoops, loopWriteCount, extendTracksToHighest, highestTrackLength);
+
+			offsetData += sizeTrack;
+		}
+	}
+	catch (...)
+	{
+		MessageBox(NULL, "Error exporting", "Error", NULL);
+	}
+	
+	fclose(outFile);
+}
+
+void CMidiParse::MKProtoSSEQToDebugTextFile(unsigned char* ROM, int romSize, CString gameName, unsigned long address, CString midiFile, CString textFileOut, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, unsigned long extra)
+{
+	CString filepath = midiFile;
+	
+	FILE* inFile = fopen(filepath, "rb");
+	if (inFile == NULL)
+	{
+		MessageBox(NULL, "Can't read input file " + filepath, "Error", NULL);
+		return;
+	}
+
+	fseek(inFile, 0, SEEK_END);
+	int inputSize = ftell(inFile);
+	rewind(inFile);
+
+	unsigned char* inputMID = new unsigned char[inputSize];
+
+	fread(inputMID, 1, inputSize, inFile);
+	fclose(inFile);
+
+	MKProtoSSEQToDebugTextFile(ROM, romSize, gameName, address, inputMID, inputSize, textFileOut, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, extra);
+
+	delete [] inputMID;
+}
+
+void CMidiParse::MKProtoSSEQToDebugTextFile(unsigned char* ROM, int romSize, CString gameName, unsigned long address, byte* inputMID, int inputSize, CString textFileOut, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, unsigned long extra)
+{
+	numberTracks = extra;
+
+	CString addressStr;
+	addressStr.Format("%08X", address);
+
+	FILE* outFile = fopen(textFileOut, "w");
+	if (outFile == NULL)
+	{
+		MessageBox(NULL,"Can't open output file " + textFileOut, "Error", NULL);
+		return;
+	}
+
+	fprintf(outFile, gameName + " - " + addressStr + "\n");
+
+	int noteUniqueId = 0;
+	std::vector<TimeAndValue> tempoPositions;
+
+	
+	try
+	{
+		std::vector<SngNoteInfo> sngNoteList;
+
+		int trackRealLength = 0;
+		
+		int loopStart = 0;
+		int loopEnd = 0;
+		int maxTrackLength = 0;
+
+		int highestTrackLength = 0;
+
+		int trackLength = MKProtoFindHighestSSEQLengthTrack(inputMID, inputSize, numberTracks);
+		if (trackLength > highestTrackLength)
+			highestTrackLength = trackLength;
+
+		unsigned long offsetData = 0;
+		for (int track = 0; track < numberTracks; track++)
+		{
+			unsigned long division = CharArrayToLong(&inputMID[offsetData + 0xC]);
+			unsigned short division2 = CharArrayToShort(&inputMID[offsetData + 0x10]);
+			unsigned short extraFlag = CharArrayToShort(&inputMID[offsetData + 0x12]);
+
+			unsigned long sizeTrack = CharArrayToLong(&inputMID[offsetData + 0x14]);
+			
+			fprintf(outFile, "Track %X - %08X Division %08X Division2 %04X", track, offsetData, division, division2);
+
+			if (extraFlag)
+			{
+				fprintf(outFile, " Extra %08X", CharArrayToLong(&inputMID[offsetData + 0x18]));
+				offsetData += 4;
+			}
+
+			fprintf(outFile, "\n");
+			offsetData += 0x18;
 
 			SSEQTrackToDebugTextFile(outFile, inputMID, offsetData, inputSize, extraGameMidiInfo, writeOutLoops, loopWriteCount, extendTracksToHighest, highestTrackLength);
 
@@ -18557,6 +18651,10 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			int fileSizeUncompressed;
 			unsigned char* outputDecompressedSSEQ = gedecompress.OutputDecompressedBuffer(fileSizeUncompressed, fileSizeCompressed);
 
+			/*FILE* a = fopen("C:\\temp\\mktr.bin", "wb");
+			fwrite(outputDecompressedSSEQ, 1, fileSizeUncompressed, a);
+			fflush(a);
+			fclose(a);*/
 			SSEQToMidi(gamebuffer, gamebufferSize, outputDecompressedSSEQ, fileSizeUncompressed, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, extra);
 			if (generateDebugTextFile)
 				SSEQToDebugTextFile(gamebuffer, gamebufferSize, gameName, address, &gamebuffer[address], size, fileName + " TrackParseDebug.txt", writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, extra);
@@ -18581,6 +18679,19 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 			SSEQToMidi(gamebuffer, gamebufferSize, &gamebuffer[address], size, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, extra);
 			if (generateDebugTextFile)
 				SSEQToDebugTextFile(gamebuffer, gamebufferSize, gameName, address, &gamebuffer[address], size, fileName + " TrackParseDebug.txt", writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, extra);
+		}
+	}
+	else if (gameType.CompareNoCase("MKPROTOSSEQ") == 0)
+	{
+		if (compressed)
+		{
+			
+		}
+		else
+		{
+			MKProtoSSEQToMidi(gamebuffer, gamebufferSize, &gamebuffer[address], size, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, extra);
+			if (generateDebugTextFile)
+				MKProtoSSEQToDebugTextFile(gamebuffer, gamebufferSize, gameName, address, &gamebuffer[address], size, fileName + " TrackParseDebug.txt", writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, extra);
 		}
 	}
 	else if (gameType.CompareNoCase("PaperMario") == 0)
@@ -19871,7 +19982,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 	{
 		unsigned long fileTableHashMultiplier = 3;
 
-		CSPRallyAudioDecompression spRallyAudioDecompression;
+		CSPRallyMusicDecompression spRallyAudioDecompression;
 		spRallyAudioDecompression.DecodeImpulseTracker(gamebuffer, fileTableHashMultiplier, extra, address, fileName, extra2);
 		
 	}
@@ -22609,6 +22720,57 @@ int CMidiParse::FindHighestSSEQLengthTrack(unsigned char* inputMID, int endSize,
 		}
 
 		offsetData += 0x14;
+
+		unsigned char command = 0x00;
+		int spot = offsetData;
+
+		unsigned long absoluteTime = 0;
+
+		while (spot < endSize)
+		{
+			unsigned long original;
+			unsigned char* altPattern = NULL;
+			byte altOffset = 0;
+			byte altLength = 0;
+			unsigned long deltaTime = GetVLBytes(inputMID, spot, original, altPattern, altOffset, altLength, false);
+
+			absoluteTime += deltaTime;
+
+			command = inputMID[spot];
+
+			if (command == 0x22)
+			{
+				break;
+			}
+
+			spot += sseqCommandSizes[command];
+		}
+
+		if (absoluteTime > highestTime)
+			highestTime = absoluteTime;
+
+		offsetData += sizeTrack;
+	}	
+
+	return highestTime;
+}
+
+int CMidiParse::MKProtoFindHighestSSEQLengthTrack(unsigned char* inputMID, int endSize, int numberTracks)
+{
+	int highestTime = 0;
+
+	unsigned long offsetData = 0;
+	for (int track = 0; track < numberTracks; track++)
+	{
+		unsigned short extraFlag = CharArrayToShort(&inputMID[offsetData + 0x12]);
+		unsigned long sizeTrack = CharArrayToLong(&inputMID[offsetData + 0x14]);
+		
+		if (extraFlag)
+		{
+			offsetData += 4;
+		}
+
+		offsetData += 0x18;
 
 		unsigned char command = 0x00;
 		int spot = offsetData;
@@ -30619,6 +30781,58 @@ void CMidiParse::SSEQToMidi(unsigned char* ROM, int romSize, byte* inputMID, int
 			}
 
 			offsetData += 0x14;
+
+			ParseSSEQTrack(track, numberInstruments, tempoPositions, sngNoteList, inputMID, offsetData, inputSize, noteUniqueId, writeOutLoops, loopWriteCount, extendTracksToHighest, highestTrackLength);
+
+			offsetData += sizeTrack;
+		}
+
+		WriteSngList(sngNoteList, tempoPositions, outFileName, separateByInstrument, division, false, 24);
+	}
+	catch (...)
+	{
+		MessageBox(NULL, "Error exporting", "Error", NULL);
+	}
+}
+
+void CMidiParse::MKProtoSSEQToMidi(unsigned char* ROM, int romSize, byte* inputMID, int inputSize, CString outFileName, int& numberInstruments, bool calculateInstrumentCountOnly, bool separateByInstrument, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, unsigned long numberTracks)
+{
+	numberInstruments = 1;
+	int noteUniqueId = 0;
+	std::vector<TimeAndValue> tempoPositions;
+
+	
+	try
+	{
+		std::vector<SngNoteInfo> sngNoteList;
+
+		int trackRealLength = 0;
+		
+		int loopStart = 0;
+		int loopEnd = 0;
+		int maxTrackLength = 0;
+
+		int highestTrackLength = 0;
+
+		int trackLength = MKProtoFindHighestSSEQLengthTrack(inputMID, inputSize, numberTracks);
+		if (trackLength > highestTrackLength)
+			highestTrackLength = trackLength;
+
+		unsigned long division = 0x1E0;
+
+		unsigned long offsetData = 0;
+		for (int track = 0; track < numberTracks; track++)
+		{
+			unsigned short extraFlag = CharArrayToShort(&inputMID[offsetData + 0x12]);
+			unsigned long sizeTrack = CharArrayToLong(&inputMID[offsetData + 0x14]);
+			division = CharArrayToLong(&inputMID[offsetData + 0xC]);
+
+			if (extraFlag)
+			{
+				offsetData += 4;
+			}
+
+			offsetData += 0x18;
 
 			ParseSSEQTrack(track, numberInstruments, tempoPositions, sngNoteList, inputMID, offsetData, inputSize, noteUniqueId, writeOutLoops, loopWriteCount, extendTracksToHighest, highestTrackLength);
 

@@ -843,6 +843,11 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 			int fileSizeUncompressed;
 			unsigned char* outputDecompressedSSEQ = gedecompress.OutputDecompressedBuffer(fileSizeUncompressed, fileSizeCompressed);
 
+			/*FILE* a = fopen("C:\\temp\\mk.bin", "wb");
+			fwrite(outputDecompressedSSEQ, 1, fileSizeUncompressed, a);
+			fflush(a);
+			fclose(a);*/
+
 			unsigned long reportedDecompressedSize = CharArrayToLong(&buffer[sseqTable + 0x18]);
 			unsigned long reportedCompressedSize = CharArrayToLong(&buffer[sseqTable + 0x14]);
 
@@ -917,6 +922,57 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 				}
 
 				songIndex++;
+			}		
+		}
+	}
+	else if (gameName.CompareNoCase("MKPROTOSSEQ") == 0)
+	{
+		compressed = false;
+		for (int x = 0; x < gameConfig[gameNumber].numberMidis; x++)
+		{
+			unsigned long offsetData = gameConfig[gameNumber].midiBanks[x].start;
+
+			while (offsetData < gameConfig[gameNumber].midiBanks[x].end)
+			{
+				unsigned short numberTracks = CharArrayToShort(&buffer[offsetData + 0x0]);
+				offsetData += 8;
+
+				if (numberTracks == 0)
+					break;
+
+				int startOffsetData = offsetData;
+
+				for (int x = 0; x < numberTracks; x++)
+				{
+					unsigned short extraFlag = CharArrayToShort(&buffer[offsetData + 0x12]);
+					unsigned long sizeTrack = CharArrayToLong(&buffer[offsetData + 0x14]);
+					unsigned long division = CharArrayToLong(&buffer[offsetData + 0xC]);
+
+					if (extraFlag)
+					{
+						offsetData += 4;
+					}
+					offsetData += 0x18;
+					offsetData += sizeTrack;
+				}
+
+				int sizeTrack = offsetData - startOffsetData;
+				CString tempSpotStr;
+				tempSpotStr.Format("%08X:%08X:%08X", startOffsetData, sizeTrack, numberTracks);
+				addMidiStrings.push_back(tempSpotStr);
+				numberMidiStrings++;
+
+				if (calculateInstrumentCount)
+				{
+					int numberInstTemp = 0;
+					bool hasLoopPoint = false;
+					int loopStart = 0;
+					int loopEnd = 0;
+					midiParse.ExportToMidi(gameConfig[gameNumber].gameName, buffer, bufferSize, startOffsetData, sizeTrack, "asdasdaw43.mid", gameName, numberInstTemp, 0, compressed, hasLoopPoint, loopStart, loopEnd, true, separateByInstrument, false, gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false);
+					if (numberInstTemp > numberInstruments)
+						numberInstruments = numberInstTemp;
+					::DeleteFile("asdasdaw43.mid");
+				}
 			}		
 		}
 	}

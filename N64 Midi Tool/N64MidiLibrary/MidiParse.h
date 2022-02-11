@@ -295,11 +295,16 @@ public:
 
 	static unsigned char sseqCommandSizes[0x24];
 	int FindHighestSSEQLengthTrack(unsigned char* inputMID, int endSize, int numberTracks);
+	int MKProtoFindHighestSSEQLengthTrack(unsigned char* inputMID, int endSize, int numberTracks);
 	void ParseSSEQTrack(int trackNumber, int& numberInstruments, std::vector<TimeAndValue>& tempoPositions, std::vector<SngNoteInfo>& outputNotes, unsigned char* inputMID, unsigned long offset, unsigned long end, int& noteUniqueId, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, int highestTrackLength);
 	void SSEQToMidi(unsigned char* ROM, int romSize, byte* inputMID, int inputSize, CString outFileName, int& numberInstruments, bool calculateInstrumentCountOnly, bool separateByInstrument, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, unsigned long extra);
 	void SSEQToDebugTextFile(unsigned char* ROM, int romSize, CString gameName, unsigned long address, byte* inputMID, int inputSize, CString textFileOut, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, unsigned long extra);
 	void SSEQToDebugTextFile(unsigned char* ROM, int romSize, CString gameName, unsigned long address, CString midiFile, CString textFileOut, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, unsigned long extra);
 	void SSEQTrackToDebugTextFile(FILE* outFile, unsigned char* inputMID, unsigned long offset, unsigned long end, ExtraGameMidiInfo extraGameMidiInfo, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, int highestTrackLength);
+	void MKProtoSSEQToMidi(unsigned char* ROM, int romSize, byte* inputMID, int inputSize, CString outFileName, int& numberInstruments, bool calculateInstrumentCountOnly, bool separateByInstrument, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, unsigned long extra);
+	void MKProtoSSEQToDebugTextFile(unsigned char* ROM, int romSize, CString gameName, unsigned long address, byte* inputMID, int inputSize, CString textFileOut, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, unsigned long extra);
+	void MKProtoSSEQToDebugTextFile(unsigned char* ROM, int romSize, CString gameName, unsigned long address, CString midiFile, CString textFileOut, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, unsigned long extra);
+	
 
 	void WritePaperMarioDelay(unsigned long delay, unsigned char* outputBuffer, int& outputPosition);
 	bool MidiToPaperMario(CString input[4], CString output, bool loop, unsigned long& loopPoint, unsigned long name);

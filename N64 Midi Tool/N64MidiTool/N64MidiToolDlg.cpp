@@ -11,6 +11,7 @@
 #include "..\N64MidiLibrary\NaganoDecoder.h"
 #include "..\N64MidiLibrary\NintendoEncoder.h"
 #include "..\N64MidiLibrary\HexenDecoder.h"
+#include "..\N64MidiLibrary\SPRallyCompression.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -158,6 +159,49 @@ BOOL CN64MidiToolDlg::OnInitDialog()
 	delete [] output;
 
 	delete [] sourceTest;*/
+
+	/*CString romName = "C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\Mortal Kombat Trilogy (USA) (Proto).5-13-1996.n64";
+	int romSize = GetSizeFile(romName);
+
+	FILE* inTemp = fopen(romName, "rb");
+	unsigned char* rom = new unsigned char[romSize];
+	fread(rom, 1, romSize, inTemp);
+	fclose(inTemp);
+
+	FILE* debug = fopen("C:\\temp\\mkproto.txt", "w");
+
+	int offsetData = 0x00CDDE70;
+	while (true)
+	{
+		unsigned short numberTracks = CharArrayToShort(&rom[offsetData + 0x0]);
+		fprintf(debug, "%08X:%04X\n", offsetData, numberTracks);
+		offsetData += 8;
+
+		if (numberTracks == 0)
+			break;
+
+		for (int x = 0; x < numberTracks; x++)
+		{
+			unsigned short extraFlag = CharArrayToShort(&rom[offsetData + 0x12]);
+			unsigned long sizeTrack = CharArrayToLong(&rom[offsetData + 0x14]);
+			unsigned long division = CharArrayToLong(&rom[offsetData + 0xC]);
+
+			if (extraFlag)
+			{
+				offsetData += 4;
+			}
+			offsetData += 0x18;
+
+
+			//ParseSSEQTrack(track, numberInstruments, tempoPositions, sngNoteList, inputMID, offsetData, inputSize, noteUniqueId, writeOutLoops, loopWriteCount, extendTracksToHighest, highestTrackLength);
+
+			offsetData += sizeTrack;
+		}
+	}
+
+	fclose(debug);
+
+	delete [] rom;*/
 
 	
 
@@ -1440,7 +1484,87 @@ void CN64MidiToolDlg::ConvertIntoSpot(CString inputFile)
 
 	if (compressed)
 	{
-		if (gameConfig[gameNumber].gameType == "Konami")
+		if (gameConfig[gameNumber].gameType == "ImpulseTracker")
+		{
+			int sizeInputFile = GetSizeFile(inputFile);
+
+			FILE* inFile = fopen(inputFile, "rb");
+			if (inFile == NULL)
+			{
+				MessageBox("Error reading file");
+				return;
+			}
+
+			unsigned char* sourceBuffer = new unsigned char[sizeInputFile];
+			fread(sourceBuffer, 1, sizeInputFile, inFile);
+			fclose(inFile);
+
+			CSPRallyCompression spRallyCompression;
+			unsigned char* outputBuffer = new unsigned char[0x500000];
+			for (int x = 0; x < 0x500000; x++)
+				outputBuffer[x] = 0x00;
+
+			int compressedSize = -1;
+			int compressedRealSize = -1;
+
+			int sizeLeft = sizeInputFile;
+			int outputSpot = 0;
+			int inputSpot = 0;
+			while (sizeLeft > 0)
+			{
+				int sizeChunk = sizeLeft;
+				if (sizeChunk > 0xFF00)
+					sizeChunk = 0xFF00;
+
+				int compSize = spRallyCompression.encode(&sourceBuffer[inputSpot], sizeInputFile, &outputBuffer[outputSpot + 4]);
+
+				if (compSize <= 0)
+				{
+					MessageBox("Unsuccessful compression");
+					delete [] outputBuffer;
+					delete [] sourceBuffer;
+					return;
+				}
+
+				CSharedFunctionsMidi::WriteShortToBuffer(outputBuffer, outputSpot, sizeChunk);
+				CSharedFunctionsMidi::WriteShortToBuffer(outputBuffer, outputSpot + 2, compSize);
+
+				inputSpot += sizeChunk;
+				outputSpot += 4;
+				outputSpot += compSize;
+				sizeLeft -= sizeChunk;
+			}
+
+			outputSpot += 2; // 0 End
+
+			CSharedFunctionsMidi::WriteLongToBuffer(buffer, address - 4, outputSpot);
+			CSharedFunctionsMidi::WriteLongToBuffer(buffer, address - 0x10, sizeInputFile);
+
+			// Write GLOB
+			CSharedFunctionsMidi::WriteLongToBuffer(outputBuffer, outputSpot, 0x424F4C47);
+			CSharedFunctionsMidi::WriteLongToBuffer(outputBuffer, outputSpot + 4, 0x00000010);
+			CSharedFunctionsMidi::WriteLongToBuffer(outputBuffer, outputSpot + 8, 0x00000001);
+			CSharedFunctionsMidi::WriteLongToBuffer(outputBuffer, outputSpot + 0xC, 0x00000001);
+			CSharedFunctionsMidi::WriteLongToBuffer(outputBuffer, outputSpot + 0x10, 0x75A60000);
+			CSharedFunctionsMidi::WriteLongToBuffer(outputBuffer, outputSpot + 0x14, 0x00000000);
+			CSharedFunctionsMidi::WriteShortToBuffer(outputBuffer, outputSpot + 0x18, 0x0000);
+			outputSpot += 0x1A;
+			
+			CSharedFunctionsMidi::WriteLongToBuffer(buffer, address + size + 4, outputSpot);
+
+			if (outputSpot > size)
+			{
+				MessageBox("Too big new file");
+				delete [] outputBuffer;
+				delete [] sourceBuffer;
+			}
+
+			memcpy(&buffer[address], outputBuffer, outputSpot);
+
+			delete [] outputBuffer;
+			delete [] sourceBuffer;
+		}
+		else if (gameConfig[gameNumber].gameType == "Konami")
 		{
 			int sizeInputFile = GetSizeFile(inputFile);
 
@@ -2165,10 +2289,18 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 		}
 	}
 
+	CString extensionType = "Midi (*.mid)|*.mid|";
 	CString midiName = "Midi.mid";
 	if (gameConfig[gameNumber].gameType.CompareNoCase("PaperMario") == 0)
+	{
 		midiName.Format("MidiSegment0.mid");
-	CFileDialog m_ldFile(TRUE, NULL, midiName, OFN_HIDEREADONLY, "Midi (*.mid)|*.mid|", this);
+	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("ImpulseTracker") == 0)
+	{
+		midiName.Format("song.it");
+		extensionType = "Impulse Tracker No Samples (*.it)|*.it|";
+	}
+	CFileDialog m_ldFile(TRUE, NULL, midiName, OFN_HIDEREADONLY, extensionType, this);
 
 	int isFileOpened = m_ldFile.DoModal();
 
@@ -2200,6 +2332,20 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 	{
 		MessageBox("Unsupported ImpulseTracker import");
 		return;
+
+		// No conversion needed
+		int sizeIn = GetSizeFile(m_ldFile.GetPathName());
+		FILE* in = fopen(m_ldFile.GetPathName(), "rb");
+		unsigned char* inputData = new unsigned char[sizeIn];
+		fread(inputData, 1, sizeIn, in);
+		fclose(in);
+
+		FILE* out = fopen(outputFilename, "wb");
+		fwrite(inputData, 1, sizeIn, out);
+		fflush(out);
+		fclose(out);
+
+		delete [] inputData;
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("Aidyn") == 0)
 	{
