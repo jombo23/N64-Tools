@@ -1537,8 +1537,8 @@ void CN64MidiToolDlg::ConvertIntoSpot(CString inputFile)
 
 			outputSpot += 2; // 0 End
 
-			CSharedFunctionsMidi::WriteLongToBuffer(buffer, address - 4, outputSpot);
-			CSharedFunctionsMidi::WriteLongToBuffer(buffer, address - 0x10, sizeInputFile);
+			//CSharedFunctionsMidi::WriteLongToBuffer(buffer, address - 4, outputSpot);
+			//CSharedFunctionsMidi::WriteLongToBuffer(buffer, address - 0x10, sizeInputFile);
 
 			// Write GLOB
 			CSharedFunctionsMidi::WriteLongToBuffer(outputBuffer, outputSpot, 0x424F4C47);
@@ -1550,7 +1550,7 @@ void CN64MidiToolDlg::ConvertIntoSpot(CString inputFile)
 			CSharedFunctionsMidi::WriteShortToBuffer(outputBuffer, outputSpot + 0x18, 0x0000);
 			outputSpot += 0x1A;
 			
-			CSharedFunctionsMidi::WriteLongToBuffer(buffer, address + size + 4, outputSpot);
+			//CSharedFunctionsMidi::WriteLongToBuffer(buffer, address + size + 4, outputSpot);
 
 			if (outputSpot > size)
 			{
@@ -2330,8 +2330,8 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("ImpulseTracker") == 0)
 	{
-		MessageBox("Unsupported ImpulseTracker import");
-		return;
+		//MessageBox("Unsupported ImpulseTracker import");
+		//return;
 
 		// No conversion needed
 		int sizeIn = GetSizeFile(m_ldFile.GetPathName());
