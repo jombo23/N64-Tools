@@ -2,6 +2,7 @@
 #include "SharedFunctions.h"
 #include <string>
 #include <sstream>
+#include <math.h>
 
 CSharedFunctions::CSharedFunctions(void)
 {
@@ -353,4 +354,9 @@ void CSharedFunctions::StringToByteArray(unsigned char* dataArray, CString hexSt
 unsigned short CSharedFunctions::Flip16Bit(unsigned short ShortValue)
 {
 	return ((ShortValue >> 8) | ((ShortValue << 8)));
+}
+
+double CSharedFunctions::round(double number)
+{
+    return number < 0.0 ? ceil(number - 0.5) : floor(number + 0.5);
 }

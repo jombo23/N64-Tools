@@ -9,6 +9,7 @@ public:
 	CSharedFunctions(void);
 	~CSharedFunctions(void);
 
+	static double round(double number);
 	static int GetSizeFile(CString filename);
 	static int HexToInt(char inChar);
 	static unsigned long StringHexToLong(CString inString);

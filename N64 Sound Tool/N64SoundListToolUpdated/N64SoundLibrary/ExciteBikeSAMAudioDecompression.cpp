@@ -2186,16 +2186,55 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 					if (instruments[x] != 0xFF)
 					{
 						int instrumentSize =  ebSoundIndexes[instruments[x]].dataLength;
-						// reverse endian
-						if ((y * 2) < instrumentSize)
+						if (ebSoundIndexes[x].flags == 1)
 						{
-							short soundData = ((ebSoundIndexes[instruments[x]].data[y * 2 + 1] << 8) | (ebSoundIndexes[instruments[x]].data[y * 2]));
-							resultSoundData += soundData;
-							countData++;
+							//11025;
+							// reverse endian
+							if (y < instrumentSize)
+							{
+								if ((y % 2) == 0)
+								{
+									short soundData = ((ebSoundIndexes[instruments[x]].data[y + 1] << 8) | (ebSoundIndexes[instruments[x]].data[y]));
+									resultSoundData += soundData;
+									countData++;
+								}
+								else
+								{
+									// Last sample
+									if ((y + 1) == ((timeStampNext - timeStamp) * 128))
+									{
+										// Skip?
+									}
+									else
+									{
+										// Interpolate
+										short soundDataPrev = ((ebSoundIndexes[instruments[x]].data[y] << 8) | (ebSoundIndexes[instruments[x]].data[y - 1]));
+										short soundDataNext = ((ebSoundIndexes[instruments[x]].data[y + 2] << 8) | (ebSoundIndexes[instruments[x]].data[y + 1]));
+										short soundData = ((int)soundDataPrev + (int)soundDataNext) / 2;
+										resultSoundData += soundData;
+										countData++;
+									}
+								}
+							}
+							else
+							{
+								countData = countData;
+							}
 						}
 						else
 						{
-							countData = countData;
+							//22050
+							// reverse endian
+							if ((y * 2) < instrumentSize)
+							{
+								short soundData = ((ebSoundIndexes[instruments[x]].data[y * 2 + 1] << 8) | (ebSoundIndexes[instruments[x]].data[y * 2]));
+								resultSoundData += soundData;
+								countData++;
+							}
+							else
+							{
+								countData = countData;
+							}
 						}
 					}
 					else
@@ -2355,6 +2394,8 @@ bool CExciteBikeSAMAudioDecompression::DecodeBIGSound(unsigned char* ROM, unsign
 			int copySize = CSharedFunctions::CharArrayToLong(&RAM[0x800F0EB0 & 0xFFFFFF]) * 4;
 			if (copySize > 0x1000) // first time around reporting too high
 				copySize = 0x1000;
+			if (sndCpyAmount < 0x220)
+				copySize = (int)((double)0x1000 * ((double)sndCpyAmount / (double)0x220));
 			memcpy(&result[resultSize], &RAM[0x80138B90 & 0xFFFFFF], copySize);
 			resultSize += copySize;
 
