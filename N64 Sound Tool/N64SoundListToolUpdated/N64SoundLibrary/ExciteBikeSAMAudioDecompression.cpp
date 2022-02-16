@@ -2255,6 +2255,11 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 										}
 									}
 								}
+								else
+								{
+									y = 9999999999;
+									break;
+								}
 							}
 							else
 							{
@@ -2265,6 +2270,11 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 									short soundData = ((ebSoundIndexes[instruments[x]].data[y * 2 + 1] << 8) | (ebSoundIndexes[instruments[x]].data[y * 2]));
 									resultSoundData += soundData;
 									countData++;
+								}
+								else
+								{
+									y = 9999999999;
+									break;
 								}
 							}
 						}
@@ -2319,6 +2329,18 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 		}
 		
 		bool saved = SaveProcessedWav(resultCombined, maxResultSizeSamples * 128, 5, samplingRateFloat, outputFile);
+		/*for (int x = 0; x < maxResultSizeSamples * 128; x+=2)
+		{
+			unsigned char value = result[0][x];
+			result[0][x] = result[0][x+1];
+			result[0][x+1] = value;
+
+			value = result[1][x];
+			result[1][x] = result[1][x+1];
+			result[1][x+1] = value;
+		}
+		saved = SaveProcessedWav(result[0], maxResultSizeSamples * 128, 5, samplingRateFloat, outputFile + "0.wav");
+		saved = SaveProcessedWav(result[1], maxResultSizeSamples * 128, 5, samplingRateFloat, outputFile + "1.wav");*/
 
 		for (int y = 0; y < NUMTRACKS; y++)
 		{
