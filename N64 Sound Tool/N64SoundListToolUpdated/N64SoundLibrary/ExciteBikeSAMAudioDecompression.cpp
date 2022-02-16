@@ -2117,159 +2117,217 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 
 		int spot = 0xC + (numberInstruments * 8);
 
-		unsigned char* result = new unsigned char[0x2000000];
-		int resultSize = 0;
 
+		int maxResultSize = 0;
 		while (true)
 		{
-			std::vector<int> instrumentSlots;
-			std::vector<int> instruments;
 			int instrumentIndex = sngFile[sngFileOffset + spot + 2];
-			if (instrumentIndex != 0xFF) // Silence
-			{
-				instrumentIndex = CSharedFunctions::CharArrayToLong(&sngFile[sngFileOffset + 0xC + (instrumentIndex * 8)]);
-				instrumentIndex = GetInstrumentSlot(instrumentIndex, ebSoundIndexes);
-				if (instrumentIndex != -1)
-				{
-					instruments.push_back(instrumentIndex);
-					instrumentSlots.push_back(sngFile[sngFileOffset + spot + 3]);
-				}
-				else
-				{
-					delete [] result;
-					return false;
-				}
-			}
-			else
-			{
-				instruments.push_back(0xFF);
-				instrumentSlots.push_back(sngFile[sngFileOffset + spot + 3]);
-			}
+			int trackIndex = sngFile[sngFileOffset + spot + 3];
+			maxResultSize = CSharedFunctions::CharArrayToShort(&sngFile[sngFileOffset + spot]);				
 
-			unsigned short timeStamp = CSharedFunctions::CharArrayToShort(&sngFile[sngFileOffset + spot]);
-			unsigned short timeStampNext = CSharedFunctions::CharArrayToShort(&sngFile[sngFileOffset + spot + 4]);
+			if (sngFile[sngFileOffset + spot + 2] == 0xFE)
+				break;
 
-			while (timeStampNext == timeStamp)
+			spot += 4;
+		}
+		int maxResultSizeSamples = maxResultSize * 2;
+
+		int NUMTRACKS = 4;
+		bool** used = new bool*[NUMTRACKS];
+		unsigned char** result = new unsigned char*[NUMTRACKS];
+		for (int y = 0; y < NUMTRACKS; y++)
+		{
+			used[y] = new bool[maxResultSizeSamples * 128 / 2];
+			for (int x = 0; x < maxResultSizeSamples * 128 / 2; x++)
+			{	
+				used[y][x] = false;
+			}
+			result[y] = new unsigned char[maxResultSizeSamples * 128];
+			for (int x = 0; x < maxResultSizeSamples * 128; x++)
+			{	
+				result[y][x] = 0;
+			}
+		}
+
+		for (int track = 0; track < NUMTRACKS; track++)
+		{
+			// Reset
+			spot = 0xC + (numberInstruments * 8);
+
+			int resultSize = 0;
+
+			while (true)
 			{
-				spot += 4;
-				instrumentIndex = sngFile[sngFileOffset + spot + 2];
+				std::vector<int> instrumentSlots;
+				std::vector<int> instruments;
+				int instrumentIndex = sngFile[sngFileOffset + spot + 2];
+				int trackIndex = sngFile[sngFileOffset + spot + 3];
+
 				if (instrumentIndex != 0xFF) // Silence
 				{
 					instrumentIndex = CSharedFunctions::CharArrayToLong(&sngFile[sngFileOffset + 0xC + (instrumentIndex * 8)]);
 					instrumentIndex = GetInstrumentSlot(instrumentIndex, ebSoundIndexes);
 					if (instrumentIndex != -1)
 					{
-						instruments.push_back(instrumentIndex);
-						instrumentSlots.push_back(sngFile[sngFileOffset + spot + 3]);
+						if (trackIndex == track)
+						{
+							instruments.push_back(instrumentIndex);
+							instrumentSlots.push_back(sngFile[sngFileOffset + spot + 3]);
+						}
 					}
 					else
 					{
+						for (int y = 0; y < NUMTRACKS; y++)
+						{
+							delete [] result[y];
+							delete [] used[y];
+						}
+						delete [] used;
 						delete [] result;
 						return false;
 					}
 				}
-				else
+
+				if (instruments.size() == 0)
 				{
-					instruments.push_back(0xFF);
-					instrumentSlots.push_back(sngFile[sngFileOffset + spot + 3]);
+					if (sngFile[sngFileOffset + spot + 2] == 0xFE)
+						break;
+
+					spot += 4;
+					continue;
 				}
 
-				timeStampNext = CSharedFunctions::CharArrayToShort(&sngFile[sngFileOffset + spot + 4]);
-			}
+				unsigned short timeStamp = CSharedFunctions::CharArrayToShort(&sngFile[sngFileOffset + spot]);
+				unsigned short timeStampNext = maxResultSize;
 
-			for (int y = 0; y < (timeStampNext - timeStamp) * 128; y++)
-			{
-				int countData = 0;
-				int resultSoundData = 0;
-				for (int x = 0; x < instruments.size(); x++)
+				while (true)
 				{
-					if (instruments[x] != 0xFF)
+					spot += 4;
+					int trackIndexSub = sngFile[sngFileOffset + spot + 3];
+
+					if (trackIndexSub == track)
 					{
-						int instrumentSize =  ebSoundIndexes[instruments[x]].dataLength;
-						if (ebSoundIndexes[x].flags == 1)
+						timeStampNext = CSharedFunctions::CharArrayToShort(&sngFile[sngFileOffset + spot]);
+						break;
+					}
+
+					if (sngFile[sngFileOffset + spot + 2] == 0xFE)
+						break;
+				}
+
+				if (instruments.size() == 1)
+				{
+					int resultSize = 0;
+					for (int y = 0; y < (timeStampNext - timeStamp) * 128; y++)
+					{
+						int countData = 0;
+						int resultSoundData = 0;
+						for (int x = 0; x < instruments.size(); x++)
 						{
-							//11025;
-							// reverse endian
-							if (y < instrumentSize)
+							int instrumentSize =  ebSoundIndexes[instruments[x]].dataLength;
+							if (ebSoundIndexes[x].flags == 1)
 							{
-								if ((y % 2) == 0)
+								//11025;
+								// reverse endian
+								if (y < instrumentSize)
 								{
-									short soundData = ((ebSoundIndexes[instruments[x]].data[y + 1] << 8) | (ebSoundIndexes[instruments[x]].data[y]));
-									resultSoundData += soundData;
-									countData++;
-								}
-								else
-								{
-									// Last sample
-									if ((y + 1) == ((timeStampNext - timeStamp) * 128))
+									if ((y % 2) == 0)
 									{
-										// Skip?
-									}
-									else
-									{
-										// Interpolate
-										short soundDataPrev = ((ebSoundIndexes[instruments[x]].data[y] << 8) | (ebSoundIndexes[instruments[x]].data[y - 1]));
-										short soundDataNext = ((ebSoundIndexes[instruments[x]].data[y + 2] << 8) | (ebSoundIndexes[instruments[x]].data[y + 1]));
-										short soundData = ((int)soundDataPrev + (int)soundDataNext) / 2;
+										short soundData = ((ebSoundIndexes[instruments[x]].data[y + 1] << 8) | (ebSoundIndexes[instruments[x]].data[y]));
 										resultSoundData += soundData;
 										countData++;
 									}
+									else
+									{
+										// Last sample
+										if ((y + 1) == ((timeStampNext - timeStamp) * 128))
+										{
+											// Skip?
+										}
+										else
+										{
+											// Interpolate
+											short soundDataPrev = ((ebSoundIndexes[instruments[x]].data[y] << 8) | (ebSoundIndexes[instruments[x]].data[y - 1]));
+											short soundDataNext = ((ebSoundIndexes[instruments[x]].data[y + 2] << 8) | (ebSoundIndexes[instruments[x]].data[y + 1]));
+											short soundData = ((int)soundDataPrev + (int)soundDataNext) / 2;
+											resultSoundData += soundData;
+											countData++;
+										}
+									}
 								}
 							}
 							else
 							{
-								countData = countData;
+								//22050
+								// reverse endian
+								if ((y * 2) < instrumentSize)
+								{
+									short soundData = ((ebSoundIndexes[instruments[x]].data[y * 2 + 1] << 8) | (ebSoundIndexes[instruments[x]].data[y * 2]));
+									resultSoundData += soundData;
+									countData++;
+								}
 							}
 						}
-						else
-						{
-							//22050
-							// reverse endian
-							if ((y * 2) < instrumentSize)
-							{
-								short soundData = ((ebSoundIndexes[instruments[x]].data[y * 2 + 1] << 8) | (ebSoundIndexes[instruments[x]].data[y * 2]));
-								resultSoundData += soundData;
-								countData++;
-							}
-							else
-							{
-								countData = countData;
-							}
-						}
+
+						result[track][(timeStamp * 128 * 2) + resultSize] = (resultSoundData >> 8) & 0xFF;
+						result[track][(timeStamp * 128 * 2) + resultSize + 1] = resultSoundData & 0xFF;
+						used[track][((timeStamp * 128 * 2) + resultSize) /2] = true;
+						resultSize += 2;
 					}
-					else
-					{
-						countData++;
-					}
+					resultSize = resultSize;
 				}
 
-				if (countData == 0)
-				{
-					result[resultSize] = 0x00;
-					result[resultSize + 1] = 0x00;
-					resultSize += 2;
-					//break;
-				}
-				else
-				{
-					resultSoundData /= countData;
+				if (sngFile[sngFileOffset + spot + 2] == 0xFE)
+					break;
+			}
+		}
 
-					// Flip endian again
-					result[resultSize] = resultSoundData & 0xFF;
-					result[resultSize + 1] = (resultSoundData >> 8) & 0xFF;
-					resultSize += 2;
+		unsigned char* resultCombined = new unsigned char[maxResultSizeSamples * 128];
+		for (int x = 0; x < maxResultSizeSamples * 128; x++)
+			resultCombined[x] = 0;
+
+		// Merge
+		for (int x = 0; x < maxResultSizeSamples * 128; x+=2)
+		{
+			int count = 0;
+			int sampleValue = 0;
+			for (int track = 0; track < NUMTRACKS; track++)
+			{
+				if (used[track][x/2])
+				{
+					count++;
+					sampleValue += (short)CSharedFunctions::CharArrayToShort(&result[track][x]);
 				}
 			}
 
-			if (sngFile[sngFileOffset + spot + 4 + 2] == 0xFE)
-				break;
+			int resultSample = sampleValue;
+			if (count > 1)
+			{
+				resultSample = (int)((double)sampleValue / (double)count);
+				if (resultSample > 0x7FFF)
+					resultSample = 0x7FFF;
+				if (resultSample < (short)0x8000)
+					resultSample = (short)0x8000;
+			}
 
-			spot += 4;
+			
+			// Flip endian again
+			if (count > 0)
+			{
+				CSharedFunctions::WriteShortToBuffer(resultCombined, x, CSharedFunctions::Flip16Bit((short)resultSample));
+			}
 		}
+		
+		bool saved = SaveProcessedWav(resultCombined, maxResultSizeSamples * 128, 5, samplingRateFloat, outputFile);
 
-		bool saved = SaveProcessedWav(result, resultSize, 5, samplingRateFloat, outputFile);
-
+		for (int y = 0; y < NUMTRACKS; y++)
+		{
+			delete [] result[y];
+			delete [] used[y];
+		}
+		delete [] used;
 		delete [] result;
+		delete [] resultCombined;
 		return saved;
 	}
 	else
