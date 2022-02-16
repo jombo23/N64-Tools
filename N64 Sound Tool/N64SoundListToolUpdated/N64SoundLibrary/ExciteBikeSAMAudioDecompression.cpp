@@ -2118,78 +2118,83 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 		int spot = 0xC + (numberInstruments * 8);
 
 
+		
+
+		int MAXTEMPSIZE = 0x2000000;
+		int NUMTRACKS = 4;
+		bool** used = new bool*[NUMTRACKS];
+		unsigned char** result = new unsigned char*[NUMTRACKS];
+		for (int y = 0; y < NUMTRACKS; y++)
+		{
+			used[y] = new bool[MAXTEMPSIZE / 2];
+			for (int x = 0; x < MAXTEMPSIZE / 2; x++)
+			{	
+				used[y][x] = false;
+			}
+			result[y] = new unsigned char[MAXTEMPSIZE];
+			for (int x = 0; x < MAXTEMPSIZE; x++)
+			{	
+				result[y][x] = 0;
+			}
+		}
+
 		int maxResultSize = 0;
+		spot = 0xC + (numberInstruments * 8);
+
 		while (true)
 		{
-			int instrumentIndex = sngFile[sngFileOffset + spot + 2];
-			int trackIndex = sngFile[sngFileOffset + spot + 3];
-			maxResultSize = CSharedFunctions::CharArrayToShort(&sngFile[sngFileOffset + spot]);				
+			maxResultSize = CSharedFunctions::CharArrayToShort(&sngFile[sngFileOffset + spot]);
 
 			if (sngFile[sngFileOffset + spot + 2] == 0xFE)
 				break;
 
 			spot += 4;
 		}
-		int maxResultSizeSamples = maxResultSize * 2;
 
-		int NUMTRACKS = 4;
-		bool** used = new bool*[NUMTRACKS];
-		unsigned char** result = new unsigned char*[NUMTRACKS];
-		for (int y = 0; y < NUMTRACKS; y++)
-		{
-			used[y] = new bool[maxResultSizeSamples * 128 / 2];
-			for (int x = 0; x < maxResultSizeSamples * 128 / 2; x++)
-			{	
-				used[y][x] = false;
-			}
-			result[y] = new unsigned char[maxResultSizeSamples * 128];
-			for (int x = 0; x < maxResultSizeSamples * 128; x++)
-			{	
-				result[y][x] = 0;
-			}
-		}
+		int maxResultSizeSamples = maxResultSize * 128;
+
 
 		for (int track = 0; track < NUMTRACKS; track++)
 		{
 			// Reset
 			spot = 0xC + (numberInstruments * 8);
 
-			int resultSize = 0;
-
 			while (true)
 			{
-				std::vector<int> instrumentSlots;
-				std::vector<int> instruments;
-				int instrumentIndex = sngFile[sngFileOffset + spot + 2];
+				int instrumentIndex = -1;
 				int trackIndex = sngFile[sngFileOffset + spot + 3];
 
-				if (instrumentIndex != 0xFF) // Silence
+				if (trackIndex == track)
 				{
-					instrumentIndex = CSharedFunctions::CharArrayToLong(&sngFile[sngFileOffset + 0xC + (instrumentIndex * 8)]);
-					instrumentIndex = GetInstrumentSlot(instrumentIndex, ebSoundIndexes);
-					if (instrumentIndex != -1)
+					instrumentIndex = sngFile[sngFileOffset + spot + 2];
+					if (instrumentIndex != 0xFF)
 					{
-						if (trackIndex == track)
+						instrumentIndex = CSharedFunctions::CharArrayToLong(&sngFile[sngFileOffset + 0xC + (instrumentIndex * 8)]);
+						instrumentIndex = GetInstrumentSlot(instrumentIndex, ebSoundIndexes);
+						if (instrumentIndex == -1)
 						{
-							instruments.push_back(instrumentIndex);
-							instrumentSlots.push_back(sngFile[sngFileOffset + spot + 3]);
+							for (int y = 0; y < NUMTRACKS; y++)
+							{
+								delete [] result[y];
+								delete [] used[y];
+							}
+							delete [] used;
+							delete [] result;
+							return false;
 						}
 					}
-					else
+					else // Silence
 					{
-						for (int y = 0; y < NUMTRACKS; y++)
-						{
-							delete [] result[y];
-							delete [] used[y];
-						}
-						delete [] used;
-						delete [] result;
-						return false;
+						if (sngFile[sngFileOffset + spot + 2] == 0xFE)
+							break;
+
+						spot += 4;
+						continue;
 					}
 				}
-
-				if (instruments.size() == 0)
+				else
 				{
+					// Not applying to track
 					if (sngFile[sngFileOffset + spot + 2] == 0xFE)
 						break;
 
@@ -2197,8 +2202,10 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 					continue;
 				}
 
+				int lengthMultiplier = 128;
+
 				unsigned short timeStamp = CSharedFunctions::CharArrayToShort(&sngFile[sngFileOffset + spot]);
-				unsigned short timeStampNext = maxResultSize;
+				unsigned short timeStampNext = maxResultSizeSamples;
 
 				while (true)
 				{
@@ -2215,76 +2222,70 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 						break;
 				}
 
-				if (instruments.size() == 1)
+				int resultSize = 0;
+
+				for (int y = 0; y < (timeStampNext - timeStamp) * lengthMultiplier; y++)
 				{
-					int resultSize = 0;
-					for (int y = 0; y < (timeStampNext - timeStamp) * 128; y++)
+					int instrumentSize =  ebSoundIndexes[instrumentIndex].dataLength;
+					if (ebSoundIndexes[instrumentIndex].flags == 1)
 					{
-						int countData = 0;
-						int resultSoundData = 0;
-						for (int x = 0; x < instruments.size(); x++)
+						//11025;
+						// reverse endian
+						if (y < instrumentSize)
 						{
-							int instrumentSize =  ebSoundIndexes[instruments[x]].dataLength;
-							if (ebSoundIndexes[x].flags == 1)
+							if ((y % 2) == 0)
 							{
-								//11025;
-								// reverse endian
-								if (y < instrumentSize)
-								{
-									if ((y % 2) == 0)
-									{
-										short soundData = ((ebSoundIndexes[instruments[x]].data[y + 1] << 8) | (ebSoundIndexes[instruments[x]].data[y]));
-										resultSoundData += soundData;
-										countData++;
-									}
-									else
-									{
-										// Last sample
-										if ((y + 1) == ((timeStampNext - timeStamp) * 128))
-										{
-											// Skip?
-										}
-										else
-										{
-											// Interpolate
-											short soundDataPrev = ((ebSoundIndexes[instruments[x]].data[y] << 8) | (ebSoundIndexes[instruments[x]].data[y - 1]));
-											short soundDataNext = ((ebSoundIndexes[instruments[x]].data[y + 2] << 8) | (ebSoundIndexes[instruments[x]].data[y + 1]));
-											short soundData = ((int)soundDataPrev + (int)soundDataNext) / 2;
-											resultSoundData += soundData;
-											countData++;
-										}
-									}
-								}
-								else
-								{
-									y = 9999999999;
-									break;
-								}
+								short soundData = ((ebSoundIndexes[instrumentIndex].data[y + 1] << 8) | (ebSoundIndexes[instrumentIndex].data[y]));
+								result[track][(timeStamp * lengthMultiplier * 2) + resultSize] = (soundData >> 8) & 0xFF;
+								result[track][(timeStamp * lengthMultiplier * 2) + resultSize + 1] = soundData & 0xFF;
+								used[track][((timeStamp * lengthMultiplier * 2) + resultSize) /2] = true;
+								resultSize += 2;
 							}
 							else
 							{
-								//22050
-								// reverse endian
-								if ((y * 2) < instrumentSize)
+								// Last sample
+								if ((y + 1) == ((timeStampNext - timeStamp) * lengthMultiplier))
 								{
-									short soundData = ((ebSoundIndexes[instruments[x]].data[y * 2 + 1] << 8) | (ebSoundIndexes[instruments[x]].data[y * 2]));
-									resultSoundData += soundData;
-									countData++;
+									// Skip?
 								}
 								else
 								{
-									y = 9999999999;
-									break;
+									// Interpolate
+									short soundDataPrev = ((ebSoundIndexes[instrumentIndex].data[y] << 8) | (ebSoundIndexes[instrumentIndex].data[y - 1]));
+									short soundDataNext = ((ebSoundIndexes[instrumentIndex].data[y + 2] << 8) | (ebSoundIndexes[instrumentIndex].data[y + 1]));
+									short soundData = ((int)soundDataPrev + (int)soundDataNext) / 2;
+
+									result[track][(timeStamp * lengthMultiplier * 2) + resultSize] = (soundData >> 8) & 0xFF;
+									result[track][(timeStamp * lengthMultiplier * 2) + resultSize + 1] = soundData & 0xFF;
+									used[track][((timeStamp * lengthMultiplier * 2) + resultSize) /2] = true;
+									resultSize += 2;
 								}
 							}
 						}
-
-						result[track][(timeStamp * 128 * 2) + resultSize] = (resultSoundData >> 8) & 0xFF;
-						result[track][(timeStamp * 128 * 2) + resultSize + 1] = resultSoundData & 0xFF;
-						used[track][((timeStamp * 128 * 2) + resultSize) /2] = true;
-						resultSize += 2;
+						else
+						{
+							y = 9999999999;
+							break;
+						}
 					}
-					resultSize = resultSize;
+					else
+					{
+						//22050
+						// reverse endian
+						if ((y * 2) < instrumentSize)
+						{
+							short soundData = ((ebSoundIndexes[instrumentIndex].data[y * 2 + 1] << 8) | (ebSoundIndexes[instrumentIndex].data[y * 2]));
+							result[track][(timeStamp * lengthMultiplier * 2) + resultSize] = (soundData >> 8) & 0xFF;
+							result[track][(timeStamp * lengthMultiplier * 2) + resultSize + 1] = soundData & 0xFF;
+							used[track][((timeStamp * lengthMultiplier * 2) + resultSize) /2] = true;
+							resultSize += 2;
+						}
+						else
+						{
+							y = 9999999999;
+							break;
+						}
+					}
 				}
 
 				if (sngFile[sngFileOffset + spot + 2] == 0xFE)
@@ -2292,12 +2293,12 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 			}
 		}
 
-		unsigned char* resultCombined = new unsigned char[maxResultSizeSamples * 128];
-		for (int x = 0; x < maxResultSizeSamples * 128; x++)
+		unsigned char* resultCombined = new unsigned char[maxResultSizeSamples];
+		for (int x = 0; x < maxResultSizeSamples; x++)
 			resultCombined[x] = 0;
 
 		// Merge
-		for (int x = 0; x < maxResultSizeSamples * 128; x+=2)
+		for (int x = 0; x < maxResultSizeSamples; x+=2)
 		{
 			int count = 0;
 			int sampleValue = 0;
@@ -2313,11 +2314,11 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 			int resultSample = sampleValue;
 			if (count > 1)
 			{
-				resultSample = (int)((double)sampleValue / (double)count);
+				/*resultSample = (int)((double)sampleValue / (double)count);
 				if (resultSample > 0x7FFF)
 					resultSample = 0x7FFF;
 				if (resultSample < (short)0x8000)
-					resultSample = (short)0x8000;
+					resultSample = (short)0x8000;*/
 			}
 
 			
@@ -2328,8 +2329,8 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 			}
 		}
 		
-		bool saved = SaveProcessedWav(resultCombined, maxResultSizeSamples * 128, 5, samplingRateFloat, outputFile);
-		/*for (int x = 0; x < maxResultSizeSamples * 128; x+=2)
+		bool saved = SaveProcessedWav(resultCombined, maxResultSizeSamples, 5, samplingRateFloat, outputFile);
+		for (int x = 0; x < maxResultSizeSamples; x+=2)
 		{
 			unsigned char value = result[0][x];
 			result[0][x] = result[0][x+1];
@@ -2339,8 +2340,8 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 			result[1][x] = result[1][x+1];
 			result[1][x+1] = value;
 		}
-		saved = SaveProcessedWav(result[0], maxResultSizeSamples * 128, 5, samplingRateFloat, outputFile + "0.wav");
-		saved = SaveProcessedWav(result[1], maxResultSizeSamples * 128, 5, samplingRateFloat, outputFile + "1.wav");*/
+		saved = SaveProcessedWav(result[0], maxResultSizeSamples, 5, samplingRateFloat, outputFile + "0.wav");
+		saved = SaveProcessedWav(result[1], maxResultSizeSamples, 5, samplingRateFloat, outputFile + "1.wav");
 
 		for (int y = 0; y < NUMTRACKS; y++)
 		{
