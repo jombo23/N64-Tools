@@ -2330,7 +2330,7 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 		}
 		
 		bool saved = SaveProcessedWav(resultCombined, maxResultSizeSamples, 5, samplingRateFloat, outputFile);
-		for (int x = 0; x < maxResultSizeSamples; x+=2)
+		/*for (int x = 0; x < maxResultSizeSamples; x+=2)
 		{
 			unsigned char value = result[0][x];
 			result[0][x] = result[0][x+1];
@@ -2341,7 +2341,7 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 			result[1][x+1] = value;
 		}
 		saved = SaveProcessedWav(result[0], maxResultSizeSamples, 5, samplingRateFloat, outputFile + "0.wav");
-		saved = SaveProcessedWav(result[1], maxResultSizeSamples, 5, samplingRateFloat, outputFile + "1.wav");
+		saved = SaveProcessedWav(result[1], maxResultSizeSamples, 5, samplingRateFloat, outputFile + "1.wav");*/
 
 		for (int y = 0; y < NUMTRACKS; y++)
 		{
