@@ -2120,7 +2120,7 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 
 		
 
-		int MAXTEMPSIZE = 0x2000000;
+		int MAXTEMPSIZE = 0x4000000;
 		int NUMTRACKS = 4;
 		bool** used = new bool*[NUMTRACKS];
 		unsigned char** result = new unsigned char*[NUMTRACKS];
@@ -2151,7 +2151,7 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 			spot += 4;
 		}
 
-		int maxResultSizeSamples = maxResultSize * 128;
+		int maxResultSizeSamples = maxResultSize * 128 * 2;
 
 
 		for (int track = 0; track < NUMTRACKS; track++)
