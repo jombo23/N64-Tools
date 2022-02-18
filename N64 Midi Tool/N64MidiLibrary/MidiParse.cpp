@@ -18571,6 +18571,997 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 	ExportToMidi(gameName, gamebuffer, gamebufferSize, address, size, fileName, gameType, numberInstruments, division, compressed, hasLoopPoint, loopStart, loopEnd, calculateInstrumentCountOnly, separateByInstrument, generateDebugTextFile, extra, extra2, writeOutLoops, loopWriteCount, extendTracksToHighest, extraGameMidiInfo, false, 4, isPreview);
 }
 
+void CMidiParse::ZTRKToDebugTextFile(CString gameName, CString textFileOut, unsigned char* gamebuffer, unsigned long address)
+{
+	FILE* outFile = fopen(textFileOut, "w");
+	if (outFile)
+	{
+		fprintf(outFile, "%s\n", gameName);
+
+		unsigned long ztrkCount = CharArrayToLong(&gamebuffer[address + 0x20]);
+		unsigned long ztrkTableOffset = CharArrayToLong(&gamebuffer[address + 0x24]);
+
+		for (int x = 0; x < ztrkCount; x++)
+		{
+			signed char trackVolume = gamebuffer[address + ztrkTableOffset + (x * 0x10)];
+			signed char pan = ((char)gamebuffer[address + ztrkTableOffset + (x * 0x10) + 1] + 0x40) & 0x7F;
+			unsigned char defaultInstrument = gamebuffer[address + ztrkTableOffset + (x * 0x10) + 2];
+			unsigned char defaultPercussion = gamebuffer[address + ztrkTableOffset + (x * 0x10) + 3];
+			unsigned short trackOffset = CharArrayToLong(&gamebuffer[address + ztrkTableOffset + (x * 0x10) + 8]);
+			unsigned short ctlIndex = CharArrayToShort(&gamebuffer[address + ztrkTableOffset + (x * 0x10) + 0xE]);
+
+			unsigned char* data = &gamebuffer[address + trackOffset];
+			fprintf(outFile, "Track %02X\n", x);
+			ZTRKTrackToDebugTextFile(outFile, data, 0);
+		}
+		fclose(outFile);
+	}
+}
+
+void CMidiParse::ZTRKTrackToDebugTextFile(FILE* outFile, unsigned char* data, unsigned long offset)
+{
+	int p = offset;
+	if (CharArrayToLong(&data[p]) == 0x5A54524B) //ZTRK
+		p += 4;
+
+	bool flag = false;
+	unsigned char j[4];
+	j[0] = 0;
+	j[1] = 0;
+	j[2] = 0;
+	j[3] = 0;
+	int sz = 0;
+	int val = 0;
+
+	//# Time & duration.
+	while (true)
+	{
+		int i = data[p];
+		p += 1;
+		int v = i & 7;
+		if (v == 0)
+		{
+			sz = 0;
+			val = 0;
+		}
+		else if (v == 1)
+		{
+			sz = 0;
+			val = data[p];
+			p += 1;
+		}
+		else if (v == 2)
+		{
+			sz = 0;
+			val = Flip32Bit(CharArrayToLong(&data[p]));
+			p += 4;
+		}
+		else if (v == 3)
+		{
+			sz = data[p];
+			val = 0;
+			p += 1;
+		}
+		else if (v == 4)
+		{
+			sz = data[p];
+			val = data[p+1];
+			p += 2;
+		}
+		else if (v == 5)
+		{
+			sz = data[p];
+			val = Flip32Bit(CharArrayToLong(&data[p+1]));
+			p += 5;
+		}
+		else if (v == 6)
+		{
+			sz = Flip32Bit(CharArrayToLong(&data[p]));
+			val = 0;
+			p += 4;
+		}
+		else if (v == 7)
+		{
+			sz = Flip32Bit(CharArrayToLong(&data[p]));
+			val = Flip32Bit(CharArrayToLong(&data[p+4]));
+			p += 8;
+		}
+		//# Fetch arguments.
+		i >>= 3;
+		if (i == 0x1F)
+		{
+			flag = false;
+			i = data[p] >> 3;
+			int q = data[p+1];
+			
+			p += 2;
+			for (int v = 0; v < 4; v++)
+			{
+				int k = q & 3;
+				if (k == 1)
+				{
+					//# Condition can't occur on N64 due to a bug.
+					fprintf(outFile, "*F8 condition 1: j[%02X] = %02X\n", v, data[p]);
+					j[v] = data[p];
+					p += 1;
+				}
+				else if (k == 2)
+				{
+					//# Not a mistake.  Skips a HW.
+					fprintf(outFile, "*F8 condition 2: %02X%02X%02X%02X\n", data[p], data[p+1], data[p+2], data[p+3]);
+					j[v] = data[p+2];
+					p += 3;
+				}
+				else if (k == 3)
+				{
+					k = data[p];
+					p += 1;
+					fprintf(outFile, "*F8 condition 3: %02X\n", k);
+					//# No code was found that sets these, and condition can't even occur on N64.
+					/*if (k == 0)
+						raise NotImplementedError("arg[v] = @mngr+C");
+					else if (k == 1)
+						raise NotImplementedError("arg[v] = @mngr+10");
+					else if (k == 2)
+						raise NotImplementedError("arg[v] = @mngr+14");
+					else if (k == 4)
+						raise NotImplementedError("arg[v] = @mngr+18");*/
+				}
+				q >>= 2;
+			}
+		}
+		else //# Read bytes but don't advance.  Will make sense in next section.
+		{
+			flag = true;
+			j[0] = data[p];
+			j[1] = data[p + 1];
+		}
+		//# Set command (callback function).
+		if (i == 0)
+		{
+			fprintf(outFile, "time 0x%08X\tCMD 0: play note %02X, vol %02X\tduration 0x%08X\n", sz, j[0], j[1], val);
+			if (flag)
+				p += 2;
+		}
+		else if( i == 1)
+		{
+			fprintf(outFile, "time 0x%08X\tCMD 1: play note %02X @cur. vol\tduration 0x%08X\n", sz, j[0], val);
+			if (flag)
+				p += 1;
+		}
+		else if (i == 2)
+		{
+			fprintf(outFile, "time 0x%08X\tCMD 2: track adjust(%02X, %02X)\n", sz, j[0], j[1]);
+			//# When set, "envelope vol" & pan affect all currently playing notes in track as well!
+			if (j[0] == 0)
+			{
+				fprintf(outFile, "\toption 0: envelope vol %02X\n", j[1]);
+			}
+			else if (j[0] == 1)
+			{
+				fprintf(outFile, "\toption 1: pan 0x%02X\n", (0x40 + j[1]) & 0x7F);
+			}
+			else if ((j[0] == 2) || (j[0] == 3))
+			{
+				fprintf(outFile, "\tUnhandled option %02X.\n", j[0]);
+			}
+			else if (j[0] == 4)
+			{
+				// FF = none
+				fprintf(outFile, "\toption 4: instrument = %02X\n", j[1]);
+			}
+			else if (j[0] == 5)
+			{
+				// FF = none
+				fprintf(outFile, "\toption 5: percussion = %02X\n", j[1]);
+			}
+			else
+			{
+				fprintf(outFile, "\tUnknown option %02X!\n", j[0]);
+			}
+			if (flag)
+				p += 2;
+		}
+		else if (i == 3)
+		{
+			fprintf(outFile, "time 0x%08X\tCMD 3: event(%02X, %02X)\n", sz, j[0], j[1]);
+			if (flag)
+				p += 2;
+			if (j[0] == 1)
+			{
+				fprintf(outFile, "\tloop to start\n");  //# Lacking 0x800 flag runs and clears all noteEvents before looping, not worth discerning right now.
+				break;
+			}
+			//# Will also execute a callback function w/ args.
+			//# Only one function is set on N64, accepting track ID and j[0] above.
+			//# If j[0] == 1 and ID isn't 0, walks all the tracks and "plays" them.
+			//# It's probably a failsafe to update all noteEvents when a track stops or is looped.
+		}
+		else if (i == 6) //	# loop / jump
+		{
+			WriteLongToBuffer(j, 0, Flip32Bit(CharArrayToLong(&data[p])));
+			p += 4;
+			fprintf(outFile, "time 0x%08X\tCMD 6: goto 0x%08X\n", sz, CharArrayToLong(j));
+			break;
+		}
+		else if ((i == 4) || (i == 5) || (i == 7))
+		{
+			fprintf(outFile, "Unhandled command %02X.\n", i);
+		}
+		else
+		{
+			fprintf(outFile, "Unknown command %02X!\n", i);
+		}
+	}
+}
+
+int CMidiParse::FindHighestLengthTrack(unsigned char* data, unsigned long offset)
+{
+	int p = offset;
+	if (CharArrayToLong(&data[p]) == 0x5A54524B) //ZTRK
+		p += 4;
+
+	bool flag = false;
+	unsigned char j[4];
+	j[0] = 0;
+	j[1] = 0;
+	j[2] = 0;
+	j[3] = 0;
+	int sz = 0;
+	int val = 0;
+
+	unsigned long absoluteTime = 0;
+
+	//# Time & duration.
+	while (true)
+	{
+		int i = data[p];
+		p += 1;
+		int v = i & 7;
+		if (v == 0)
+		{
+			sz = 0;
+			val = 0;
+		}
+		else if (v == 1)
+		{
+			sz = 0;
+			val = data[p];
+			p += 1;
+		}
+		else if (v == 2)
+		{
+			sz = 0;
+			val = Flip32Bit(CharArrayToLong(&data[p]));
+			p += 4;
+		}
+		else if (v == 3)
+		{
+			sz = data[p];
+			val = 0;
+			p += 1;
+		}
+		else if (v == 4)
+		{
+			sz = data[p];
+			val = data[p+1];
+			p += 2;
+		}
+		else if (v == 5)
+		{
+			sz = data[p];
+			val = Flip32Bit(CharArrayToLong(&data[p+1]));
+			p += 5;
+		}
+		else if (v == 6)
+		{
+			sz = Flip32Bit(CharArrayToLong(&data[p]));
+			val = 0;
+			p += 4;
+		}
+		else if (v == 7)
+		{
+			sz = Flip32Bit(CharArrayToLong(&data[p]));
+			val = Flip32Bit(CharArrayToLong(&data[p+4]));
+			p += 8;
+		}
+
+		absoluteTime += sz;
+
+		//# Fetch arguments.
+		i >>= 3;
+		if (i == 0x1F)
+		{
+			flag = false;
+			i = data[p] >> 3;
+			int q = data[p+1];
+			
+			p += 2;
+			for (int v = 0; v < 4; v++)
+			{
+				int k = q & 3;
+				if (k == 1)
+				{
+					//# Condition can't occur on N64 due to a bug.
+					//fprintf(outFile, "*F8 condition 1: j[%02X] = %02X\n", v, data[p]);
+					j[v] = data[p];
+					p += 1;
+				}
+				else if (k == 2)
+				{
+					//# Not a mistake.  Skips a HW.
+					//fprintf(outFile, "*F8 condition 2: %02X%02X%02X%02X\n", data[p], data[p+1], data[p+2], data[p+3]);
+					j[v] = data[p+2];
+					p += 3;
+				}
+				else if (k == 3)
+				{
+					k = data[p];
+					p += 1;
+					//fprintf(outFile, "*F8 condition 3: %02X\n", k);
+					//# No code was found that sets these, and condition can't even occur on N64.
+					/*if (k == 0)
+						raise NotImplementedError("arg[v] = @mngr+C");
+					else if (k == 1)
+						raise NotImplementedError("arg[v] = @mngr+10");
+					else if (k == 2)
+						raise NotImplementedError("arg[v] = @mngr+14");
+					else if (k == 4)
+						raise NotImplementedError("arg[v] = @mngr+18");*/
+				}
+				q >>= 2;
+			}
+		}
+		else //# Read bytes but don't advance.  Will make sense in next section.
+		{
+			flag = true;
+			j[0] = data[p];
+			j[1] = data[p + 1];
+		}
+		//# Set command (callback function).
+		if (i == 0)
+		{
+			//fprintf(outFile, "time 0x%08X\tCMD 0: play note %02X, vol %02X\tduration 0x%08X\n", sz, j[0], j[1], val);
+			if (flag)
+				p += 2;
+		}
+		else if( i == 1)
+		{
+			//fprintf(outFile, "time 0x%08X\tCMD 1: play note %02X @cur. vol\tduration 0x%08X\n", sz, j[0], val);
+			if (flag)
+				p += 1;
+		}
+		else if (i == 2)
+		{
+			//fprintf(outFile, "time 0x%08X\tCMD 2: track adjust(%02X, %02X)\n", sz, j[0], j[1]);
+			//# When set, "envelope vol" & pan affect all currently playing notes in track as well!
+			if (j[0] == 0)
+			{
+				//fprintf(outFile, "\toption 0: envelope vol %02X\n", j[1]);
+			}
+			else if (j[0] == 1)
+			{
+				//fprintf(outFile, "\toption 1: pan 0x%02X\n", (0x40 + j[1]) & 0x7F);
+			}
+			else if ((j[0] == 2) || (j[0] == 3))
+			{
+				//fprintf(outFile, "\tUnhandled option %02X.\n", j[0]);
+			}
+			else if (j[0] == 4)
+			{
+				// FF = none
+				//fprintf(outFile, "\toption 4: instrument = %02X\n", j[1]);
+			}
+			else if (j[0] == 5)
+			{
+				// FF = none
+				//fprintf(outFile, "\toption 5: percussion = %02X\n", j[1]);
+			}
+			else
+			{
+				//fprintf(outFile, "\tUnknown option %02X!\n", j[0]);
+			}
+			if (flag)
+				p += 2;
+		}
+		else if (i == 3)
+		{
+			//fprintf(outFile, "time 0x%08X\tCMD 3: event(%02X, %02X)\n", sz, j[0], j[1]);
+			if (flag)
+				p += 2;
+			if (j[0] == 1)
+			{
+				//fprintf(outFile, "\tloop to start\n");  //# Lacking 0x800 flag runs and clears all noteEvents before looping, not worth discerning right now.
+				break;
+			}
+			//# Will also execute a callback function w/ args.
+			//# Only one function is set on N64, accepting track ID and j[0] above.
+			//# If j[0] == 1 and ID isn't 0, walks all the tracks and "plays" them.
+			//# It's probably a failsafe to update all noteEvents when a track stops or is looped.
+		}
+		else if (i == 6) //	# loop / jump
+		{
+			WriteLongToBuffer(j, 0, Flip32Bit(CharArrayToLong(&data[p])));
+			p += 4;
+			//fprintf(outFile, "time 0x%08X\tCMD 6: goto 0x%08X\n", sz, CharArrayToLong(j));
+			break;
+		}
+		else if ((i == 4) || (i == 5) || (i == 7))
+		{
+			//fprintf(outFile, "Unhandled command %02X.\n", i);
+		}
+		else
+		{
+			//fprintf(outFile, "Unknown command %02X!\n", i);
+		}
+	}
+	return absoluteTime;
+}
+
+void CMidiParse::ZTRKToMidi(byte* gamebuffer, int address, CString outFileName, int& numberInstruments, bool calculateInstrumentCountOnly, bool separateByInstrument)
+{
+	numberInstruments = 1;
+	int noteUniqueId = 0;
+	std::vector<TimeAndValue> tempoPositions;
+
+	try
+	{
+		std::vector<SngNoteInfo> sngNoteList;
+		
+		unsigned long ztrkCount = CharArrayToLong(&gamebuffer[address + 0x20]);
+		unsigned long ztrkTableOffset = CharArrayToLong(&gamebuffer[address + 0x24]);
+
+		for (int x = 0; x < ztrkCount; x++)
+		{
+			signed char trackVolume = gamebuffer[address + ztrkTableOffset + (x * 0x10)];
+			signed char pan = ((char)gamebuffer[address + ztrkTableOffset + (x * 0x10) + 1] + 0x40) & 0x7F;
+			unsigned char defaultInstrument = gamebuffer[address + ztrkTableOffset + (x * 0x10) + 2];
+			unsigned char defaultPercussion = gamebuffer[address + ztrkTableOffset + (x * 0x10) + 3];
+			unsigned short trackOffset = CharArrayToLong(&gamebuffer[address + ztrkTableOffset + (x * 0x10) + 8]);
+			unsigned short ctlIndex = CharArrayToShort(&gamebuffer[address + ztrkTableOffset + (x * 0x10) + 0xE]);
+
+			unsigned char* data = &gamebuffer[address + trackOffset];
+
+			std::vector<SngTimeValue> volumeByAbsoluteTime;
+			std::vector<SngTimeValue> pitchBendByAbsoluteTime;
+			
+			ParseZTRKTrack(x, numberInstruments, tempoPositions, sngNoteList, data, 0, noteUniqueId, trackVolume, pan, defaultInstrument);
+		}
+	
+		unsigned long currentTempo = (unsigned long)(60000000.0 / (float)240.0);
+		if (tempoPositions.size() == 0)
+			tempoPositions.push_back(TimeAndValue(0, currentTempo));
+		WriteSngList(sngNoteList, tempoPositions, outFileName, separateByInstrument, 0x0030, false, 24);
+	}
+	catch (...)
+	{
+		MessageBox(NULL, "Error exporting", "Error", NULL);
+	}
+}
+
+void CMidiParse::ParseZTRKTrack(int trackNumber, int& numberInstruments, std::vector<TimeAndValue>& tempoPositions, std::vector<SngNoteInfo>& outputNotes, unsigned char* data, unsigned long offset, int& noteUniqueId, int trackVolume, unsigned char currentPan, unsigned short currentInstrument)
+{
+	int highestAbsoluteTime = FindHighestLengthTrack(data, offset);
+	std::vector<SngNoteInfo> trackOutputNotes;
+	unsigned char command = 0x00;
+	unsigned long spot = offset;
+
+	int p = offset;
+	if (CharArrayToLong(&data[p]) == 0x5A54524B) //ZTRK
+		p += 4;
+
+	bool flag = false;
+	unsigned char j[4];
+	j[0] = 0;
+	j[1] = 0;
+	j[2] = 0;
+	j[3] = 0;
+	int sz = 0;
+	int val = 0;
+
+	unsigned long absoluteTime = 0;
+
+	unsigned char currentVolume = 0x7F;
+	unsigned char currentEnvelopeVolume = 0x7F;
+	signed char currentPitchBend = 0x40;
+	int currentEffect = 0;
+
+	unsigned long currentTempo = (unsigned long)(60000000.0 / (float)120.0);
+
+	std::vector<SngTimeValue> envelopeVolumeByAbsoluteTime;
+	std::vector<SngTimeValue> panByAbsoluteTime;
+
+	//# Time & duration.
+	while (true)
+	{
+		int i = data[p];
+		p += 1;
+		int v = i & 7;
+		if (v == 0)
+		{
+			sz = 0;
+			val = 0;
+		}
+		else if (v == 1)
+		{
+			sz = 0;
+			val = data[p];
+			p += 1;
+		}
+		else if (v == 2)
+		{
+			sz = 0;
+			val = Flip32Bit(CharArrayToLong(&data[p]));
+			p += 4;
+		}
+		else if (v == 3)
+		{
+			sz = data[p];
+			val = 0;
+			p += 1;
+		}
+		else if (v == 4)
+		{
+			sz = data[p];
+			val = data[p+1];
+			p += 2;
+		}
+		else if (v == 5)
+		{
+			sz = data[p];
+			val = Flip32Bit(CharArrayToLong(&data[p+1]));
+			p += 5;
+		}
+		else if (v == 6)
+		{
+			sz = Flip32Bit(CharArrayToLong(&data[p]));
+			val = 0;
+			p += 4;
+		}
+		else if (v == 7)
+		{
+			sz = Flip32Bit(CharArrayToLong(&data[p]));
+			val = Flip32Bit(CharArrayToLong(&data[p+4]));
+			p += 8;
+		}
+		absoluteTime += sz;
+
+		//# Fetch arguments.
+		i >>= 3;
+		if (i == 0x1F)
+		{
+			flag = false;
+			i = data[p] >> 3;
+			int q = data[p+1];
+			
+			p += 2;
+			for (int v = 0; v < 4; v++)
+			{
+				int k = q & 3;
+				if (k == 1)
+				{
+					//# Condition can't occur on N64 due to a bug.
+					//fprintf(outFile, "*F8 condition 1: j[%02X] = %02X\n", v, data[p]);
+					j[v] = data[p];
+					p += 1;
+				}
+				else if (k == 2)
+				{
+					//# Not a mistake.  Skips a HW.
+					//fprintf(outFile, "*F8 condition 2: %02X%02X%02X%02X\n", data[p], data[p+1], data[p+2], data[p+3]);
+					j[v] = data[p+2];
+					p += 3;
+				}
+				else if (k == 3)
+				{
+					k = data[p];
+					p += 1;
+					//fprintf(outFile, "*F8 condition 3: %02X\n", k);
+					//# No code was found that sets these, and condition can't even occur on N64.
+					/*if (k == 0)
+						raise NotImplementedError("arg[v] = @mngr+C");
+					else if (k == 1)
+						raise NotImplementedError("arg[v] = @mngr+10");
+					else if (k == 2)
+						raise NotImplementedError("arg[v] = @mngr+14");
+					else if (k == 4)
+						raise NotImplementedError("arg[v] = @mngr+18");*/
+				}
+				q >>= 2;
+			}
+		}
+		else //# Read bytes but don't advance.  Will make sense in next section.
+		{
+			flag = true;
+			j[0] = data[p];
+			j[1] = data[p + 1];
+		}
+		//# Set command (callback function).
+		if (i == 0)
+		{
+			//fprintf(outFile, "time 0x%08X\tCMD 0: play note %02X, vol %02X\tduration 0x%08X\n", sz, j[0], j[1], val);
+
+			unsigned char note = j[0];
+			int velocity = 0x7F;
+		
+			int noteLength = val;
+			currentVolume = j[1];
+
+			SngNoteInfo songNoteInfo;
+			songNoteInfo.originalTrack = trackNumber;
+			songNoteInfo.originalNoteUniqueId = noteUniqueId++;
+			songNoteInfo.startAbsoluteTime = absoluteTime;
+			songNoteInfo.noteNumber = note;
+			songNoteInfo.velocity = velocity;
+
+			songNoteInfo.effect = currentEffect;
+
+			// From Master Track
+			songNoteInfo.tempo = currentTempo;
+
+			songNoteInfo.instrument = currentInstrument;
+			
+			songNoteInfo.pan = currentPan;
+
+			songNoteInfo.pitchBend = currentPitchBend;
+			songNoteInfo.volume = currentVolume;
+
+			songNoteInfo.endAbsoluteTime = songNoteInfo.startAbsoluteTime + noteLength;
+
+			trackOutputNotes.push_back(songNoteInfo);
+
+			if (flag)
+				p += 2;
+		}
+		else if( i == 1)
+		{
+			//fprintf(outFile, "time 0x%08X\tCMD 1: play note %02X @cur. vol\tduration 0x%08X\n", sz, j[0], val);
+
+			unsigned char note = j[0];
+			int velocity = 0x7F;
+		
+			int noteLength = val;
+
+			SngNoteInfo songNoteInfo;
+			songNoteInfo.originalTrack = trackNumber;
+			songNoteInfo.originalNoteUniqueId = noteUniqueId++;
+			songNoteInfo.startAbsoluteTime = absoluteTime;
+			songNoteInfo.noteNumber = note;
+			songNoteInfo.velocity = velocity;
+
+			songNoteInfo.effect = currentEffect;
+
+			// From Master Track
+			songNoteInfo.tempo = currentTempo;
+
+			songNoteInfo.instrument = currentInstrument;
+			
+			songNoteInfo.pan = currentPan;
+
+			songNoteInfo.pitchBend = currentPitchBend;
+			songNoteInfo.volume = currentVolume;
+
+			songNoteInfo.endAbsoluteTime = songNoteInfo.startAbsoluteTime + noteLength;
+
+			trackOutputNotes.push_back(songNoteInfo);
+
+
+			if (flag)
+				p += 1;
+		}
+		else if (i == 2)
+		{
+			//fprintf(outFile, "time 0x%08X\tCMD 2: track adjust(%02X, %02X)\n", sz, j[0], j[1]);
+			//# When set, "envelope vol" & pan affect all currently playing notes in track as well!
+			if (j[0] == 0)
+			{
+				//fprintf(outFile, "\toption 0: envelope vol %02X\n", j[1]);
+				currentEnvelopeVolume = j[1];
+
+				if (envelopeVolumeByAbsoluteTime.size() > 0)
+					envelopeVolumeByAbsoluteTime.back().endAbsoluteTime = absoluteTime;
+
+				SngTimeValue sngTimeValueInterruption;
+				sngTimeValueInterruption.startAbsoluteTime = absoluteTime;
+				sngTimeValueInterruption.endAbsoluteTime = highestAbsoluteTime;
+				sngTimeValueInterruption.value = currentEnvelopeVolume;
+				envelopeVolumeByAbsoluteTime.push_back(sngTimeValueInterruption);
+			}
+			else if (j[0] == 1)
+			{
+				//fprintf(outFile, "\toption 1: pan 0x%02X\n", (0x40 + j[1]) & 0x7F);
+				currentPan = (0x40 + j[1]) & 0x7F;
+
+				if (panByAbsoluteTime.size() > 0)
+					panByAbsoluteTime.back().endAbsoluteTime = absoluteTime;
+
+				SngTimeValue sngTimeValueInterruption;
+				sngTimeValueInterruption.startAbsoluteTime = absoluteTime;
+				sngTimeValueInterruption.endAbsoluteTime = highestAbsoluteTime;
+				sngTimeValueInterruption.value = currentPan;
+				panByAbsoluteTime.push_back(sngTimeValueInterruption);
+			}
+			else if ((j[0] == 2) || (j[0] == 3))
+			{
+				//fprintf(outFile, "\tUnhandled option %02X.\n", j[0]);
+			}
+			else if (j[0] == 4)
+			{
+				// FF = none
+				//fprintf(outFile, "\toption 4: instrument = %02X\n", j[1]);
+				currentInstrument = j[1];
+
+				if (currentInstrument > numberInstruments)
+					numberInstruments = currentInstrument + 1;
+			}
+			else if (j[0] == 5)
+			{
+				// FF = none
+				//fprintf(outFile, "\toption 5: percussion = %02X\n", j[1]);
+			}
+			else
+			{
+				//fprintf(outFile, "\tUnknown option %02X!\n", j[0]);
+			}
+			if (flag)
+				p += 2;
+		}
+		else if (i == 3)
+		{
+			//fprintf(outFile, "time 0x%08X\tCMD 3: event(%02X, %02X)\n", sz, j[0], j[1]);
+			if (flag)
+				p += 2;
+			if (j[0] == 1)
+			{
+				//fprintf(outFile, "\tloop to start\n");  //# Lacking 0x800 flag runs and clears all noteEvents before looping, not worth discerning right now.
+				break;
+			}
+			//# Will also execute a callback function w/ args.
+			//# Only one function is set on N64, accepting track ID and j[0] above.
+			//# If j[0] == 1 and ID isn't 0, walks all the tracks and "plays" them.
+			//# It's probably a failsafe to update all noteEvents when a track stops or is looped.
+		}
+		else if (i == 6) //	# loop / jump
+		{
+			WriteLongToBuffer(j, 0, Flip32Bit(CharArrayToLong(&data[p])));
+			p += 4;
+			//fprintf(outFile, "time 0x%08X\tCMD 6: goto 0x%08X\n", sz, CharArrayToLong(j));
+			break;
+		}
+		else if ((i == 4) || (i == 5) || (i == 7))
+		{
+			//fprintf(outFile, "Unhandled command %02X.\n", i);
+		}
+		else
+		{
+			//fprintf(outFile, "Unknown command %02X!\n", i);
+		}
+	}
+
+	// Apply track volume
+	for (int x = 0; x < trackOutputNotes.size(); x++)
+	{
+		trackOutputNotes[x].volume = (((trackOutputNotes[x].volume * trackVolume) >> 7));
+	}
+
+	// Add in Volume
+	for (int x = 0; x < trackOutputNotes.size(); x++)
+	{
+		for (int y = 0; y < envelopeVolumeByAbsoluteTime.size(); y++)
+		{
+			// Volume To Left/Equal Ending in Middle
+			if (
+				(trackOutputNotes[x].startAbsoluteTime >= envelopeVolumeByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].startAbsoluteTime < envelopeVolumeByAbsoluteTime[y].endAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > envelopeVolumeByAbsoluteTime[y].endAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > envelopeVolumeByAbsoluteTime[y].startAbsoluteTime)
+				)
+			{
+				//Split at Middle, Apply to Beginning
+
+				if (trackOutputNotes[x].volume != envelopeVolumeByAbsoluteTime[y].value)
+				{
+					SngNoteInfo newNoteInfo = trackOutputNotes[x];
+
+					trackOutputNotes[x].startAbsoluteTime = envelopeVolumeByAbsoluteTime[y].endAbsoluteTime;
+					
+					newNoteInfo.endAbsoluteTime = envelopeVolumeByAbsoluteTime[y].endAbsoluteTime;
+					newNoteInfo.volume = (trackOutputNotes[x].volume * envelopeVolumeByAbsoluteTime[y].value) >> 7;
+
+					trackOutputNotes.push_back(newNoteInfo);
+
+					x--;
+					break;
+				}
+				
+			}
+			//Volume In Middle, Ending to Right
+			else if (
+				(trackOutputNotes[x].startAbsoluteTime < envelopeVolumeByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].startAbsoluteTime < envelopeVolumeByAbsoluteTime[y].endAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > envelopeVolumeByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime <= envelopeVolumeByAbsoluteTime[y].endAbsoluteTime)
+				)
+			{
+				//Split at Middle, Apply to End
+				SngNoteInfo newNoteInfo = trackOutputNotes[x];
+
+				trackOutputNotes[x].endAbsoluteTime = envelopeVolumeByAbsoluteTime[y].startAbsoluteTime;
+				
+				newNoteInfo.startAbsoluteTime = envelopeVolumeByAbsoluteTime[y].startAbsoluteTime;
+				newNoteInfo.volume = (trackOutputNotes[x].volume * envelopeVolumeByAbsoluteTime[y].value) >> 7;
+
+				trackOutputNotes.push_back(newNoteInfo);
+
+				x--;
+				break;
+			}
+			// Volume Completely Inside
+			else if (
+				(trackOutputNotes[x].startAbsoluteTime < envelopeVolumeByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].startAbsoluteTime < envelopeVolumeByAbsoluteTime[y].endAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > envelopeVolumeByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > envelopeVolumeByAbsoluteTime[y].endAbsoluteTime)
+				)
+			{
+				// Split at Mid-Left and Mid-Right
+				SngNoteInfo newNoteInfo = trackOutputNotes[x];
+				SngNoteInfo newNoteInfo2 = trackOutputNotes[x];
+
+				trackOutputNotes[x].endAbsoluteTime = envelopeVolumeByAbsoluteTime[y].startAbsoluteTime;
+
+
+				
+
+				newNoteInfo.startAbsoluteTime = envelopeVolumeByAbsoluteTime[y].startAbsoluteTime;
+				newNoteInfo.endAbsoluteTime = envelopeVolumeByAbsoluteTime[y].endAbsoluteTime;
+				newNoteInfo.volume = (trackOutputNotes[x].volume * envelopeVolumeByAbsoluteTime[y].value) >> 7;
+
+				trackOutputNotes.push_back(newNoteInfo);
+				
+				newNoteInfo2.startAbsoluteTime = envelopeVolumeByAbsoluteTime[y].endAbsoluteTime;
+
+				trackOutputNotes.push_back(newNoteInfo2);
+
+				x--;
+				break;
+			}
+			// Volume Completely Outside
+			else if (
+				(trackOutputNotes[x].startAbsoluteTime >= envelopeVolumeByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].startAbsoluteTime < envelopeVolumeByAbsoluteTime[y].endAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > envelopeVolumeByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime <= envelopeVolumeByAbsoluteTime[y].endAbsoluteTime)
+				)
+			{
+				// Apply to whole
+				trackOutputNotes[x].volume = (trackOutputNotes[x].volume * envelopeVolumeByAbsoluteTime[y].value) >> 7;
+			}
+			// No Overlap
+			else
+			{
+
+			}
+		}
+	}
+	
+
+
+	// Add in Pitch Bend
+	for (int x = 0; x < trackOutputNotes.size(); x++)
+	{
+		for (int y = 0; y < panByAbsoluteTime.size(); y++)
+		{
+			// pan To Left/Equal Ending in Middle
+			if (
+				(trackOutputNotes[x].startAbsoluteTime >= panByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].startAbsoluteTime < panByAbsoluteTime[y].endAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > panByAbsoluteTime[y].endAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > panByAbsoluteTime[y].startAbsoluteTime)
+				)
+			{
+				//Split at Middle, Apply to Beginning
+
+				if (trackOutputNotes[x].pan != panByAbsoluteTime[y].value)
+				{
+					SngNoteInfo newNoteInfo = trackOutputNotes[x];
+
+					trackOutputNotes[x].startAbsoluteTime = panByAbsoluteTime[y].endAbsoluteTime;
+					
+					newNoteInfo.endAbsoluteTime = panByAbsoluteTime[y].endAbsoluteTime;
+					newNoteInfo.pan = panByAbsoluteTime[y].value;
+
+					trackOutputNotes.push_back(newNoteInfo);
+
+					x--;
+					break;
+				}
+				
+			}
+			//pan In Middle, Ending to Right
+			else if (
+				(trackOutputNotes[x].startAbsoluteTime < panByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].startAbsoluteTime < panByAbsoluteTime[y].endAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > panByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime <= panByAbsoluteTime[y].endAbsoluteTime)
+				)
+			{
+				//Split at Middle, Apply to End
+				if (trackOutputNotes[x].pan != panByAbsoluteTime[y].value)
+				{
+					SngNoteInfo newNoteInfo = trackOutputNotes[x];
+
+					trackOutputNotes[x].endAbsoluteTime = panByAbsoluteTime[y].startAbsoluteTime;
+					
+					newNoteInfo.startAbsoluteTime = panByAbsoluteTime[y].startAbsoluteTime;
+					newNoteInfo.pan = panByAbsoluteTime[y].value;
+
+					trackOutputNotes.push_back(newNoteInfo);
+
+					x--;
+					break;
+				}
+			}
+			// pan Completely Inside
+			else if (
+				(trackOutputNotes[x].startAbsoluteTime < panByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].startAbsoluteTime < panByAbsoluteTime[y].endAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > panByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > panByAbsoluteTime[y].endAbsoluteTime)
+				)
+			{
+				// Split at Mid-Left and Mid-Right
+				if (trackOutputNotes[x].pan != panByAbsoluteTime[y].value)
+				{
+					SngNoteInfo newNoteInfo = trackOutputNotes[x];
+					SngNoteInfo newNoteInfo2 = trackOutputNotes[x];
+
+					trackOutputNotes[x].endAbsoluteTime = panByAbsoluteTime[y].startAbsoluteTime;
+
+
+					
+
+					newNoteInfo.startAbsoluteTime = panByAbsoluteTime[y].startAbsoluteTime;
+					newNoteInfo.endAbsoluteTime = panByAbsoluteTime[y].endAbsoluteTime;
+					newNoteInfo.pan = panByAbsoluteTime[y].value;
+
+					trackOutputNotes.push_back(newNoteInfo);
+					
+					newNoteInfo2.startAbsoluteTime = panByAbsoluteTime[y].endAbsoluteTime;
+
+					trackOutputNotes.push_back(newNoteInfo2);
+
+					x--;
+					break;
+				}
+			}
+			// pan Completely Outside
+			else if (
+				(trackOutputNotes[x].startAbsoluteTime >= panByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].startAbsoluteTime < panByAbsoluteTime[y].endAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime > panByAbsoluteTime[y].startAbsoluteTime)
+				&& (trackOutputNotes[x].endAbsoluteTime <= panByAbsoluteTime[y].endAbsoluteTime)
+				)
+			{
+				// Apply to whole
+				trackOutputNotes[x].pan = panByAbsoluteTime[y].value;
+			}
+			// No Overlap
+			else
+			{
+
+			}
+		}
+	}
+
+	// Add to end
+	for (int x = 0; x < trackOutputNotes.size(); x++)
+	{
+		outputNotes.push_back(trackOutputNotes[x]);
+	}
+
+}
+
 void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int gamebufferSize, unsigned long address, unsigned long size, CString fileName, CString gameType, int& numberInstruments, unsigned long division, bool& compressed, bool& hasLoopPoint, int& loopStart, int& loopEnd, bool calculateInstrumentCountOnly, bool separateByInstrument, bool generateDebugTextFile, unsigned long extra, unsigned long extra2, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, ExtraGameMidiInfo extraGameMidiInfo, bool usePitchBendSensitity, int pitchBendSensitity, bool isPreview)
 {
 	gameName.Trim();
@@ -19483,6 +20474,21 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 				fwrite(&gamebuffer[address+x], 1, 1, outFile);
 			}
 			fclose(outFile);
+		}
+	}
+	else if (gameType.CompareNoCase("ZTRK") == 0)
+	{
+		if (compressed)
+		{
+			
+		}
+		else
+		{
+			ZTRKToMidi(gamebuffer, address, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument);
+			if (generateDebugTextFile)
+			{
+				ZTRKToDebugTextFile(gameName, fileName + " TrackParseDebug.txt", gamebuffer, address);
+			}
 		}
 	}
 	else if (gameType.CompareNoCase("Yaz0EADZelda") == 0)

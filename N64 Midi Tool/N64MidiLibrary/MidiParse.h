@@ -285,6 +285,11 @@ public:
 	byte* Decompress(unsigned char* Buffer, unsigned long size, int& fileSize, int& compressedSize);
 	bool DecompressToFile(unsigned char* Buffer, unsigned long size, CString outputFile);
 	void GenerateTestPattern(int type, CString outputFile);
+	void ZTRKToDebugTextFile(CString gameName, CString textFileOut, unsigned char* gamebuffer, unsigned long address);
+	void ZTRKTrackToDebugTextFile(FILE* outFile, unsigned char* data, unsigned long offset);
+	int FindHighestLengthTrack(unsigned char* data, unsigned long offset);
+	void ParseZTRKTrack(int trackNumber, int& numberInstruments, std::vector<TimeAndValue>& tempoPositions, std::vector<SngNoteInfo>& outputNotes, unsigned char* data, unsigned long offset, int& noteUniqueId, int trackVolume, unsigned char currentPan, unsigned short currentInstrument);
+	void ZTRKToMidi(byte* gamebuffer, int address, CString outFileName, int& numberInstruments, bool calculateInstrumentCountOnly, bool separateByInstrument);
 
 	int FindHighestKonamiLengthTrack(int trackNumber, unsigned char* buffer, unsigned long offset, unsigned long end);
 	void ParseKonamiTrack(int trackNumber, int& numberInstruments, std::vector<TimeAndValue>& tempoPositions, std::vector<SngNoteInfo>& outputNotes, unsigned char* buffer, unsigned long offset, unsigned long end, int& noteUniqueId, bool writeOutLoops, int loopWriteCount, bool extendTracksToHighest, int highestTrackLength);

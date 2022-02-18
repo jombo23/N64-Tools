@@ -10446,6 +10446,7 @@ void CN64SoundListToolDlg::OpenROMSpecific(SoundGameConfig gameConfig)
 	tempGameName.Replace(" Music", "");
 	tempGameName.Replace(" DEAN", "");
 	tempGameName.Replace(" DEAN Individual", "");
+	tempGameName.Replace(" Individual", "");
 	tempGameName.Replace(" Sfx", "");
 	tempGameName.Replace(" SAM", "");
 	tempGameName.Replace(" SFX", "");

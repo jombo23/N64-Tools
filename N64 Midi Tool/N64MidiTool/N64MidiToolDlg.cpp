@@ -2486,6 +2486,11 @@ void CN64MidiToolDlg::OnBnClickedButtonimportmidi()
 		MessageBox("Unsupported Compressed import - you must use Seq64 GUI to do this");
 		return;
 	}
+	else if (gameConfig[gameNumber].gameType.CompareNoCase("ZTRK") == 0)
+	{
+		MessageBox("Unsupported ZTRK import");
+		return;
+	}
 	else if (gameConfig[gameNumber].gameType.CompareNoCase("ZLibEADZelda") == 0)
 	{
 		MessageBox("Unsupported Compressed import");

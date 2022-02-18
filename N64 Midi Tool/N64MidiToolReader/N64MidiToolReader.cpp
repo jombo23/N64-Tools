@@ -1906,6 +1906,17 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 			numberMidiStrings++;
 		}
 	}
+	else if (gameName.CompareNoCase("ZTRK") == 0)
+	{
+		compressed = false;
+		for (int x = 0; x < gameConfig[gameNumber].numberMidis; x++)
+		{
+			CString tempSpotStr;
+			tempSpotStr.Format("%08X:%08X", gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start));
+			addMidiStrings.push_back(tempSpotStr);
+			numberMidiStrings++;
+		}
+	}
 	else if (gameName.CompareNoCase("Yaz0EADZelda") == 0)
 	{
 		compressed = false;

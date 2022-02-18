@@ -2205,7 +2205,7 @@ bool CExciteBikeSAMAudioDecompression::DecodeSNG(unsigned char* sngFile, int sng
 				int lengthMultiplier = 128;
 
 				unsigned short timeStamp = CSharedFunctions::CharArrayToShort(&sngFile[sngFileOffset + spot]);
-				unsigned short timeStampNext = maxResultSizeSamples;
+				unsigned short timeStampNext = maxResultSize;
 
 				while (true)
 				{
