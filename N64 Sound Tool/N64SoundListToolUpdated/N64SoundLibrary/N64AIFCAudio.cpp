@@ -23389,12 +23389,10 @@ ALBank* CN64AIFCAudio::ReadAudioMarioParty2E(unsigned char* ROM, unsigned char* 
 
 		int x = 0;
 		{
-			alBank->inst[x]->soundCount = CharArrayToShort(&ctl[bankOffset-2]) / 0x10;
-			if (alBank->inst[x]->soundCount == 0x0000)
-			{
-				// Mario Party
-				alBank->inst[x]->soundCount = CharArrayToLong(&ctl[bankOffset]) / 0x10;
-			}
+			// Mario Party
+			// Technically this is the size of the data, but each item is 0x10 bytes long
+			// so we can cheat and use that as the size of the array count
+			alBank->inst[x]->soundCount = CharArrayToLong(&ctl[bankOffset]) / 0x10;
 			alBank->inst[x]->sounds = new ALSound*[alBank->inst[x]->soundCount];
 
 			for (int y = 0; y < alBank->inst[x]->soundCount; y++)
