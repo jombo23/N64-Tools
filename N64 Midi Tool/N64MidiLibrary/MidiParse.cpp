@@ -18998,7 +18998,7 @@ int CMidiParse::FindHighestLengthTrack(unsigned char* data, unsigned long offset
 	return absoluteTime;
 }
 
-void CMidiParse::ZTRKToMidi(byte* gamebuffer, int address, CString outFileName, int& numberInstruments, bool calculateInstrumentCountOnly, bool separateByInstrument)
+void CMidiParse::ZTRKToMidi(byte* gamebuffer, int address, CString outFileName, int& numberInstruments, bool calculateInstrumentCountOnly, bool separateByInstrument, bool enabledTracks[0x20], float rate)
 {
 	numberInstruments = 1;
 	int noteUniqueId = 0;
@@ -19025,10 +19025,16 @@ void CMidiParse::ZTRKToMidi(byte* gamebuffer, int address, CString outFileName, 
 			std::vector<SngTimeValue> volumeByAbsoluteTime;
 			std::vector<SngTimeValue> pitchBendByAbsoluteTime;
 			
-			ParseZTRKTrack(x, numberInstruments, tempoPositions, sngNoteList, data, 0, noteUniqueId, trackVolume, pan, defaultInstrument);
+			if (x < 0x10)
+			{
+				if (enabledTracks[x])
+				{
+					ParseZTRKTrack(x, numberInstruments, tempoPositions, sngNoteList, data, 0, noteUniqueId, trackVolume, pan, defaultInstrument);
+				}
+			}
 		}
 	
-		unsigned long currentTempo = (unsigned long)(60000000.0 / (float)120.0);
+		unsigned long currentTempo = (unsigned long)(60000000.0 / ((float)120.0 * rate));
 		if (tempoPositions.size() == 0)
 			tempoPositions.push_back(TimeAndValue(0, currentTempo));
 		WriteSngList(sngNoteList, tempoPositions, outFileName, separateByInstrument, 0x0030, false, 24);
@@ -20484,7 +20490,37 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 		}
 		else
 		{
-			ZTRKToMidi(gamebuffer, address, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument);
+			for (int x = 0; x < 8; x++)
+			{
+				CString tempFilename = fileName;
+				if (x != 1)
+				{
+					tempFilename.Format("%sfileName_%X", fileName, x);
+					tempFilename.Replace(".mid", "");
+					tempFilename += ".mid";
+				}
+		
+				bool enabledTracks[0x20];
+				for (int y = 0; y < 0x20; y++)
+					enabledTracks[y] = true;
+
+				if (extra != 0)
+				{
+					for (int y = 0; y < 0x20; y++)
+					{
+						enabledTracks[y] = (bool)gamebuffer[extra + (x * 0x20) + y];
+					}
+				}
+
+				float rate = 1;
+				if (extra2 != 0)
+				{
+					rate = CSharedFunctionsMidi::CharArrayToFloat(&gamebuffer[extra2 + (x * 4)]);
+				}
+
+				ZTRKToMidi(gamebuffer, address, tempFilename, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, enabledTracks, rate);
+			}
+
 			if (generateDebugTextFile)
 			{
 				ZTRKToDebugTextFile(gameName, fileName + " TrackParseDebug.txt", gamebuffer, address);

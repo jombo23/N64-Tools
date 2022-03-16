@@ -1912,7 +1912,7 @@ void CN64MidiToolReader::ProcessMidis(MidiGameConfig* gameConfig, int gameNumber
 		for (int x = 0; x < gameConfig[gameNumber].numberMidis; x++)
 		{
 			CString tempSpotStr;
-			tempSpotStr.Format("%08X:%08X", gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start));
+			tempSpotStr.Format("%08X:%08X:%08X:%08X", gameConfig[gameNumber].midiBanks[x].start, (gameConfig[gameNumber].midiBanks[x].end - gameConfig[gameNumber].midiBanks[x].start), gameConfig[gameNumber].midiBanks[x].extra, gameConfig[gameNumber].midiBanks[x].extra2);
 			addMidiStrings.push_back(tempSpotStr);
 			numberMidiStrings++;
 		}
