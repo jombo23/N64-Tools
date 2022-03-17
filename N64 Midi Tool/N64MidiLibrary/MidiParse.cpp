@@ -19034,7 +19034,7 @@ void CMidiParse::ZTRKToMidi(byte* gamebuffer, int address, CString outFileName, 
 			}
 		}
 	
-		unsigned long currentTempo = (unsigned long)(60000000.0 / ((float)120.0 * rate));
+		unsigned long currentTempo = (unsigned long)(60000000.0 / ((float)1275 * rate));
 		if (tempoPositions.size() == 0)
 			tempoPositions.push_back(TimeAndValue(0, currentTempo));
 		WriteSngList(sngNoteList, tempoPositions, outFileName, separateByInstrument, 0x0030, false, 24);
