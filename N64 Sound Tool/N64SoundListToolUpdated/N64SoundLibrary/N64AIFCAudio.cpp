@@ -2390,6 +2390,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_ACCLAIM_MARK)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if (alWave->type == AL_MP3)
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -3329,6 +3342,16 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 
 				CAcclaimDEANAudioDecompression acclaimDEANAudioDecompression;
 				acclaimDEANAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_ACCLAIM_MARK)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CAcclaimDEANAudioDecompression acclaimDEANAudioDecompression;
+				acclaimDEANAudioDecompression.DecompressMARKSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_MP3)
 			{
@@ -4649,6 +4672,16 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 
 				CAcclaimDEANAudioDecompression acclaimDEANAudioDecompression;
 				acclaimDEANAudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
+			}
+			else if (alWave->type == AL_ACCLAIM_MARK)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CAcclaimDEANAudioDecompression acclaimDEANAudioDecompression;
+				acclaimDEANAudioDecompression.DecompressMARKSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_MP3)
 			{
@@ -23292,6 +23325,14 @@ ALBank* CN64AIFCAudio::ReadAudio(unsigned char* ROM, unsigned char* ctl, int ctl
 											)
 										{
 											alBank->inst[x]->sounds[y]->wav.type = AL_ACCLAIM_DEAN;
+										}
+										// MARK Acclaim
+										else if (
+											(alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[0] == 0x4D41)
+											&& (alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[1] == 0x524B)
+											)
+										{
+											alBank->inst[x]->sounds[y]->wav.type = AL_ACCLAIM_MARK;
 										}
 										else if (
 											(alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[0] == 0x524B)

@@ -11604,6 +11604,18 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
 					}
+					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_ACCLAIM_MARK)
+					{
+						mLoopCount.ShowWindow(SW_HIDE);
+						mLoopEnd.ShowWindow(SW_HIDE);
+						mLoopStart.ShowWindow(SW_HIDE);
+						mL1Text.ShowWindow(SW_HIDE);
+						mL2Text.ShowWindow(SW_HIDE);
+						mL3Text.ShowWindow(SW_HIDE);
+
+						mImportLoopPredictors.ShowWindow(SW_HIDE);
+						mExportLoopPredictors.ShowWindow(SW_HIDE);
+					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_MP3)
 					{
 						mLoopCount.ShowWindow(SW_HIDE);
@@ -12153,6 +12165,18 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
 					}
 					else if ( alBankCurrent->percussion->sounds[soundChoice]->wav.type == AL_ACCLAIM_DEAN)
+					{
+						mLoopCount.ShowWindow(SW_HIDE);
+						mLoopEnd.ShowWindow(SW_HIDE);
+						mLoopStart.ShowWindow(SW_HIDE);
+						mL1Text.ShowWindow(SW_HIDE);
+						mL2Text.ShowWindow(SW_HIDE);
+						mL3Text.ShowWindow(SW_HIDE);
+
+						mImportLoopPredictors.ShowWindow(SW_HIDE);
+						mExportLoopPredictors.ShowWindow(SW_HIDE);
+					}
+					else if ( alBankCurrent->percussion->sounds[soundChoice]->wav.type == AL_ACCLAIM_MARK)
 					{
 						mLoopCount.ShowWindow(SW_HIDE);
 						mLoopEnd.ShowWindow(SW_HIDE);
