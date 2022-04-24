@@ -48,6 +48,7 @@ void CN64SoundbankToolDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECKEXTENDLOOPSTOHIGHESTTRACK, mExtendSmallerTracksToEnd);
 	DDX_Control(pDX, IDC_CHECKUSET1, mUseT1SamplingRate);
 	DDX_Control(pDX, IDC_CHECKDEBUG, mDebug);
+	DDX_Control(pDX, IDC_COMBOSONGID, mComboSongId);
 }
 
 BEGIN_MESSAGE_MAP(CN64SoundbankToolDlg, CDialog)
@@ -417,6 +418,18 @@ void CN64SoundbankToolDlg::InitializeSpecificGames()
 				line.Replace(":", "");
 				gameConfig[countGames].poolSize = CN64SoundToolReader::StringHexToLong(line);
 			}
+			else if (line.Find("SDirOffset") != -1)
+			{
+				line.Replace("SDirOffset", "");
+				line.Replace(":", "");
+				gameConfig[countGames].sDirOffset = CN64SoundToolReader::StringHexToLong(line);
+			}
+			else if (line.Find("SDirSize") != -1)
+			{
+				line.Replace("SDirSize", "");
+				line.Replace(":", "");
+				gameConfig[countGames].sDirSize = CN64SoundToolReader::StringHexToLong(line);
+			}
 		}
 		else
 		{
@@ -724,6 +737,7 @@ void CN64SoundbankToolDlg::OnBnClickedButtonloadrom()
 		{
 			if (gameConfigBank.soundfontBank[x].soundBankNumber >= numberResults)
 			{
+				mComboSongId.ShowWindow(SW_HIDE);
 				MessageBox("Invalid sound bank # from ini for game or error loading");
 				delete [] buffer;
 				buffer = NULL;
@@ -753,10 +767,212 @@ void CN64SoundbankToolDlg::OnBnClickedButtonloadrom()
 				}
 			}
 
+			MidiGameConfig gameConfigMidiFound;
+			for (int y = 0; y < countGamesMidi; y++)
+			{
+				if (FilterGameName(gameConfigMidi[y].gameName).CompareNoCase(gameName) == 0)
+				{
+					gameConfigMidiFound = gameConfigMidi[y];
+					break;
+				}
+			}
+
+			if (
+				(gameConfigMidiFound.gameType.CompareNoCase("Factor5Zlb") == 0)
+					|| (gameConfigMidiFound.gameType.CompareNoCase("Factor5ZlbGCStyle") == 0)
+					|| (gameConfigMidiFound.gameType.CompareNoCase("Factor5LZGCStyle") == 0)
+					|| (gameConfigMidiFound.gameType.CompareNoCase("Factor5ZlbNoHeaderGCStyle") == 0)
+					)
+			{
+				mComboSongId.ResetContent();
+
+				int projOffset = gameConfigBank.projOffset;
+				int poolOffset = gameConfigBank.poolOffset;
+				int projSize = gameConfigBank.projSize;
+				int poolSize = gameConfigBank.poolSize;
+
+				unsigned char* proj = NULL;
+				unsigned char* pool = NULL;
+
+				bool isCompressed = false;
+				int zlibGame = 0;
+				if (buffer[poolOffset] == 0x78)
+				{
+					isCompressed = true;
+					zlibGame = STUNTRACER64;
+				}
+				else if (gameConfigSoundFound.gameType == "Musyx")
+				{
+					isCompressed = false;
+				}
+				else if (gameConfigSoundFound.gameType == "ZLibMusyx")
+				{
+					isCompressed = true;
+					zlibGame = GAUNTLETLEGENDS;
+				}
+				else if (gameConfigSoundFound.gameType == "ZLib78DAMusyx")
+				{
+					isCompressed = true;
+					zlibGame = STUNTRACER64;
+				}
+				else if (gameConfigSoundFound.gameType == "MusyxREZLib")
+				{
+					isCompressed = true;
+					zlibGame = STUNTRACER64;
+				}
+				else if (gameConfigSoundFound.gameType == "MusyxSmallZlib")
+				{
+					isCompressed = true;
+					zlibGame = STUNTRACER64;
+				}
+				else if (gameConfigSoundFound.gameType == "LzMusyx")
+				{
+					isCompressed = true;
+				}
+				if (!isCompressed)
+				{
+					proj = new unsigned char[projSize];
+					memcpy(proj, &buffer[projOffset], projSize);
+					pool = new unsigned char[poolSize];
+					memcpy(pool, &buffer[poolOffset], poolSize);
+				}
+				else
+				{
+					projSize = 0;
+					poolSize = 0;
+
+					if (gameConfigSoundFound.gameType == "LzMusyx")
+					{
+						proj = new unsigned char[0x100000];
+						pool = new unsigned char[0x100000];
+						MidwayLZ midwayLz;
+						projSize = midwayLz.dec(&buffer[projOffset], romSize - projOffset, proj);
+						poolSize = midwayLz.dec(&buffer[poolOffset], romSize - poolOffset, pool);
+						/*FILE* projDebugFile = fopen("C:\\temp\\proj.bin", "wb");
+						if (projDebugFile)
+						{
+							fwrite(proj, 1, projSize, projDebugFile);
+							fflush(projDebugFile);
+							fclose(projDebugFile);
+						}
+						FILE* poolDebugFile = fopen("C:\\temp\\pool.bin", "wb");
+						if (poolDebugFile)
+						{
+							fwrite(pool, 1, poolSize, poolDebugFile);
+							fflush(poolDebugFile);
+							fclose(poolDebugFile);
+						}*/
+					}
+					else
+					{
+						GECompression compression;
+						compression.SetPath(mainFolder);
+						if ((buffer[poolOffset] == 0x78) && (buffer[poolOffset+1] == 0xDA))
+						{
+							compression.SetGame(STUNTRACER64);
+						}
+						else
+						{
+							compression.SetGame(zlibGame);
+						}
+
+						compression.SetCompressedBuffer(&buffer[projOffset], romSize - projOffset);
+						projSize = 0;
+						int projCompressedSize = 0;
+						proj = compression.OutputDecompressedBuffer(projSize, projCompressedSize);
+
+						compression.SetCompressedBuffer(&buffer[poolOffset], romSize - poolOffset);
+						poolSize = 0;
+						int poolCompressedSize = 0;
+						pool = compression.OutputDecompressedBuffer(poolSize, poolCompressedSize);
+					}
+				}
+				
+
+				std::vector<int> songIds;
+
+				int groupOffset = 0;
+				int groupCounter = 0;
+
+				while (groupOffset < projSize)
+				{
+					unsigned int groupEndOff = CharArrayToLong(&proj[groupOffset + 0]);
+
+					if (groupEndOff == 0xFFFFFFFF)
+						break;
+
+					unsigned short groupId = CharArrayToShort(&proj[groupOffset + 4]);
+					int type = CharArrayToShort(&proj[groupOffset + 6]);
+					unsigned int soundMacroIdsOff = CharArrayToLong(&proj[groupOffset + 8]);
+					unsigned int samplIdsOff = CharArrayToLong(&proj[groupOffset + 0xC]);
+					unsigned int tableIdsOff = CharArrayToLong(&proj[groupOffset + 0x10]);
+					unsigned int keymapIdsOff = CharArrayToLong(&proj[groupOffset + 0x14]);
+					unsigned int layerIdsOff = CharArrayToLong(&proj[groupOffset + 0x18]);
+					unsigned int pageTableOff = CharArrayToLong(&proj[groupOffset + 0x1C]);
+					unsigned int sfxTableOff = CharArrayToLong(&proj[groupOffset + 0x1C]);
+					unsigned int drumTableOff = CharArrayToLong(&proj[groupOffset + 0x20]);
+					unsigned int midiSetupsOff = CharArrayToLong(&proj[groupOffset + 0x24]);
+
+					bool absOffs = false;
+					unsigned long subDataOff = absOffs ? groupOffset : groupOffset + 8;
+
+					CString typeStr;
+					if (type == 0)
+					{
+						typeStr = "SONG";
+						//fprintf(outProj, "#%02X %s Group Offset: %08X Group End Offset: %08X - Group Id %04X Type %04X Sound Macro Ids Offset %08X Samples Id Offset %08X Table Ids Offset %08X Key Map Offset %08X Layer Ids %08X Page Table %08X Drum Page Table %08X Midi Setups %08X\n", groupCounter, typeStr, subDataOff, subDataOff + groupEndOff, groupId, type, subDataOff + soundMacroIdsOff, subDataOff + samplIdsOff, subDataOff + tableIdsOff, subDataOff + keymapIdsOff, subDataOff + layerIdsOff, subDataOff + pageTableOff, subDataOff + drumTableOff, subDataOff + midiSetupsOff);
+					}
+					else
+					{
+						typeStr = "SFX ";
+						//fprintf(outProj, "#%02X %s Group Offset: %08X Group End Offset: %08X - Group Id %04X Type %04X Sound Macro Ids Offset %08X Samples Id Offset %08X Table Ids Offset %08X Key Map Offset %08X Layer Ids %08X SFX Table Offset %08X \n", groupCounter, typeStr, subDataOff, subDataOff + groupEndOff, groupId, type, subDataOff + soundMacroIdsOff, subDataOff + samplIdsOff, subDataOff + tableIdsOff, subDataOff + keymapIdsOff, subDataOff + layerIdsOff, subDataOff + pageTableOff);
+					}
+					
+					if (type == 0) // Song
+					{
+						unsigned int tempPageTableOff = subDataOff + pageTableOff;
+
+						unsigned long tempMidiSetupData = subDataOff + midiSetupsOff;
+
+						//fprintf(outProj, "\nSong Info\n");
+						while (CharArrayToLong(&proj[tempMidiSetupData]) != 0xFFFFFFFF)
+						{
+							int songId = CharArrayToShort(&proj[tempMidiSetupData]);
+							if (std::find(songIds.begin(), songIds.end(), songId) == songIds.end())
+								songIds.push_back(songId);
+
+							tempMidiSetupData += 8 * 16 + 4;
+						}
+					}
+
+					
+					groupOffset += groupEndOff;
+					groupCounter++;
+				}
+
+				for (int x = 0; x < songIds.size(); x++)
+				{
+					CString tempSongIdStr;
+					tempSongIdStr.Format("%02X", songIds[x]);
+					mComboSongId.AddString(tempSongIdStr);
+				}
+
+				delete [] pool;
+				delete [] proj;
+
+				mComboSongId.SetCurSel(0);
+				mComboSongId.ShowWindow(SW_SHOW);
+			}
+			else
+			{
+				mComboSongId.ShowWindow(SW_HIDE);
+			}
+
 			mSoundBankNumber.SetCurSel(0);
 		}
 		else
 		{
+			mComboSongId.ShowWindow(SW_HIDE);
 			MessageBox("Invalid sound bank # from ini for game or error loading");
 			delete [] buffer;
 			buffer = NULL;
@@ -3191,6 +3407,20 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 			MidwayLZ midwayLz;
 			projSize = midwayLz.dec(&buffer[projOffset], romSize - projOffset, proj);
 			poolSize = midwayLz.dec(&buffer[poolOffset], romSize - poolOffset, pool);
+			/*FILE* projDebugFile = fopen("C:\\temp\\proj.bin", "wb");
+			if (projDebugFile)
+			{
+				fwrite(proj, 1, projSize, projDebugFile);
+				fflush(projDebugFile);
+				fclose(projDebugFile);
+			}
+			FILE* poolDebugFile = fopen("C:\\temp\\pool.bin", "wb");
+			if (poolDebugFile)
+			{
+				fwrite(pool, 1, poolSize, poolDebugFile);
+				fflush(poolDebugFile);
+				fclose(poolDebugFile);
+			}*/
 		}
 		else
 		{
@@ -3421,6 +3651,17 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 		//fprintf(outPool, "\nLayers Offset\n");
 
 		unsigned long tempLayersOffset = layersOffset;
+		if (CharArrayToLong(&pool[tempLayersOffset]) == 0xFFFFFFFF)
+		{
+			int iResults = MessageBox("Warning no layer offset in pool file, cannot cross-reference instruments to samples", "Do you want to continue?", MB_YESNO);
+			if (iResults == IDNO)
+			{
+				delete [] pool;
+				delete [] proj;
+				return false;
+			}
+		}
+
 		while (CharArrayToLong(&pool[tempLayersOffset]) != 0xFFFFFFFF)
 		{
 			unsigned long size = CharArrayToLong(&pool[tempLayersOffset]);
@@ -3638,7 +3879,7 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 				for (int channel = 0; channel < 0x10; channel++)
 				{
 					int programNumber = songArray.songInfo[channel].programNo;
-
+					fprintfIfDebug(outFileDebug, "\nChannel %02X\n", channel);
 					int bankNumber = 0;
 					Factor5Page* page;
 					if (channel == 9)
@@ -3664,6 +3905,7 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 							continue;
 						}
 					}
+					fprintfIfDebug(outFileDebug, "Page %02X - Object Id %08X\n", programNumber, page->objId);
 					
 					int objectId = page->objId;
 
@@ -3718,10 +3960,20 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 
 								ParseSoundMacroList(soundMacros, poolTables, sampleId, attackTime, decayTime, sustainPercentage, releaseTime, macroPan);
 
-								if (sampleId > alBankCurrent->count)
+								int foundSampleId = -1;
+								for (int s = 0; s < alBankCurrent->count; s++)
 								{
-									sampleId = -1;
+									if ((alBankCurrent->inst[s] != NULL) && (alBankCurrent->inst[s]->sounds[0] != NULL))
+									{
+										// sfx id check
+										if (alBankCurrent->inst[s]->sounds[0]->wav.unknown1 == sampleId)
+										{
+											foundSampleId = s;
+										}
+									}
 								}
+
+								fprintfIfDebug(outFileDebug, "\nSample Id %04X Lookup Index %04X\n", sampleId, foundSampleId);
 
 								DLSRgn* region = instr->AddRgn();
 								DLSArt* art = region->AddArt();
@@ -3897,10 +4149,20 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 
 								ParseSoundMacroList(soundMacros, poolTables, sampleId, attackTime, decayTime, sustainPercentage, releaseTime, macroPan);
 
-								if (sampleId > alBankCurrent->count)
+								int foundSampleId = -1;
+								for (int s = 0; s < alBankCurrent->count; s++)
 								{
-									sampleId = -1;
+									if ((alBankCurrent->inst[s] != NULL) && (alBankCurrent->inst[s]->sounds[0] != NULL))
+									{
+										// sfx id check
+										if (alBankCurrent->inst[s]->sounds[0]->wav.unknown1 == sampleId)
+										{
+											foundSampleId = s;
+										}
+									}
 								}
+
+								fprintfIfDebug(outFileDebug, "\nSample Id %04X Lookup Index %04X\n", sampleId, foundSampleId);
 
 								DLSRgn* region = instr->AddRgn();
 								DLSArt* art = region->AddArt();
@@ -4061,12 +4323,22 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 
 						ParseSoundMacroList(soundMacroList->soundMacros, poolTables, sampleId, attackTime, decayTime, sustainPercentage, releaseTime, macroPan);
 
-						if (sampleId >= alBankCurrent->count)
+						int foundSampleId = -1;
+						for (int s = 0; s < alBankCurrent->count; s++)
 						{
-							sampleId = -1;
+							if ((alBankCurrent->inst[s] != NULL) && (alBankCurrent->inst[s]->sounds[0] != NULL))
+							{
+								// sfx id check
+								if (alBankCurrent->inst[s]->sounds[0]->wav.unknown1 == sampleId)
+								{
+									foundSampleId = s;
+								}
+							}
 						}
 
-						fprintfIfDebug(outFileDebug, "\nMacro %04X\n", sampleId);
+						fprintfIfDebug(outFileDebug, "\nSample Id %04X Lookup Index %04X\n", sampleId, foundSampleId);
+
+						sampleId = foundSampleId;
 
 						DLSRgn* region = instr->AddRgn();
 						DLSArt* art = region->AddArt();
@@ -4374,6 +4646,7 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 
 	delete [] proj;
 	delete [] pool;
+	return true;
 }
 
 float CN64SoundbankToolDlg::Round(float value)
@@ -5562,7 +5835,32 @@ void CN64SoundbankToolDlg::OnBnClickedButtonpreviewmidi()
 		alBanks.push_back(alBankCurrent);
 	}
 
-	if (mUseT1SamplingRate.GetCheck())
+	if (
+		(gameConfigMidi[gameNumber].gameType.CompareNoCase("Factor5Zlb") == 0)
+			|| (gameConfigMidi[gameNumber].gameType.CompareNoCase("Factor5ZlbGCStyle") == 0)
+			|| (gameConfigMidi[gameNumber].gameType.CompareNoCase("Factor5LZGCStyle") == 0)
+			|| (gameConfigMidi[gameNumber].gameType.CompareNoCase("Factor5ZlbNoHeaderGCStyle") == 0)
+			&& (mComboSongId.GetCurSel() != -1)
+			)
+	{
+		CString tempSongIdStr;
+		mComboSongId.GetWindowText(tempSongIdStr);
+
+		int songId = CSharedFunctions::StringToUnsignedChar(tempSongIdStr);
+
+		SoundGameConfig gameConfigSoundFound;
+		for (int y = 0; y < countGamesSound; y++)
+		{
+			if (FilterGameName(gameConfigSound[y].gameName) == FilterGameName(gameConfigBank.gameName))
+			{
+				gameConfigSoundFound = gameConfigSound[y];
+				break;
+			}
+		}
+
+		midiPlayer->SetupMidiSoundBankFactor5(songId, buffer, romSize, gameConfigBank.projOffset, gameConfigBank.poolOffset, gameConfigBank.projSize, gameConfigBank.poolSize, alBankCurrent, timeMultiplier, mHalfSamplingRate.GetCheck(), false, atoi(tempStr), gameConfigSoundFound.gameType);
+	}
+	else if (mUseT1SamplingRate.GetCheck())
 		midiPlayer->SetupMidiSoundBank(alBanks, timeMultiplier, mHalfSamplingRate.GetCheck(), false, atoi(tempStr), gameConfigBank.skipInstruments, combineBanks, gameConfigMidi[gameNumber].gameType, mUseT1SamplingRate.GetCheck(), soundBankSelected, t1BankList);
 	else
 		midiPlayer->SetupMidiSoundBank(alBanks, timeMultiplier, mHalfSamplingRate.GetCheck(), true, atoi(tempStr), gameConfigBank.skipInstruments, combineBanks, gameConfigMidi[gameNumber].gameType, mUseT1SamplingRate.GetCheck(), soundBankSelected, t1BankList);
@@ -5803,6 +6101,7 @@ void CN64SoundbankToolDlg::OnCbnSelchangeCombosound()
 			|| (gameConfigMidi[x].gameType.CompareNoCase("MarioTennisSng") == 0)
 			|| (gameConfigMidi[x].gameType.CompareNoCase("Yay0Sng") == 0)
 			|| (gameConfigMidi[x].gameType.CompareNoCase("ZipSng") == 0)
+			|| (gameConfigMidi[x].gameType.CompareNoCase("ZTRK") == 0)
 			)
 			{
 				mSeparateByInstrument.ShowWindow(SW_SHOW);
@@ -5879,6 +6178,7 @@ void CN64SoundbankToolDlg::OnCbnSelchangeCombosound()
 			|| (gameConfigMidi[x].gameType.CompareNoCase("MarioTennisSng") == 0)
 			|| (gameConfigMidi[x].gameType.CompareNoCase("Yay0Sng") == 0)
 			|| (gameConfigMidi[x].gameType.CompareNoCase("ZipSng") == 0)
+			|| (gameConfigMidi[x].gameType.CompareNoCase("ZTRK") == 0)
 				)
 			{
 				mOutputLoop.ShowWindow(SW_HIDE);

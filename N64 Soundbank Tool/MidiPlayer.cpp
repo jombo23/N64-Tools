@@ -6,6 +6,8 @@
 #include <math.h>
 #include <algorithm>
 
+using namespace std;
+
 float Log(float base, float value)
 {
 	return log(value) / log(base);
@@ -688,6 +690,1681 @@ PCENT CMidiPlayer::PitchHzToCents(double frequencyHz)
 PCENT CMidiPlayer::PercentToUnits(double percent)
 {
 	return (PCENT)(percent * 10.0 * 65536.0);
+}
+
+unsigned short CMidiPlayer::Flip16Bit(unsigned short ShortValue)
+{
+	return ((ShortValue >> 8) | ((ShortValue << 8)));
+}
+
+unsigned short CMidiPlayer::CharArrayToShort(unsigned char* currentSpot)
+{
+	return Flip16Bit(*reinterpret_cast<unsigned short*> (currentSpot));
+}
+
+unsigned long CMidiPlayer::Flip32Bit(unsigned long inLong)
+{
+	return (((inLong & 0xFF000000) >> 24) | ((inLong & 0x00FF0000) >> 8) | ((inLong & 0x0000FF00) << 8) | ((inLong & 0x000000FF) << 24));
+}
+
+unsigned long CMidiPlayer::CharArrayToLong(unsigned char* currentSpot)
+{
+	return Flip32Bit(*reinterpret_cast<unsigned long*> (currentSpot));
+}
+
+void CMidiPlayer::ParseSoundMacroList(std::vector<Factor5SoundMacro> soundMacroList, std::map<int, Factor5ADSR> poolTables, int& sampleId, unsigned long& attackTime, unsigned long& decayTime, float& sustainPercentage, unsigned long& releaseTime, unsigned char& macroPan)
+{
+	for (int macroNumber = 0; macroNumber < soundMacroList.size(); macroNumber++)
+	{
+		if (soundMacroList[macroNumber].commandData[0] == 0xC) // SETADSR
+		{
+			unsigned short tableLookupId = (soundMacroList[macroNumber].commandData[2] << 8) | soundMacroList[macroNumber].commandData[1];
+			Factor5ADSR adsrLookedUp = poolTables[tableLookupId];
+			unsigned char dlsMode = soundMacroList[macroNumber].commandData[3];
+
+			attackTime = adsrLookedUp.attackTime;
+			decayTime = adsrLookedUp.decayTime;
+			sustainPercentage = adsrLookedUp.sustainPercentage;
+			releaseTime = adsrLookedUp.releaseTime;
+		}
+		else if (soundMacroList[macroNumber].commandData[0] == 0xE) // Pan
+		{
+			macroPan = soundMacroList[macroNumber].commandData[1];
+		}
+		else if (soundMacroList[macroNumber].commandData[0] == 0x10) // Start Sound
+		{
+			sampleId = (soundMacroList[macroNumber].commandData[2] << 8) | soundMacroList[macroNumber].commandData[1];
+		}
+		else if (soundMacroList[macroNumber].commandData[0] == 0x16) // SETADSRCTRL
+		{
+			attackTime = soundMacroList[macroNumber].commandData[1];
+			decayTime = soundMacroList[macroNumber].commandData[2];
+			sustainPercentage = (float)soundMacroList[macroNumber].commandData[3] / 256.0f;
+			releaseTime = soundMacroList[macroNumber].commandData[4];
+		}
+	}
+}
+
+HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* buffer, int romSize, unsigned long projOffset, unsigned long poolOffset, int projSize, int poolSize, ALBank* alBankInstr, float timeMultiplier, bool halfSamplingRate, bool overrideSamplingRate, int samplingRate, CString gameSoundType)
+{ 
+	// THIS DOESN'T YET WORK, plus has lookup...
+	HRESULT hr = S_OK;
+
+	UnloadAllLoadedInstruments();
+
+	CN64AIFCAudio n64Audio;
+
+	unsigned char* proj = NULL;
+	unsigned char* pool = NULL;
+
+	bool isCompressed = false;
+	int zlibGame = 0;
+	if (buffer[poolOffset] == 0x78)
+	{
+		isCompressed = true;
+		zlibGame = STUNTRACER64;
+	}
+	else if (gameSoundType == "Musyx")
+	{
+		isCompressed = false;
+	}
+	else if (gameSoundType == "ZLibMusyx")
+	{
+		isCompressed = true;
+		zlibGame = GAUNTLETLEGENDS;
+	}
+	else if (gameSoundType == "ZLib78DAMusyx")
+	{
+		isCompressed = true;
+		zlibGame = STUNTRACER64;
+	}
+	else if (gameSoundType == "MusyxREZLib")
+	{
+		isCompressed = true;
+		zlibGame = STUNTRACER64;
+	}
+	else if (gameSoundType == "MusyxSmallZlib")
+	{
+		isCompressed = true;
+		zlibGame = STUNTRACER64;
+	}
+	else if (gameSoundType == "LzMusyx")
+	{
+		isCompressed = true;
+	}
+	if (!isCompressed)
+	{
+		proj = new unsigned char[projSize];
+		memcpy(proj, &buffer[projOffset], projSize);
+		pool = new unsigned char[poolSize];
+		memcpy(pool, &buffer[poolOffset], poolSize);
+	}
+	else
+	{
+		projSize = 0;
+		poolSize = 0;
+
+		if (gameSoundType == "LzMusyx")
+		{
+			proj = new unsigned char[0x100000];
+			pool = new unsigned char[0x100000];
+			MidwayLZ midwayLz;
+			projSize = midwayLz.dec(&buffer[projOffset], romSize - projOffset, proj);
+			poolSize = midwayLz.dec(&buffer[poolOffset], romSize - poolOffset, pool);
+			/*FILE* projDebugFile = fopen("C:\\temp\\proj.bin", "wb");
+			if (projDebugFile)
+			{
+				fwrite(proj, 1, projSize, projDebugFile);
+				fflush(projDebugFile);
+				fclose(projDebugFile);
+			}
+			FILE* poolDebugFile = fopen("C:\\temp\\pool.bin", "wb");
+			if (poolDebugFile)
+			{
+				fwrite(pool, 1, poolSize, poolDebugFile);
+				fflush(poolDebugFile);
+				fclose(poolDebugFile);
+			}*/
+		}
+		else
+		{
+			GECompression compression;
+			compression.SetPath(mainFolder);
+			if ((buffer[poolOffset] == 0x78) && (buffer[poolOffset+1] == 0xDA))
+			{
+				compression.SetGame(STUNTRACER64);
+			}
+			else
+			{
+				compression.SetGame(zlibGame);
+			}
+
+			compression.SetCompressedBuffer(&buffer[projOffset], romSize - projOffset);
+			projSize = 0;
+			int projCompressedSize = 0;
+			proj = compression.OutputDecompressedBuffer(projSize, projCompressedSize);
+
+			compression.SetCompressedBuffer(&buffer[poolOffset], romSize - poolOffset);
+			poolSize = 0;
+			int poolCompressedSize = 0;
+			pool = compression.OutputDecompressedBuffer(poolSize, poolCompressedSize);
+		}
+	}
+	
+
+	unsigned int soundMacrosOffset = CharArrayToLong(&pool[0]);
+    unsigned int tablesOffset = CharArrayToLong(&pool[4]);
+    unsigned int keymapsOffset = CharArrayToLong(&pool[8]);
+    unsigned int layersOffset = CharArrayToLong(&pool[0xC]);
+
+	std::map<int, Factor5SoundMacroList> poolMacroList; // By ObjectId
+	std::map<int, Factor5ADSR> poolTables; // By ObjectId
+	std::map<int, Factor5KeymapGroup> poolKeyGroups; // By ObjectId
+	std::map<int, Factor5LayerGroup> poolLayers; // By ObjectId
+
+	CString commandType[0xFF];
+	commandType[0x1] = "STOP";
+	commandType[0x2] = "SPLITKEY";
+	commandType[0x3] = "SPLITVEL";
+	commandType[0x4] = "WAIT_TICKS";
+	commandType[0x5] = "LOOP";
+	commandType[0x6] = "GOTO";
+	commandType[0x7] = "WAIT_MS";
+	commandType[0x8] = "PLAYMACRO";
+	commandType[0x9] = "SENDKEYOFF";
+	commandType[0xA] = "SPLITMOD";
+	commandType[0xB] = "PIANOPAN";
+	commandType[0xC] = "SETADSR";
+	commandType[0xD] = "SCALEVOLUME";
+	commandType[0xE] = "PANNING";
+	commandType[0xF] = "ENVELOPE";
+	commandType[0x10] = "STARTSAMPLE";
+	commandType[0x11] = "STOPSAMPLE";
+	commandType[0x12] = "KEYOFF";
+	commandType[0x13] = "SPLITRND";
+	commandType[0x14] = "FADE-IN";
+	commandType[0x15] = "SPANNING";
+	commandType[0x16] = "SETADSRCTRL";
+	commandType[0x17] = "RNDNOTE";
+	commandType[0x18] = "ADDNOTE";
+	commandType[0x19] = "SETNOTE";
+	commandType[0x1A] = "LASTNOTE";
+	commandType[0x1B] = "PORTAMENTO";
+	commandType[0x1C] = "VIBRATO";
+	commandType[0x1D] = "PITCHSWEEP1";
+	commandType[0x1E] = "PITCHSWEEP2";
+	commandType[0x1F] = "SETPITCH";
+	commandType[0x20] = "SETPITCHADSR";
+	commandType[0x21] = "SCALEVOLUME DLS";
+	commandType[0x22] = "MOD2VIBRANGE";
+	commandType[0x23] = "SETUP TREMOLO";
+	commandType[0x24] = "RETURN";
+	commandType[0x25] = "GOSUB";
+	commandType[0x28] = "TRAP_EVENT";
+	commandType[0x29] = "UNTRAP_EVENT";
+	commandType[0x2A] = "SEND_MESSAGE";
+	commandType[0x2B] = "GET_MESSAGE";
+	commandType[0x2C] = "GET_VID";
+	commandType[0x30] = "ADDAGECOUNT";
+	commandType[0x31] = "SETAGECOUNT";
+	commandType[0x32] = "SENDFLAG";
+	commandType[0x33] = "PITCHWHEELR";
+	commandType[0x34] = "SETPRIORITY";
+	commandType[0x35] = "ADDPRIORITY";
+	commandType[0x36] = "AGECNTSPEED";
+	commandType[0x37] = "AGECNTVEL";
+	commandType[0x40] = "VOL_SELECT";
+	commandType[0x41] = "PAN_SELECT";
+	commandType[0x42] = "PitchW_SELECT";
+	commandType[0x43] = "ModW_SELECT";
+	commandType[0x44] = "PEDAL_SELECT";
+	commandType[0x45] = "PORTA_SELECT";
+	commandType[0x46] = "REVERB_SELECT";
+	commandType[0x47] = "SPAN_SELECT";
+	commandType[0x48] = "DOPPLER_SELECT";
+	commandType[0x49] = "TREMOLO_SELECT";
+	commandType[0x4A] = "PREA_SELECT";
+	commandType[0x4B] = "PREB_SELECT";
+	commandType[0x4C] = "POSTB_SELECT";
+	commandType[0x4D] = "AUXAFX_SELECT";
+	commandType[0x4E] = "AUXBFX_SELECT";
+	commandType[0x50] = "SETUP_LFO";
+	commandType[0x58] = "MODE_SELECT";
+	commandType[0x59] = "SET_KEYGROUP";
+	commandType[0x5A] = "SRCMODE_SELECT";
+	commandType[0x60] = "ADD_VARS";
+	commandType[0x61] = "SUB_VARS";
+	commandType[0x62] = "MUL_VARS";
+	commandType[0x63] = "DIV_VARS";
+	commandType[0x64] = "ADDI_VARS";
+	commandType[0x70] = "IF_EQUAL";
+	commandType[0x71] = "IF_LESS";
+	commandType[0x0] = "END";
+
+
+	if (soundMacrosOffset != NULL)
+	{
+		//fprintf(outPool, "Sound Macros Offset\n");
+
+		unsigned long tempSoundMacrosOffset = soundMacrosOffset;
+		while (CharArrayToLong(&pool[tempSoundMacrosOffset]) != 0xFFFFFFFF)
+		{
+			unsigned long size = CharArrayToLong(&pool[tempSoundMacrosOffset]);
+            int id = CharArrayToShort(&pool[tempSoundMacrosOffset + 4]);
+
+			//fprintf(outPool, "%08X: Id %04X Size %08X\n", tempSoundMacrosOffset, id, size);
+
+			Factor5SoundMacroList soundMacroList;
+
+			unsigned long tempCommandOffset = tempSoundMacrosOffset + 8;
+			while (pool[tempCommandOffset + 3] != 0x00)
+			{
+				Factor5SoundMacro soundMacro;
+
+				soundMacro.commandData[0] = pool[tempCommandOffset + 3];
+				soundMacro.commandData[1] = pool[tempCommandOffset + 2];
+				soundMacro.commandData[2] = pool[tempCommandOffset + 1];
+				soundMacro.commandData[3] = pool[tempCommandOffset + 0];
+
+				soundMacro.commandData[4] = pool[tempCommandOffset + 7];
+				soundMacro.commandData[5] = pool[tempCommandOffset + 6];
+				soundMacro.commandData[6] = pool[tempCommandOffset + 5];
+				soundMacro.commandData[7] = pool[tempCommandOffset + 4];
+
+				soundMacroList.soundMacros.push_back(soundMacro);
+
+				//fprintf(outPool, "	%08X: Command %02X %s - %02X %02X %02X %02X %02X %02X %02X\n", tempCommandOffset, commandData[0], commandType[commandData[0]], commandData[1], commandData[2], commandData[3], commandData[4], commandData[5], commandData[6], commandData[7]);
+				
+
+				tempCommandOffset += 8;
+			}
+
+			poolMacroList[id] = soundMacroList;
+
+			tempSoundMacrosOffset += size;
+
+		}
+	}
+
+	if (tablesOffset != NULL)
+	{
+		//fprintf(outPool, "\nTables Offset\n");
+
+		unsigned long tempTablesOffset = tablesOffset;
+		while (CharArrayToLong(&pool[tempTablesOffset]) != 0xFFFFFFFF)
+		{
+			unsigned long size = CharArrayToLong(&pool[tempTablesOffset]);
+            int id = CharArrayToShort(&pool[tempTablesOffset + 4]);
+
+			//fprintf(outPool, "%08X: Id %04X Size %08X", tempTablesOffset, id, size);
+
+			/*0x0	1	Attack time (0-255 milliseconds); no multiplication is done to the value
+			0x1	1	Attack time (0-65280 milliseconds); multiply value by 256
+			0x2	1	Decay time (0-255 milliseconds); no multiplication is done to the value
+			0x3	1	Decay time (0-65280 milliseconds); multiply value by 256
+			0x4	1	Sustain (percentage); multiply value by 0.0244
+			0x5	1	Sustain (percentage); multiply value by 6.25
+			0x6	1	Release time (0-255 milliseconds); no multiplication is done to the value
+			0x7	1	Release time (0-65280 milliseconds); multiply value by 256*/
+
+			Factor5ADSR adsr;
+			adsr.objectId = id;
+			adsr.attackTime = (pool[tempTablesOffset + 8] + (pool[tempTablesOffset + 9] << 8));
+			adsr.decayTime = (pool[tempTablesOffset + 0xA] + (pool[tempTablesOffset + 0xB] << 8));
+			adsr.sustainPercentage = (((float)pool[tempTablesOffset + 0xC] * 0.0244) + ((float)pool[tempTablesOffset + 0xD] * 6.25));
+			adsr.releaseTime = (pool[tempTablesOffset + 0xE] + (pool[tempTablesOffset + 0xF] << 8));
+
+			//fprintf(outPool, " Attack Time %04X Decay Time %04X Sustain %f Release Time %04X\n", attackTime, decayTime, sustainPercentage, releaseTime);
+
+			poolTables[id] = adsr;
+
+			tempTablesOffset += size;
+		}
+	}
+	
+	if (keymapsOffset != NULL)
+	{
+		//fprintf(outPool, "\nKeymaps Offset\n");
+
+		unsigned long tempKeymapsOffset = keymapsOffset;
+		while (CharArrayToLong(&pool[tempKeymapsOffset]) != 0xFFFFFFFF)
+		{
+			unsigned long size = CharArrayToLong(&pool[tempKeymapsOffset]);
+            int id = CharArrayToShort(&pool[tempKeymapsOffset + 4]);
+
+			//fprintf(outPool, "%08X: Id %04X Size %08X\n", tempKeymapsOffset, id, size);
+
+			Factor5KeymapGroup keymapGroup;
+			keymapGroup.objectId = id;
+			for (int y = 0; y < 128; y++)
+			{
+				keymapGroup.keys[y].objectId = CharArrayToShort(&pool[tempKeymapsOffset + 8 + (y * 8)]);
+				keymapGroup.keys[y].transpose = pool[tempKeymapsOffset + 8 + (y * 8) + 1];
+				keymapGroup.keys[y].pan = pool[tempKeymapsOffset + 8 + (y * 8) + 2];
+				keymapGroup.keys[y].priorityOffset = pool[tempKeymapsOffset + 8 + (y * 8) + 3];
+				//fprintf(outPool, "	%08X: Key #%02X ObjectId %04X Transpose %02X Pan %02X Priority Offset %02X\n", tempKeymapsOffset + 8 + (y * 8), y, objectId, transpose, pan, priorityOffset);
+			}
+
+			poolKeyGroups[id] = keymapGroup;
+			tempKeymapsOffset += size;
+		}
+	}
+
+	if (layersOffset != NULL)
+	{
+		//fprintf(outPool, "\nLayers Offset\n");
+
+		unsigned long tempLayersOffset = layersOffset;
+		/*if (CharArrayToLong(&pool[tempLayersOffset]) == 0xFFFFFFFF)
+		{
+			delete [] pool;
+			delete [] proj;
+			return S_FALSE;
+		}*/
+
+		while (CharArrayToLong(&pool[tempLayersOffset]) != 0xFFFFFFFF)
+		{
+			unsigned long size = CharArrayToLong(&pool[tempLayersOffset]);
+            int id = CharArrayToShort(&pool[tempLayersOffset + 4]);
+
+			unsigned long count = CharArrayToLong(&pool[tempLayersOffset + 8]);
+			//fprintf(outPool, "%08X: Id %04X Size %08X Count %08X\n", tempLayersOffset, id, size, count);
+
+			Factor5LayerGroup layerGroup;
+			layerGroup.objectId = id;
+
+			unsigned long subTempLayersOffset = tempLayersOffset + 12;
+			for (int y = 0; y < count ; y++)
+			{
+				Factor5Layer layer;
+
+				layer.objectId = CharArrayToShort(&pool[subTempLayersOffset]);
+				layer.keyLo = pool[subTempLayersOffset + 2];
+				layer.keyHi = pool[subTempLayersOffset + 3];
+				layer.transpose = pool[subTempLayersOffset + 4];
+				layer.volume = pool[subTempLayersOffset + 5];
+				layer.priorityOffset = pool[subTempLayersOffset + 6];
+				layer.span = pool[subTempLayersOffset + 7];
+				layer.pan = pool[subTempLayersOffset + 8];
+
+				layerGroup.factor5Layers.push_back(layer);
+
+				//fprintf(outPool, "%08X: #%02X Object Id %04X Key Low %02X Key Hi %02X Transpose %02X Volume %02X Priority Offset %02X Span %02X Pan %02X\n", subTempLayersOffset, y, objectId, keyLo, keyHi, transpose, volume, priorityOffset, span, pan);
+				subTempLayersOffset += 12;
+			}
+
+			poolLayers[id] = layerGroup;
+			//fprintf(outPool, "\n");
+
+			tempLayersOffset += size;
+		}
+	}
+
+
+	int groupOffset = 0;
+	int groupCounter = 0;
+
+	while (groupOffset < projSize)
+	{
+		unsigned int groupEndOff = CharArrayToLong(&proj[groupOffset + 0]);
+
+		if (groupEndOff == 0xFFFFFFFF)
+			break;
+
+		unsigned short groupId = CharArrayToShort(&proj[groupOffset + 4]);
+		int type = CharArrayToShort(&proj[groupOffset + 6]);
+		unsigned int soundMacroIdsOff = CharArrayToLong(&proj[groupOffset + 8]);
+		unsigned int samplIdsOff = CharArrayToLong(&proj[groupOffset + 0xC]);
+		unsigned int tableIdsOff = CharArrayToLong(&proj[groupOffset + 0x10]);
+		unsigned int keymapIdsOff = CharArrayToLong(&proj[groupOffset + 0x14]);
+		unsigned int layerIdsOff = CharArrayToLong(&proj[groupOffset + 0x18]);
+		unsigned int pageTableOff = CharArrayToLong(&proj[groupOffset + 0x1C]);
+		unsigned int sfxTableOff = CharArrayToLong(&proj[groupOffset + 0x1C]);
+		unsigned int drumTableOff = CharArrayToLong(&proj[groupOffset + 0x20]);
+		unsigned int midiSetupsOff = CharArrayToLong(&proj[groupOffset + 0x24]);
+
+		bool absOffs = false;
+		unsigned long subDataOff = absOffs ? groupOffset : groupOffset + 8;
+
+		CString typeStr;
+		if (type == 0)
+		{
+			typeStr = "SONG";
+			//fprintf(outProj, "#%02X %s Group Offset: %08X Group End Offset: %08X - Group Id %04X Type %04X Sound Macro Ids Offset %08X Samples Id Offset %08X Table Ids Offset %08X Key Map Offset %08X Layer Ids %08X Page Table %08X Drum Page Table %08X Midi Setups %08X\n", groupCounter, typeStr, subDataOff, subDataOff + groupEndOff, groupId, type, subDataOff + soundMacroIdsOff, subDataOff + samplIdsOff, subDataOff + tableIdsOff, subDataOff + keymapIdsOff, subDataOff + layerIdsOff, subDataOff + pageTableOff, subDataOff + drumTableOff, subDataOff + midiSetupsOff);
+		}
+		else
+		{
+			typeStr = "SFX ";
+			//fprintf(outProj, "#%02X %s Group Offset: %08X Group End Offset: %08X - Group Id %04X Type %04X Sound Macro Ids Offset %08X Samples Id Offset %08X Table Ids Offset %08X Key Map Offset %08X Layer Ids %08X SFX Table Offset %08X \n", groupCounter, typeStr, subDataOff, subDataOff + groupEndOff, groupId, type, subDataOff + soundMacroIdsOff, subDataOff + samplIdsOff, subDataOff + tableIdsOff, subDataOff + keymapIdsOff, subDataOff + layerIdsOff, subDataOff + pageTableOff);
+		}
+		
+		if (type == 0) // Song
+        {
+			std::map<int, Factor5Page> instrumentPages; // by program number
+			std::map<int, Factor5Page> drumPages; // by program number
+			std::map<int, Factor5SongArray> songInfo; // by Song id
+
+			unsigned int tempPageTableOff = subDataOff + pageTableOff;
+
+			//fprintf(outProj, "\nPage Info\n");
+
+			while (CharArrayToShort(&proj[tempPageTableOff]) != 0xFFFF)
+			{
+				Factor5Page page;
+				page.objId = CharArrayToShort(&proj[tempPageTableOff]);
+				page.priority = proj[tempPageTableOff + 2];
+				page.maxVoices = proj[tempPageTableOff + 3];
+				page.unk = proj[tempPageTableOff + 4];
+				page.programNo = proj[tempPageTableOff + 5];
+				page.pad = CharArrayToShort(&proj[tempPageTableOff + 6]);
+				instrumentPages[page.programNo] = page;
+
+				//fprintf(outProj, "%08X: Page: ObjId %04X Priority %02X Max Voices %02X Unknown %02X Program Number %02X\n", tempPageTableOff, objId, priority, maxVoices, unk, programNo);
+		
+				tempPageTableOff += 8;
+			}
+
+			tempPageTableOff = subDataOff + drumTableOff;
+
+			//fprintf(outProj, "\nDrum Page Info\n");
+
+			while (CharArrayToShort(&proj[tempPageTableOff]) != 0xFFFF)
+			{
+				Factor5Page page;
+				page.objId = CharArrayToShort(&proj[tempPageTableOff]);
+				page.priority = proj[tempPageTableOff + 2];
+				page.maxVoices = proj[tempPageTableOff + 3];
+				page.unk = proj[tempPageTableOff + 4];
+				page.programNo = proj[tempPageTableOff + 5];
+				page.pad = CharArrayToShort(&proj[tempPageTableOff + 6]);
+				drumPages[page.programNo] = page;
+
+				//fprintf(outProj, "%08X: Drum Page: ObjId %04X Priority %02X Max Voices %02X Unknown %02X Program Number %02X\n", tempPageTableOff, objId, priority, maxVoices, unk, programNo);
+
+				tempPageTableOff += 8;
+			}
+
+			unsigned long tempMidiSetupData = subDataOff + midiSetupsOff;
+
+			//fprintf(outProj, "\nSong Info\n");
+			while (CharArrayToLong(&proj[tempMidiSetupData]) != 0xFFFFFFFF)
+            {
+				Factor5SongArray songArray;
+
+				songArray.songId = CharArrayToShort(&proj[tempMidiSetupData]);
+
+				//fprintf(outProj, "%08X: Song Id %04X\n", tempMidiSetupData, songId);
+
+				for (int y = 0; y < 16; y++)
+				{
+					songArray.songInfo[y].programNo = proj[tempMidiSetupData + 4 + (y * 8)];
+					songArray.songInfo[y].volume = proj[tempMidiSetupData + 4 + (y * 8) + 1];
+					songArray.songInfo[y].panning = proj[tempMidiSetupData + 4 + (y * 8) + 2];
+					songArray.songInfo[y].reverb = proj[tempMidiSetupData + 4 + (y * 8) + 3];
+					songArray.songInfo[y].chorus = proj[tempMidiSetupData + 4 + (y * 8) + 4];
+					// pad 3
+
+					//fprintf(outProj, "#%02X Program Number %02X Volume %02X Panning %02X Reverb %02X Chorus %02X\n", y, programNo, volume, panning, reverb, chorus);
+				}
+
+
+				songInfo[songArray.songId] = songArray;
+
+                tempMidiSetupData += 8 * 16 + 4;
+            }
+
+			for (map<int, Factor5SongArray>::iterator iter = songInfo.begin(); iter != songInfo.end(); iter++)
+			{
+				int songId = iter->first;
+				if (songId == matchSongId)
+				{
+					if (alBankInstr == NULL)
+						return E_POINTER;
+
+					CWaveFile waveFile;
+
+					int writeBank = 0;
+					Factor5SongArray songArray = iter->second;
+
+					CString tempStr;
+
+					for (int channel = 0; channel < 0x10; channel++)
+					{
+						int programNumber = songArray.songInfo[channel].programNo;
+
+						//int bankNumber = 0;
+						Factor5Page* page;
+						if (channel == 9)
+						{
+							if (drumPages.find(programNumber) != drumPages.end())
+							{
+								//bankNumber = F_INSTRUMENT_DRUMS;
+								page = &drumPages[programNumber];
+							}
+							else
+							{
+								continue;
+							}
+						}
+						else
+						{
+							if (instrumentPages.find(programNumber) != instrumentPages.end())
+							{
+								page = &instrumentPages[programNumber];
+							}
+							else
+							{
+								continue;
+							}
+						}
+						
+						int objectId = page->objId;
+
+						Factor5ADSR* adsr = NULL;
+						Factor5KeymapGroup* keymapGroup = NULL;
+						Factor5LayerGroup* layerGroup = NULL;
+						Factor5SoundMacroList* soundMacroList = NULL;
+
+						if (poolTables.find(objectId) != poolTables.end())
+						{
+							adsr = &poolTables[objectId];
+						}
+
+						if (poolKeyGroups.find(objectId) != poolKeyGroups.end())
+						{
+							keymapGroup = &poolKeyGroups[objectId];
+						}
+
+						if (poolLayers.find(objectId) != poolLayers.end())
+						{
+							layerGroup = &poolLayers[objectId];
+						}
+
+						if (poolMacroList.find(objectId) != poolMacroList.end())
+						{
+							soundMacroList = &poolMacroList[objectId];
+						}
+
+						int trueSoundCount = 0;
+						if (layerGroup != NULL)
+						{
+							for (int layer = (layerGroup->factor5Layers.size() - 1); layer >= 0; layer--)
+							{
+								if (layerGroup->factor5Layers[layer].objectId != 0xFFFF)
+								{
+									Factor5Layer layerData = layerGroup->factor5Layers[layer];
+									
+									std::vector<Factor5SoundMacro> soundMacros = poolMacroList[layerData.objectId].soundMacros;
+
+									int sampleId = -1;
+									unsigned long attackTime = 0;
+									unsigned long decayTime = 0;
+									float sustainPercentage = 0.0;
+									unsigned long releaseTime = 0;
+									unsigned char macroPan = 0x40;
+
+									ParseSoundMacroList(soundMacros, poolTables, sampleId, attackTime, decayTime, sustainPercentage, releaseTime, macroPan);
+
+									int foundSampleId = -1;
+									for (int s = 0; s < alBankInstr->count; s++)
+									{
+										if ((alBankInstr->inst[s] != NULL) && (alBankInstr->inst[s]->sounds[0] != NULL))
+										{
+											// sfx id check
+											if (alBankInstr->inst[s]->sounds[0]->wav.unknown1 == sampleId)
+											{
+												foundSampleId = s;
+											}
+										}
+									}
+
+									if (foundSampleId == -1)
+									{
+									}
+									else
+									{
+										trueSoundCount++;
+									}
+								}
+							}
+						}
+						else if (keymapGroup != NULL)
+						{
+							for (int keyNumber = 0; keyNumber < 128; keyNumber++)
+							{
+								if (keymapGroup->keys[keyNumber].objectId != 0xFFFF)
+								{
+									Factor5Keymap keyMap = keymapGroup->keys[keyNumber];
+									
+									std::vector<Factor5SoundMacro> soundMacros = poolMacroList[keyMap.objectId].soundMacros;
+
+									int sampleId = -1;
+									unsigned long attackTime = 0;
+									unsigned long decayTime = 0;
+									float sustainPercentage = 0.0;
+									unsigned long releaseTime = 0;
+									unsigned char macroPan = 0x40;
+
+									ParseSoundMacroList(soundMacros, poolTables, sampleId, attackTime, decayTime, sustainPercentage, releaseTime, macroPan);
+
+									int foundSampleId = -1;
+									for (int s = 0; s < alBankInstr->count; s++)
+									{
+										if ((alBankInstr->inst[s] != NULL) && (alBankInstr->inst[s]->sounds[0] != NULL))
+										{
+											// sfx id check
+											if (alBankInstr->inst[s]->sounds[0]->wav.unknown1 == sampleId)
+											{
+												foundSampleId = s;
+											}
+										}
+									}
+
+									if (foundSampleId == -1)
+									{
+									}
+									else
+									{
+										trueSoundCount++;
+									}
+								}
+							}
+						}
+						else if (soundMacroList != NULL)
+						{
+							int sampleId = -1;
+							unsigned long attackTime = 0;
+							unsigned long decayTime = 0;
+							float sustainPercentage = 0.0;
+							unsigned long releaseTime = 0;
+							unsigned char macroPan = 0x40;
+
+							ParseSoundMacroList(soundMacroList->soundMacros, poolTables, sampleId, attackTime, decayTime, sustainPercentage, releaseTime, macroPan);
+
+							int foundSampleId = -1;
+							for (int s = 0; s < alBankInstr->count; s++)
+							{
+								if ((alBankInstr->inst[s] != NULL) && (alBankInstr->inst[s]->sounds[0] != NULL))
+								{
+									// sfx id check
+									if (alBankInstr->inst[s]->sounds[0]->wav.unknown1 == sampleId)
+									{
+										foundSampleId = s;
+									}
+								}
+							}
+
+							if (foundSampleId == -1)
+							{
+							}
+							else
+							{
+								trueSoundCount++;
+							}
+						}
+
+						if (trueSoundCount == 0)
+							continue;
+
+						int bankNumber = floor((float)channel / (float)0x80);
+						unsigned long patchNumber = channel % 0x80;
+
+						unsigned long dlIdInstrument = 0;
+						if (FAILED(hr = mPortDownload->GetDLId(&dlIdInstrument, 1)))
+						{
+							return hr;
+						}
+
+						void *dataInstrument = NULL;
+						unsigned long sizeDataInstrument = 0;
+
+						unsigned long sizeofInstrument = sizeof(DMUS_DOWNLOADINFO) + (sizeof(unsigned long) * (1 + trueSoundCount * 3)) + sizeof(DMUS_INSTRUMENT) + ((sizeof(DMUS_REGION) + sizeof(DMUS_ARTICULATION) + sizeof(DMUS_ARTICPARAMS)) * trueSoundCount);
+
+						IDirectMusicDownload8* instrumentMusicDownload = NULL;
+						if (FAILED(hr = mPortDownload->AllocateBuffer(sizeofInstrument,
+							&instrumentMusicDownload)))
+						{
+							return hr;
+						}
+
+						if (FAILED(hr = instrumentMusicDownload->GetBuffer(&dataInstrument, &sizeDataInstrument)))
+						{
+							if (instrumentMusicDownload != NULL)
+								instrumentMusicDownload->Release();
+							return hr;
+						}
+
+						unsigned char* dataInstrumentByteBuffer = (unsigned char*)dataInstrument;
+						ZeroMemory(dataInstrumentByteBuffer, sizeofInstrument);
+
+						int currentDataInstBufferOffset = 0;
+
+						DMUS_DOWNLOADINFO* dlInfo = (DMUS_DOWNLOADINFO*)(&dataInstrumentByteBuffer[currentDataInstBufferOffset]);
+						dlInfo->dwDLType = DMUS_DOWNLOADINFO_INSTRUMENT;
+						dlInfo->cbSize = sizeofInstrument;
+						dlInfo->dwDLId = dlIdInstrument;
+
+						dlInfo->dwNumOffsetTableEntries = 1 + (trueSoundCount * 3);
+
+						currentDataInstBufferOffset += sizeof(DMUS_DOWNLOADINFO);
+
+
+						unsigned long* ulOffsetTable = (unsigned long*)(&(dataInstrumentByteBuffer[currentDataInstBufferOffset]));
+
+						currentDataInstBufferOffset += (sizeof(unsigned long) * (1 + (trueSoundCount * 3)));
+
+						ulOffsetTable[0] = currentDataInstBufferOffset;
+
+						DMUS_INSTRUMENT* instrument = (DMUS_INSTRUMENT*)(&dataInstrumentByteBuffer[currentDataInstBufferOffset]);
+
+						currentDataInstBufferOffset += sizeof(DMUS_INSTRUMENT);
+
+						instrument->ulPatch = ((bankNumber << 8) | patchNumber);
+						instrument->ulFirstRegionIdx = 1;
+						instrument->ulGlobalArtIdx = 0; // No global
+
+						int trueSound = 0;
+
+						if (layerGroup != NULL)
+						{
+							for (int layer = (layerGroup->factor5Layers.size() - 1); layer >= 0; layer--)
+							{
+								if (layerGroup->factor5Layers[layer].objectId != 0xFFFF)
+								{
+									Factor5Layer layerData = layerGroup->factor5Layers[layer];
+									
+									std::vector<Factor5SoundMacro> soundMacros = poolMacroList[layerData.objectId].soundMacros;
+
+									int sampleId = -1;
+									unsigned long attackTime = 0;
+									unsigned long decayTime = 0;
+									float sustainPercentage = 0.0;
+									unsigned long releaseTime = 0;
+									unsigned char macroPan = 0x40;
+
+									ParseSoundMacroList(soundMacros, poolTables, sampleId, attackTime, decayTime, sustainPercentage, releaseTime, macroPan);
+
+									int foundSampleId = -1;
+									for (int s = 0; s < alBankInstr->count; s++)
+									{
+										if ((alBankInstr->inst[s] != NULL) && (alBankInstr->inst[s]->sounds[0] != NULL))
+										{
+											// sfx id check
+											if (alBankInstr->inst[s]->sounds[0]->wav.unknown1 == sampleId)
+											{
+												foundSampleId = s;
+											}
+										}
+									}
+
+									if (foundSampleId == -1)
+									{
+										continue;
+									}
+									else
+									{
+										sampleId = foundSampleId;
+									}
+
+									CString wavPath;
+									wavPath.Format("%sSnd%02X_%04X_%04X.wav", mainFolder, writeBank, channel, trueSound);
+
+									float sampleRate = (float)alBankInstr->samplerate;
+
+									sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
+
+									if (overrideSamplingRate)
+										sampleRate = samplingRate;
+
+									if (halfSamplingRate)
+										sampleRate /= 2.0;
+									bool extractResult = n64Audio.ExtractRawSound(mainFolder, alBankInstr, sampleId, 0, wavPath, sampleRate, PRIMARY, false);
+
+									CStringW wavPathW(wavPath);
+									LPWSTR wavPathStr = wavPathW.GetBuffer(0);
+
+									WAVEFORMATEX waveFormatEx;
+
+									if (FAILED(hr = waveFile.Open(wavPathStr, &waveFormatEx, WAVEFILE_READ)))
+									{
+										continue;
+									}
+
+									wavPathW.ReleaseBuffer();
+
+									unsigned long append = 0;
+									if (FAILED(hr = mPortDownload->GetAppend(&append)))
+									{
+										instrumentMusicDownload->Release();
+
+										return hr;
+									}
+
+									IDirectMusicDownload8* waveMusicDownload = NULL;
+									if (FAILED(hr = mPortDownload->AllocateBuffer(sizeof(WAVE_DOWNLOAD) +
+										append * waveFile.GetFormat()->nBlockAlign + waveFile.GetSize(), &waveMusicDownload)))
+									{
+										instrumentMusicDownload->Release();
+										if (waveMusicDownload != NULL)
+											waveMusicDownload->Release();
+										return hr;
+									}
+
+									void *waveDataBuffer = NULL;
+									unsigned long sizeWaveBuffer = 0;
+
+									if (FAILED(hr = waveMusicDownload->GetBuffer(&waveDataBuffer, &sizeWaveBuffer)))
+									{
+										instrumentMusicDownload->Release();
+										waveMusicDownload->Release();
+										return hr;
+									}
+
+									WAVE_DOWNLOAD* waveDownload = (WAVE_DOWNLOAD*)waveDataBuffer;
+									ZeroMemory(waveDownload, sizeof(WAVE_DOWNLOAD));
+
+									unsigned long dlIdWave = 0;
+									if (FAILED(hr = mPortDownload->GetDLId(&dlIdWave, 1)))
+									{
+										instrumentMusicDownload->Release();
+										waveMusicDownload->Release();
+										return hr;
+									}
+
+									waveDownload->dlInfo.dwDLType = DMUS_DOWNLOADINFO_WAVE;
+									waveDownload->dlInfo.cbSize = sizeWaveBuffer;
+									waveDownload->dlInfo.dwDLId = dlIdWave;
+									waveDownload->dlInfo.dwNumOffsetTableEntries = 2;
+
+									waveDownload->ulOffsetTable[0] = offsetof(WAVE_DOWNLOAD, dmWave);
+									waveDownload->ulOffsetTable[1] = offsetof(WAVE_DOWNLOAD, dmWaveData);
+									waveDownload->dmWave.ulWaveDataIdx = 1;
+
+									waveDownload->dmWave.WaveformatEx = *(waveFile.GetFormat());
+
+									if (FAILED(hr = waveFile.Read(((WAVE_DOWNLOAD*)waveDataBuffer)->dmWaveData.byData, waveFile.GetSize(), &waveDownload->dmWaveData.cbSize)))
+									{
+										instrumentMusicDownload->Release();
+										waveMusicDownload->Release();
+										return hr;
+									}
+
+									waveFile.Close();
+
+									if (SUCCEEDED(hr = mPortDownload->Download(waveMusicDownload)))
+									{
+										mInstrumentGeneratedLoaded.push_back(waveMusicDownload);
+									}
+									else
+									{
+										instrumentMusicDownload->Release();
+										waveMusicDownload->Release();
+										return hr;
+									}
+
+									::DeleteFile(wavPath);
+
+
+
+									ulOffsetTable[1 + (trueSound * 3)] = currentDataInstBufferOffset;
+									DMUS_REGION* region = (DMUS_REGION*)(&dataInstrumentByteBuffer[currentDataInstBufferOffset]);
+									currentDataInstBufferOffset += sizeof(DMUS_REGION);
+
+									ulOffsetTable[1 + (trueSound * 3) + 1] = currentDataInstBufferOffset;
+									DMUS_ARTICULATION* articulation = (DMUS_ARTICULATION*)(&dataInstrumentByteBuffer[currentDataInstBufferOffset]);
+									currentDataInstBufferOffset += sizeof(DMUS_ARTICULATION);
+
+									ulOffsetTable[1 + (trueSound * 3) + 2] = currentDataInstBufferOffset;
+									DMUS_ARTICPARAMS* articParams = (DMUS_ARTICPARAMS*)(&dataInstrumentByteBuffer[currentDataInstBufferOffset]);
+									currentDataInstBufferOffset += sizeof(DMUS_ARTICPARAMS);
+
+									if (trueSound == (trueSoundCount - 1))
+										region->ulNextRegionIdx = 0;
+									else
+										region->ulNextRegionIdx = 1 + ((trueSound + 1) * 3);
+
+									region->ulRegionArtIdx = 1 + (trueSound * 3) + 1;
+
+									long tcAttack = 0;
+									long ptSustain = 0;
+									long tcRelease = 0;
+									long tcDecay = 0;
+
+									float attackPercentage = 1.0f;
+									float decayPercentage = sustainPercentage / 100.0f;
+
+									tcAttack = CMidiPlayer::TimeSecondsToCents(attackTime * timeMultiplier);
+									
+									if (((signed long)decayTime == -1) || ((signed long)decayTime == 0))
+										tcDecay = 0x7FFFFFFF;
+									else
+										tcDecay = CMidiPlayer::TimeSecondsToCents(decayTime * timeMultiplier);
+
+									ptSustain = PercentToUnits(decayPercentage * 100.0);
+									tcRelease = CMidiPlayer::TimeSecondsToCents((signed long)releaseTime * timeMultiplier);
+
+									articParams->PitchEG.tcAttack = tcAttack;
+									articParams->PitchEG.tcDecay = tcDecay;
+									articParams->PitchEG.ptSustain = ptSustain;
+									articParams->PitchEG.tcRelease = tcRelease;
+
+									articParams->VolEG.tcAttack = tcAttack;
+									articParams->VolEG.tcDecay = tcDecay;
+									articParams->VolEG.ptSustain = ptSustain;
+									articParams->VolEG.tcRelease = tcRelease;
+
+
+
+									signed long pan = 0;
+									macroPan = layerData.pan;
+
+									double percentPan;
+									if (alBankInstr->inst[sampleId]->sounds[0]->samplePan == 0x40)
+										percentPan = 0;
+									else if (alBankInstr->inst[sampleId]->sounds[0]->samplePan == 0x7F)
+										percentPan = 50;
+									else if (alBankInstr->inst[sampleId]->sounds[0]->samplePan == 0x00)
+										percentPan = -50;
+									else
+									{
+										float panFloat = ((float)macroPan / (float)0x7F) * 100.0;
+										percentPan = (panFloat - 50.0);
+									}
+									articParams->Misc.ptDefaultPan = PercentToUnits(percentPan);
+
+
+
+									char cSampleLoops = 0;
+									ULONG ulLoopStart = 0;
+									ULONG ulLoopLength = 0;
+									ULONG ulLoopType = 0;
+
+									
+									if (alBankInstr->inst[sampleId]->sounds[0]->wav.type == AL_MUSYX_WAVE)
+									{
+										if ((alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave != NULL)
+											&& (alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop != NULL))
+										{
+											if (alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->count != 0)
+											{
+												region->WSMP.cSampleLoops = 1;
+												region->WLOOP[0].ulStart = alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->start;
+												region->WLOOP[0].ulLength = (alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->end - alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->start);
+
+											}
+										}
+									}
+
+									region->WLOOP[0].cbSize = sizeof(WLOOP);
+									region->WLOOP[0].ulType = WLOOP_TYPE_FORWARD;
+
+									articulation->ulArt1Idx = 1 + (trueSound * 3) + 2;
+
+									long volumeAttenuation = 0;
+									unsigned char keyBase = 0x3C;
+									signed short fineTune = 0;
+
+									int volume = layerData.volume;
+
+
+									float volumePercentage = (float)volume / (float)0x7F;
+									if (volume >= 0x7F)
+									{
+										volumeAttenuation = 0x00000000;
+									}
+									else if (volumePercentage != 0)
+									{
+										double attenInDBVol = 20*log10((1.0/(1.0 - volumePercentage)));
+										volumeAttenuation = ((96.0-attenInDBVol)/96.0)*0x03e80000;		//the DLS envelope is a range from 0 to -96db. 
+									}
+									else
+									{
+										volumeAttenuation = 0x7FFFFF00;
+									}
+
+									region->fusOptions = F_RGN_OPTION_SELFNONEXCLUSIVE;
+									region->WaveLink.ulChannel = 1;
+									region->WaveLink.ulTableIndex = dlIdWave;
+									region->WaveLink.usPhaseGroup = 0;
+									region->WSMP.cbSize = sizeof(WSMPL);
+									region->WSMP.fulOptions = F_WSMP_NO_TRUNCATION;
+									region->WSMP.sFineTune = 0;
+
+									region->WSMP.usUnityNote = alBankInstr->inst[sampleId]->sounds[0]->key.keybase;
+									region->WSMP.usUnityNote -= layerData.transpose;
+									region->WSMP.sFineTune = 0;
+
+									region->RangeKey.usHigh = layerData.keyHi;
+									region->RangeKey.usLow = layerData.keyLo;
+
+									if (layer != 0)
+									{
+										if (layerGroup->factor5Layers[layer-1].keyLo == layerData.keyHi)
+											region->RangeKey.usHigh--;
+									}
+
+									region->RangeVelocity.usHigh = 0x7F;
+									region->RangeVelocity.usLow = 0;
+
+									trueSound++;
+								}
+							}
+						}
+						else if (keymapGroup != NULL)
+						{
+							for (int keyNumber = 0; keyNumber < 128; keyNumber++)
+							{
+								if (keymapGroup->keys[keyNumber].objectId != 0xFFFF)
+								{
+									Factor5Keymap keyMap = keymapGroup->keys[keyNumber];
+									
+									std::vector<Factor5SoundMacro> soundMacros = poolMacroList[keyMap.objectId].soundMacros;
+
+									int sampleId = -1;
+									unsigned long attackTime = 0;
+									unsigned long decayTime = 0;
+									float sustainPercentage = 0.0;
+									unsigned long releaseTime = 0;
+									unsigned char macroPan = 0x40;
+
+									ParseSoundMacroList(soundMacros, poolTables, sampleId, attackTime, decayTime, sustainPercentage, releaseTime, macroPan);
+
+									int foundSampleId = -1;
+									for (int s = 0; s < alBankInstr->count; s++)
+									{
+										if ((alBankInstr->inst[s] != NULL) && (alBankInstr->inst[s]->sounds[0] != NULL))
+										{
+											// sfx id check
+											if (alBankInstr->inst[s]->sounds[0]->wav.unknown1 == sampleId)
+											{
+												foundSampleId = s;
+											}
+										}
+									}
+
+									if (foundSampleId == -1)
+									{
+										continue;
+									}
+									else
+									{
+										sampleId = foundSampleId;
+									}
+
+									CString wavPath;
+									wavPath.Format("%sSnd%02X_%04X_%04X.wav", mainFolder, writeBank, channel, trueSound);
+
+									float sampleRate = (float)alBankInstr->samplerate;
+
+									sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
+
+									if (overrideSamplingRate)
+										sampleRate = samplingRate;
+
+									if (halfSamplingRate)
+										sampleRate /= 2.0;
+									bool extractResult = n64Audio.ExtractRawSound(mainFolder, alBankInstr, sampleId, 0, wavPath, sampleRate, PRIMARY, false);
+
+									CStringW wavPathW(wavPath);
+									LPWSTR wavPathStr = wavPathW.GetBuffer(0);
+
+									WAVEFORMATEX waveFormatEx;
+
+									if (FAILED(hr = waveFile.Open(wavPathStr, &waveFormatEx, WAVEFILE_READ)))
+									{
+										continue;
+									}
+
+									wavPathW.ReleaseBuffer();
+
+									unsigned long append = 0;
+									if (FAILED(hr = mPortDownload->GetAppend(&append)))
+									{
+										instrumentMusicDownload->Release();
+
+										return hr;
+									}
+
+									IDirectMusicDownload8* waveMusicDownload = NULL;
+									if (FAILED(hr = mPortDownload->AllocateBuffer(sizeof(WAVE_DOWNLOAD) +
+										append * waveFile.GetFormat()->nBlockAlign + waveFile.GetSize(), &waveMusicDownload)))
+									{
+										instrumentMusicDownload->Release();
+										if (waveMusicDownload != NULL)
+											waveMusicDownload->Release();
+										return hr;
+									}
+
+									void *waveDataBuffer = NULL;
+									unsigned long sizeWaveBuffer = 0;
+
+									if (FAILED(hr = waveMusicDownload->GetBuffer(&waveDataBuffer, &sizeWaveBuffer)))
+									{
+										instrumentMusicDownload->Release();
+										waveMusicDownload->Release();
+										return hr;
+									}
+
+									WAVE_DOWNLOAD* waveDownload = (WAVE_DOWNLOAD*)waveDataBuffer;
+									ZeroMemory(waveDownload, sizeof(WAVE_DOWNLOAD));
+
+									unsigned long dlIdWave = 0;
+									if (FAILED(hr = mPortDownload->GetDLId(&dlIdWave, 1)))
+									{
+										instrumentMusicDownload->Release();
+										waveMusicDownload->Release();
+										return hr;
+									}
+
+									waveDownload->dlInfo.dwDLType = DMUS_DOWNLOADINFO_WAVE;
+									waveDownload->dlInfo.cbSize = sizeWaveBuffer;
+									waveDownload->dlInfo.dwDLId = dlIdWave;
+									waveDownload->dlInfo.dwNumOffsetTableEntries = 2;
+
+									waveDownload->ulOffsetTable[0] = offsetof(WAVE_DOWNLOAD, dmWave);
+									waveDownload->ulOffsetTable[1] = offsetof(WAVE_DOWNLOAD, dmWaveData);
+									waveDownload->dmWave.ulWaveDataIdx = 1;
+
+									waveDownload->dmWave.WaveformatEx = *(waveFile.GetFormat());
+
+									if (FAILED(hr = waveFile.Read(((WAVE_DOWNLOAD*)waveDataBuffer)->dmWaveData.byData, waveFile.GetSize(), &waveDownload->dmWaveData.cbSize)))
+									{
+										instrumentMusicDownload->Release();
+										waveMusicDownload->Release();
+										return hr;
+									}
+
+									waveFile.Close();
+
+									if (SUCCEEDED(hr = mPortDownload->Download(waveMusicDownload)))
+									{
+										mInstrumentGeneratedLoaded.push_back(waveMusicDownload);
+									}
+									else
+									{
+										instrumentMusicDownload->Release();
+										waveMusicDownload->Release();
+										return hr;
+									}
+
+									::DeleteFile(wavPath);
+
+
+
+									ulOffsetTable[1 + (trueSound * 3)] = currentDataInstBufferOffset;
+									DMUS_REGION* region = (DMUS_REGION*)(&dataInstrumentByteBuffer[currentDataInstBufferOffset]);
+									currentDataInstBufferOffset += sizeof(DMUS_REGION);
+
+									ulOffsetTable[1 + (trueSound * 3) + 1] = currentDataInstBufferOffset;
+									DMUS_ARTICULATION* articulation = (DMUS_ARTICULATION*)(&dataInstrumentByteBuffer[currentDataInstBufferOffset]);
+									currentDataInstBufferOffset += sizeof(DMUS_ARTICULATION);
+
+									ulOffsetTable[1 + (trueSound * 3) + 2] = currentDataInstBufferOffset;
+									DMUS_ARTICPARAMS* articParams = (DMUS_ARTICPARAMS*)(&dataInstrumentByteBuffer[currentDataInstBufferOffset]);
+									currentDataInstBufferOffset += sizeof(DMUS_ARTICPARAMS);
+
+									if (trueSound == (trueSoundCount - 1))
+										region->ulNextRegionIdx = 0;
+									else
+										region->ulNextRegionIdx = 1 + ((trueSound + 1) * 3);
+
+									region->ulRegionArtIdx = 1 + (trueSound * 3) + 1;
+
+									long tcAttack = 0;
+									long ptSustain = 0;
+									long tcRelease = 0;
+									long tcDecay = 0;
+
+									float attackPercentage = 1.0f;
+									float decayPercentage = sustainPercentage / 100.0f;
+
+									tcAttack = CMidiPlayer::TimeSecondsToCents(attackTime * timeMultiplier);
+									
+									if (((signed long)decayTime == -1) || ((signed long)decayTime == 0))
+										tcDecay = 0x7FFFFFFF;
+									else
+										tcDecay = CMidiPlayer::TimeSecondsToCents(decayTime * timeMultiplier);
+
+									ptSustain = PercentToUnits(decayPercentage * 100.0);
+									tcRelease = CMidiPlayer::TimeSecondsToCents((signed long)releaseTime * timeMultiplier);
+
+									articParams->PitchEG.tcAttack = tcAttack;
+									articParams->PitchEG.tcDecay = tcDecay;
+									articParams->PitchEG.ptSustain = ptSustain;
+									articParams->PitchEG.tcRelease = tcRelease;
+
+									articParams->VolEG.tcAttack = tcAttack;
+									articParams->VolEG.tcDecay = tcDecay;
+									articParams->VolEG.ptSustain = ptSustain;
+									articParams->VolEG.tcRelease = tcRelease;
+
+
+
+									signed long pan = 0;
+									macroPan = keyMap.pan;
+
+									double percentPan;
+									if (alBankInstr->inst[sampleId]->sounds[0]->samplePan == 0x40)
+										percentPan = 0;
+									else if (alBankInstr->inst[sampleId]->sounds[0]->samplePan == 0x7F)
+										percentPan = 50;
+									else if (alBankInstr->inst[sampleId]->sounds[0]->samplePan == 0x00)
+										percentPan = -50;
+									else
+									{
+										float panFloat = ((float)macroPan / (float)0x7F) * 100.0;
+										percentPan = (panFloat - 50.0);
+									}
+									articParams->Misc.ptDefaultPan = PercentToUnits(percentPan);
+
+
+
+									char cSampleLoops = 0;
+									ULONG ulLoopStart = 0;
+									ULONG ulLoopLength = 0;
+									ULONG ulLoopType = 0;
+
+									
+									if (alBankInstr->inst[sampleId]->sounds[0]->wav.type == AL_MUSYX_WAVE)
+									{
+										if ((alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave != NULL)
+											&& (alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop != NULL))
+										{
+											if (alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->count != 0)
+											{
+												region->WSMP.cSampleLoops = 1;
+												region->WLOOP[0].ulStart = alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->start;
+												region->WLOOP[0].ulLength = (alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->end - alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->start);
+
+											}
+										}
+									}
+
+									region->WLOOP[0].cbSize = sizeof(WLOOP);
+									region->WLOOP[0].ulType = WLOOP_TYPE_FORWARD;
+
+									articulation->ulArt1Idx = 1 + (trueSound * 3) + 2;
+
+									long volumeAttenuation = 0;
+									unsigned char keyBase = 0x3C;
+									signed short fineTune = 0;
+
+									int volume = 0x7F;
+
+
+									float volumePercentage = (float)volume / (float)0x7F;
+									if (volume >= 0x7F)
+									{
+										volumeAttenuation = 0x00000000;
+									}
+									else if (volumePercentage != 0)
+									{
+										double attenInDBVol = 20*log10((1.0/(1.0 - volumePercentage)));
+										volumeAttenuation = ((96.0-attenInDBVol)/96.0)*0x03e80000;		//the DLS envelope is a range from 0 to -96db. 
+									}
+									else
+									{
+										volumeAttenuation = 0x7FFFFF00;
+									}
+
+									region->fusOptions = F_RGN_OPTION_SELFNONEXCLUSIVE;
+									region->WaveLink.ulChannel = 1;
+									region->WaveLink.ulTableIndex = dlIdWave;
+									region->WaveLink.usPhaseGroup = 0;
+									region->WSMP.cbSize = sizeof(WSMPL);
+									region->WSMP.fulOptions = F_WSMP_NO_TRUNCATION;
+									region->WSMP.sFineTune = 0;
+
+									region->WSMP.usUnityNote = alBankInstr->inst[sampleId]->sounds[0]->key.keybase;
+									region->WSMP.usUnityNote -= keyMap.transpose;
+									region->WSMP.sFineTune = 0;
+
+									region->RangeKey.usHigh = keyNumber;
+									region->RangeKey.usLow = keyNumber;
+
+									region->RangeVelocity.usHigh = 0x7F;
+									region->RangeVelocity.usLow = 0;
+
+									trueSound++;
+								}
+							}
+						}
+						else if (soundMacroList != NULL)
+						{
+							int sampleId = -1;
+							unsigned long attackTime = 0;
+							unsigned long decayTime = 0;
+							float sustainPercentage = 0.0;
+							unsigned long releaseTime = 0;
+							unsigned char macroPan = 0x40;
+
+							ParseSoundMacroList(soundMacroList->soundMacros, poolTables, sampleId, attackTime, decayTime, sustainPercentage, releaseTime, macroPan);
+
+							int foundSampleId = -1;
+							for (int s = 0; s < alBankInstr->count; s++)
+							{
+								if ((alBankInstr->inst[s] != NULL) && (alBankInstr->inst[s]->sounds[0] != NULL))
+								{
+									// sfx id check
+									if (alBankInstr->inst[s]->sounds[0]->wav.unknown1 == sampleId)
+									{
+										foundSampleId = s;
+									}
+								}
+							}
+
+							if (foundSampleId == -1)
+							{
+								continue;
+							}
+							else
+							{
+								sampleId = foundSampleId;
+							}
+
+							CString wavPath;
+							wavPath.Format("%sSnd%02X_%04X_%04X.wav", mainFolder, writeBank, channel, trueSound);
+
+							float sampleRate = (float)alBankInstr->samplerate;
+
+							sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
+
+							if (overrideSamplingRate)
+								sampleRate = samplingRate;
+
+							if (halfSamplingRate)
+								sampleRate /= 2.0;
+							bool extractResult = n64Audio.ExtractRawSound(mainFolder, alBankInstr, sampleId, 0, wavPath, sampleRate, PRIMARY, false);
+
+							CStringW wavPathW(wavPath);
+							LPWSTR wavPathStr = wavPathW.GetBuffer(0);
+
+							WAVEFORMATEX waveFormatEx;
+
+							if (FAILED(hr = waveFile.Open(wavPathStr, &waveFormatEx, WAVEFILE_READ)))
+							{
+								continue;
+							}
+
+							wavPathW.ReleaseBuffer();
+
+							unsigned long append = 0;
+							if (FAILED(hr = mPortDownload->GetAppend(&append)))
+							{
+								instrumentMusicDownload->Release();
+
+								return hr;
+							}
+
+							IDirectMusicDownload8* waveMusicDownload = NULL;
+							if (FAILED(hr = mPortDownload->AllocateBuffer(sizeof(WAVE_DOWNLOAD) +
+								append * waveFile.GetFormat()->nBlockAlign + waveFile.GetSize(), &waveMusicDownload)))
+							{
+								instrumentMusicDownload->Release();
+								if (waveMusicDownload != NULL)
+									waveMusicDownload->Release();
+								return hr;
+							}
+
+							void *waveDataBuffer = NULL;
+							unsigned long sizeWaveBuffer = 0;
+
+							if (FAILED(hr = waveMusicDownload->GetBuffer(&waveDataBuffer, &sizeWaveBuffer)))
+							{
+								instrumentMusicDownload->Release();
+								waveMusicDownload->Release();
+								return hr;
+							}
+
+							WAVE_DOWNLOAD* waveDownload = (WAVE_DOWNLOAD*)waveDataBuffer;
+							ZeroMemory(waveDownload, sizeof(WAVE_DOWNLOAD));
+
+							unsigned long dlIdWave = 0;
+							if (FAILED(hr = mPortDownload->GetDLId(&dlIdWave, 1)))
+							{
+								instrumentMusicDownload->Release();
+								waveMusicDownload->Release();
+								return hr;
+							}
+
+							waveDownload->dlInfo.dwDLType = DMUS_DOWNLOADINFO_WAVE;
+							waveDownload->dlInfo.cbSize = sizeWaveBuffer;
+							waveDownload->dlInfo.dwDLId = dlIdWave;
+							waveDownload->dlInfo.dwNumOffsetTableEntries = 2;
+
+							waveDownload->ulOffsetTable[0] = offsetof(WAVE_DOWNLOAD, dmWave);
+							waveDownload->ulOffsetTable[1] = offsetof(WAVE_DOWNLOAD, dmWaveData);
+							waveDownload->dmWave.ulWaveDataIdx = 1;
+
+							waveDownload->dmWave.WaveformatEx = *(waveFile.GetFormat());
+
+							if (FAILED(hr = waveFile.Read(((WAVE_DOWNLOAD*)waveDataBuffer)->dmWaveData.byData, waveFile.GetSize(), &waveDownload->dmWaveData.cbSize)))
+							{
+								instrumentMusicDownload->Release();
+								waveMusicDownload->Release();
+								return hr;
+							}
+
+							waveFile.Close();
+
+							if (SUCCEEDED(hr = mPortDownload->Download(waveMusicDownload)))
+							{
+								mInstrumentGeneratedLoaded.push_back(waveMusicDownload);
+							}
+							else
+							{
+								instrumentMusicDownload->Release();
+								waveMusicDownload->Release();
+								return hr;
+							}
+
+							::DeleteFile(wavPath);
+
+
+
+							ulOffsetTable[1 + (trueSound * 3)] = currentDataInstBufferOffset;
+							DMUS_REGION* region = (DMUS_REGION*)(&dataInstrumentByteBuffer[currentDataInstBufferOffset]);
+							currentDataInstBufferOffset += sizeof(DMUS_REGION);
+
+							ulOffsetTable[1 + (trueSound * 3) + 1] = currentDataInstBufferOffset;
+							DMUS_ARTICULATION* articulation = (DMUS_ARTICULATION*)(&dataInstrumentByteBuffer[currentDataInstBufferOffset]);
+							currentDataInstBufferOffset += sizeof(DMUS_ARTICULATION);
+
+							ulOffsetTable[1 + (trueSound * 3) + 2] = currentDataInstBufferOffset;
+							DMUS_ARTICPARAMS* articParams = (DMUS_ARTICPARAMS*)(&dataInstrumentByteBuffer[currentDataInstBufferOffset]);
+							currentDataInstBufferOffset += sizeof(DMUS_ARTICPARAMS);
+
+							if (trueSound == (trueSoundCount - 1))
+								region->ulNextRegionIdx = 0;
+							else
+								region->ulNextRegionIdx = 1 + ((trueSound + 1) * 3);
+
+							region->ulRegionArtIdx = 1 + (trueSound * 3) + 1;
+
+							long tcAttack = 0;
+							long ptSustain = 0;
+							long tcRelease = 0;
+							long tcDecay = 0;
+
+							float attackPercentage = 1.0f;
+							float decayPercentage = sustainPercentage / 100.0f;
+
+							tcAttack = CMidiPlayer::TimeSecondsToCents(attackTime * timeMultiplier);
+							
+							if (((signed long)decayTime == -1) || ((signed long)decayTime == 0))
+								tcDecay = 0x7FFFFFFF;
+							else
+								tcDecay = CMidiPlayer::TimeSecondsToCents(decayTime * timeMultiplier);
+
+							ptSustain = PercentToUnits(decayPercentage * 100.0);
+							tcRelease = CMidiPlayer::TimeSecondsToCents((signed long)releaseTime * timeMultiplier);
+
+							articParams->PitchEG.tcAttack = tcAttack;
+							articParams->PitchEG.tcDecay = tcDecay;
+							articParams->PitchEG.ptSustain = ptSustain;
+							articParams->PitchEG.tcRelease = tcRelease;
+
+							articParams->VolEG.tcAttack = tcAttack;
+							articParams->VolEG.tcDecay = tcDecay;
+							articParams->VolEG.ptSustain = ptSustain;
+							articParams->VolEG.tcRelease = tcRelease;
+
+							double percentPan = 0;
+							articParams->Misc.ptDefaultPan = PercentToUnits(percentPan);
+
+
+
+							char cSampleLoops = 0;
+							ULONG ulLoopStart = 0;
+							ULONG ulLoopLength = 0;
+							ULONG ulLoopType = 0;
+
+							
+							if (alBankInstr->inst[sampleId]->sounds[0]->wav.type == AL_MUSYX_WAVE)
+							{
+								if ((alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave != NULL)
+									&& (alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop != NULL))
+								{
+									if (alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->count != 0)
+									{
+										region->WSMP.cSampleLoops = 1;
+										region->WLOOP[0].ulStart = alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->start;
+										region->WLOOP[0].ulLength = (alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->end - alBankInstr->inst[sampleId]->sounds[0]->wav.adpcmWave->loop->start);
+
+									}
+								}
+							}
+
+							region->WLOOP[0].cbSize = sizeof(WLOOP);
+							region->WLOOP[0].ulType = WLOOP_TYPE_FORWARD;
+
+							articulation->ulArt1Idx = 1 + (trueSound * 3) + 2;
+
+							long volumeAttenuation = 0;
+							unsigned char keyBase = 0x3C;
+							signed short fineTune = 0;
+
+							int volume = 0x7F;
+
+
+							float volumePercentage = (float)volume / (float)0x7F;
+							if (volume >= 0x7F)
+							{
+								volumeAttenuation = 0x00000000;
+							}
+							else if (volumePercentage != 0)
+							{
+								double attenInDBVol = 20*log10((1.0/(1.0 - volumePercentage)));
+								volumeAttenuation = ((96.0-attenInDBVol)/96.0)*0x03e80000;		//the DLS envelope is a range from 0 to -96db. 
+							}
+							else
+							{
+								volumeAttenuation = 0x7FFFFF00;
+							}
+
+							region->fusOptions = F_RGN_OPTION_SELFNONEXCLUSIVE;
+							region->WaveLink.ulChannel = 1;
+							region->WaveLink.ulTableIndex = dlIdWave;
+							region->WaveLink.usPhaseGroup = 0;
+							region->WSMP.cbSize = sizeof(WSMPL);
+							region->WSMP.fulOptions = F_WSMP_NO_TRUNCATION;
+							region->WSMP.sFineTune = 0;
+
+							region->WSMP.usUnityNote = alBankInstr->inst[sampleId]->sounds[0]->key.keybase;
+							region->WSMP.sFineTune = 0;
+
+							region->RangeKey.usHigh = 0x7F;
+							region->RangeKey.usLow = 0;
+
+							region->RangeVelocity.usHigh = 0x7F;
+							region->RangeVelocity.usLow = 0;
+
+							trueSound++;
+						}
+
+						if (trueSound > 0)
+						{
+							if (SUCCEEDED(hr = mPortDownload->Download(instrumentMusicDownload)))
+							{
+								mInstrumentGeneratedLoaded.push_back(instrumentMusicDownload);
+							}
+							else
+							{
+								instrumentMusicDownload->Release();
+							}
+						}
+					}
+				}
+			}
+		}
+		else // SFX
+		{
+			//fprintf(outProj, "\SFX\n");
+			unsigned int tempSfxTableOff = subDataOff + sfxTableOff;
+
+			unsigned short count = CharArrayToShort(&proj[tempSfxTableOff]);
+
+			for (int y = 0; y < count; y++)
+			{
+				unsigned short defineId = CharArrayToShort(&proj[tempSfxTableOff + 4 + (y * 0xC)]);
+				unsigned short objectId = CharArrayToShort(&proj[tempSfxTableOff + 4 + (y * 0xC) + 2]);
+				unsigned char priority = proj[tempSfxTableOff + 4 + (y * 0xC) + 4];
+				unsigned char maxVoices = proj[tempSfxTableOff + 4 + (y * 0xC) + 5];
+				unsigned char volume = proj[tempSfxTableOff + 4 + (y * 0xC) + 6];
+				unsigned char pan = proj[tempSfxTableOff + 4 + (y * 0xC) + 7];
+				unsigned char key = proj[tempSfxTableOff + 4 + (y * 0xC) + 8];
+				unsigned char unk = proj[tempSfxTableOff + 4 + (y * 0xC) + 9];
+
+				//fprintf(outProj, "%08X: Define %04X ObjectId %04X Priority %02X MaxVoices %02X Volume %02X Pan %02X Key %02X Unkn %02X\n", tempSfxTableOff + 4 + (y * 0xC), defineId, objectId, priority, maxVoices, volume, pan, key, unk);
+			}
+		}
+
+		//fprintf(outProj, "\nSound Macros Ids\n");
+		unsigned long tempSoundMacroIdsOff = subDataOff + soundMacroIdsOff;
+		while (CharArrayToShort(&proj[tempSoundMacroIdsOff]) != 0xFFFF)
+		{
+			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempSoundMacroIdsOff]));
+			tempSoundMacroIdsOff += 4;
+		}
+
+		//fprintf(outProj, "\nTables Ids\n");
+		unsigned long tempTablesIdsOff = subDataOff + tableIdsOff;
+		while (CharArrayToShort(&proj[tempTablesIdsOff]) != 0xFFFF)
+		{
+			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempTablesIdsOff]));
+			tempTablesIdsOff += 4;
+		}
+
+		//fprintf(outProj, "\nKeymap Ids\n");
+		unsigned long tempKeymapsIdsOff = subDataOff + keymapIdsOff;
+		while (CharArrayToShort(&proj[tempKeymapsIdsOff]) != 0xFFFF)
+		{
+			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempKeymapsIdsOff]));
+			tempKeymapsIdsOff += 4;
+		}
+
+		//fprintf(outProj, "\nLayers Macros Ids\n");
+		unsigned long tempLayersIdsOff = subDataOff + layerIdsOff;
+		while (CharArrayToShort(&proj[tempLayersIdsOff]) != 0xFFFF)
+		{
+			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempLayersIdsOff]));
+			tempLayersIdsOff += 4;
+		}
+
+		//fprintf(outProj, "\n");
+
+		groupOffset += groupEndOff;
+		groupCounter++;
+	}
+
+
+
+
+
+	delete [] proj;
+	delete [] pool;
+
+	return hr;
 }
 
 HRESULT CMidiPlayer::SetupMidiSoundBank(std::vector<ALBank*> alBanks, float timeMultiplier, bool halfSamplingRate, bool overrideSamplingRate, int samplingRate, std::vector<int> skipInstruments, bool combineBanks, CString gameMidiType, bool useT1Bank, int soundbankNumber, std::vector<t1Result> t1Results)

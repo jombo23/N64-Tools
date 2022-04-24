@@ -22627,7 +22627,7 @@ ALBank* CN64AIFCAudio::ReadAudioMusyxSmallerTable(unsigned char* ctl, int ctlSiz
 		{
 			alBank->inst[x]->sounds[y]->wav.adpcmWave = new ALADPCMWaveInfo();
 			alBank->inst[x]->sounds[y]->wav.type = AL_MUSYX_WAVE;
-
+			alBank->inst[x]->sounds[y]->wav.unknown1 = CharArrayToShort(&ctl[offsetInstrument]); // sfx id
 			alBank->inst[x]->samplerate = CharArrayToShort(&ctl[offsetInstrument+0xA]);
 			alBank->inst[x]->sounds[y]->wav.sampleRateNotInDefaultNintendoSpec = CharArrayToShort(&ctl[offsetInstrument+0xE]);
 
@@ -22715,6 +22715,7 @@ ALBank* CN64AIFCAudio::ReadAudioMusyx(unsigned char* ctl, int ctlSize, int ctlOf
 		{
 			alBank->inst[x]->sounds[y]->wav.adpcmWave = new ALADPCMWaveInfo();
 			alBank->inst[x]->sounds[y]->wav.type = AL_MUSYX_WAVE;
+			alBank->inst[x]->sounds[y]->wav.unknown1 = CharArrayToShort(&ctl[offsetInstrument]); // sfx id
 
 			alBank->inst[x]->samplerate = CharArrayToShort(&ctl[offsetInstrument+0xE]);
 			alBank->inst[x]->sounds[y]->wav.sampleRateNotInDefaultNintendoSpec = CharArrayToLong(&ctl[offsetInstrument+0x10]) & 0xFFFFFF;
@@ -23333,13 +23334,6 @@ ALBank* CN64AIFCAudio::ReadAudio(unsigned char* ROM, unsigned char* ctl, int ctl
 											)
 										{
 											alBank->inst[x]->sounds[y]->wav.type = AL_ACCLAIM_MARK;
-										}
-										else if (
-											(alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[0] == 0x524B)
-											&& (alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[1] == 0x4446)
-											)
-										{
-											MessageBox(NULL, "Figure out Acclaim RKDF!!", "Warning", NULL);
 										}
 									}
 								}

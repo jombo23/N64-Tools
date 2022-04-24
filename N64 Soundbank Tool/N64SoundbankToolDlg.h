@@ -28,6 +28,8 @@ struct GameConfig
 	unsigned long poolOffset;
 	unsigned long projSize;
 	unsigned long poolSize;
+	unsigned long sDirOffset;
+	unsigned long sDirSize;
 
 	GameConfig()
 	{
@@ -41,83 +43,9 @@ struct GameConfig
 		poolOffset = 0;
 		projSize = 0;
 		poolSize = 0;
+		sDirOffset = 0xFFFFFFFF;
+		sDirSize = 0;
 	}
-};
-
-struct Factor5Page
-{
-	unsigned short objId;
-	unsigned char priority;
-	unsigned char maxVoices;
-	unsigned char unk;
-	unsigned char programNo;
-	unsigned char pad;
-};
-
-struct Factor5SongInfo
-{
-	unsigned char programNo;
-	unsigned char volume;
-	unsigned char panning;
-	unsigned char reverb;
-	unsigned char chorus;
-};
-
-struct Factor5SongArray
-{
-	unsigned short songId;
-	Factor5SongInfo songInfo[0x10];
-};
-
-struct Factor5ADSR
-{
-	unsigned short objectId;
-	unsigned long attackTime;
-	unsigned long decayTime;
-	float sustainPercentage;
-	unsigned long releaseTime;
-};
-
-struct Factor5Keymap
-{
-	unsigned short objectId;
-	unsigned char transpose;
-	unsigned char pan;
-	unsigned char priorityOffset;
-};
-
-struct Factor5KeymapGroup
-{
-	unsigned short objectId;
-	Factor5Keymap keys[128];
-};
-
-struct Factor5Layer
-{
-	unsigned short objectId;
-	unsigned char keyLo;
-	unsigned char keyHi;
-	unsigned char transpose;
-	unsigned char volume;
-	unsigned char priorityOffset;
-	unsigned char span;
-	unsigned char pan;
-};
-
-struct Factor5LayerGroup
-{
-	int objectId;
-	std::vector<Factor5Layer> factor5Layers;
-};
-
-struct Factor5SoundMacro
-{
-	unsigned char commandData[0x8];
-};
-
-struct Factor5SoundMacroList
-{
-	std::vector<Factor5SoundMacro> soundMacros;	
 };
 
 // CN64SoundbankToolDlg dialog
@@ -215,4 +143,5 @@ public:
 	CButton mUseT1SamplingRate;
 	void fprintfIfDebug(FILE* outFileDebug, char* format,...);
 	CButton mDebug;
+	CComboBox mComboSongId;
 };

@@ -20165,7 +20165,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 		{
 			Factor5ToMidi(&gamebuffer[address], size, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, true);
 			if (generateDebugTextFile)
-				Factor5ToDebugTextFile(gameName, address, gamebuffer, size, fileName + " TrackParseDebug.txt", true);
+				Factor5ToDebugTextFile(gameName, address, &gamebuffer[address], size, fileName + " TrackParseDebug.txt", true);
 		}
 	}
 	else if (gameType.CompareNoCase("Factor5ZlbGCStyle") == 0)
@@ -20204,7 +20204,7 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 		{
 			Factor5ToMidi(&gamebuffer[address], size, fileName, numberInstruments, calculateInstrumentCountOnly, separateByInstrument, false);
 			if (generateDebugTextFile)
-				Factor5ToDebugTextFile(gameName, address, gamebuffer, size, fileName + " TrackParseDebug.txt", false);
+				Factor5ToDebugTextFile(gameName, address, &gamebuffer[address], size, fileName + " TrackParseDebug.txt", false);
 		}
 	}
 	else if (gameType.CompareNoCase("Factor5ZlbNoHeaderGCStyle") == 0)
