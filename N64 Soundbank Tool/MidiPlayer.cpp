@@ -745,7 +745,7 @@ void CMidiPlayer::ParseSoundMacroList(std::vector<Factor5SoundMacro> soundMacroL
 	}
 }
 
-HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* buffer, int romSize, unsigned long projOffset, unsigned long poolOffset, int projSize, int poolSize, ALBank* alBankInstr, float timeMultiplier, bool halfSamplingRate, bool overrideSamplingRate, int samplingRate, CString gameSoundType)
+HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* buffer, int romSize, unsigned long projOffset, unsigned long poolOffset, int projSize, int poolSize, ALBank* alBankInstr, float timeMultiplier, bool halfSamplingRate, bool overrideSamplingRate, int samplingRate, CString gameSoundType, bool absoluteOffsets)
 { 
 	// THIS DOESN'T YET WORK, plus has lookup...
 	HRESULT hr = S_OK;
@@ -792,12 +792,27 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 	{
 		isCompressed = true;
 	}
+
 	if (!isCompressed)
 	{
 		proj = new unsigned char[projSize];
 		memcpy(proj, &buffer[projOffset], projSize);
 		pool = new unsigned char[poolSize];
 		memcpy(pool, &buffer[poolOffset], poolSize);
+		/*FILE* projDebugFile = fopen("C:\\temp\\proj.bin", "wb");
+		if (projDebugFile)
+		{
+			fwrite(proj, 1, projSize, projDebugFile);
+			fflush(projDebugFile);
+			fclose(projDebugFile);
+		}
+		FILE* poolDebugFile = fopen("C:\\temp\\pool.bin", "wb");
+		if (poolDebugFile)
+		{
+			fwrite(pool, 1, poolSize, poolDebugFile);
+			fflush(poolDebugFile);
+			fclose(poolDebugFile);
+		}*/
 	}
 	else
 	{
@@ -848,6 +863,21 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 			poolSize = 0;
 			int poolCompressedSize = 0;
 			pool = compression.OutputDecompressedBuffer(poolSize, poolCompressedSize);
+
+			/*FILE* projDebugFile = fopen("C:\\temp\\proj.bin", "wb");
+			if (projDebugFile)
+			{
+				fwrite(proj, 1, projSize, projDebugFile);
+				fflush(projDebugFile);
+				fclose(projDebugFile);
+			}
+			FILE* poolDebugFile = fopen("C:\\temp\\pool.bin", "wb");
+			if (poolDebugFile)
+			{
+				fwrite(pool, 1, poolSize, poolDebugFile);
+				fflush(poolDebugFile);
+				fclose(poolDebugFile);
+			}*/
 		}
 	}
 	
@@ -1055,12 +1085,6 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 		//fprintf(outPool, "\nLayers Offset\n");
 
 		unsigned long tempLayersOffset = layersOffset;
-		/*if (CharArrayToLong(&pool[tempLayersOffset]) == 0xFFFFFFFF)
-		{
-			delete [] pool;
-			delete [] proj;
-			return S_FALSE;
-		}*/
 
 		while (CharArrayToLong(&pool[tempLayersOffset]) != 0xFFFFFFFF)
 		{
@@ -1123,8 +1147,7 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 		unsigned int drumTableOff = CharArrayToLong(&proj[groupOffset + 0x20]);
 		unsigned int midiSetupsOff = CharArrayToLong(&proj[groupOffset + 0x24]);
 
-		bool absOffs = false;
-		unsigned long subDataOff = absOffs ? groupOffset : groupOffset + 8;
+		unsigned long subDataOff = absoluteOffsets ? groupOffset : groupOffset + 8;
 
 		CString typeStr;
 		if (type == 0)
@@ -1144,7 +1167,9 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 			std::map<int, Factor5Page> drumPages; // by program number
 			std::map<int, Factor5SongArray> songInfo; // by Song id
 
-			unsigned int tempPageTableOff = subDataOff + pageTableOff;
+			unsigned int tempPageTableOff = pageTableOff;
+			if (!absoluteOffsets)
+				tempPageTableOff += subDataOff;
 
 			//fprintf(outProj, "\nPage Info\n");
 
@@ -1164,7 +1189,9 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 				tempPageTableOff += 8;
 			}
 
-			tempPageTableOff = subDataOff + drumTableOff;
+			tempPageTableOff = drumTableOff;
+			if (!absoluteOffsets)
+				tempPageTableOff += subDataOff;
 
 			//fprintf(outProj, "\nDrum Page Info\n");
 
@@ -1184,7 +1211,9 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 				tempPageTableOff += 8;
 			}
 
-			unsigned long tempMidiSetupData = subDataOff + midiSetupsOff;
+			unsigned long tempMidiSetupData = midiSetupsOff;
+			if (!absoluteOffsets)
+				tempMidiSetupData += subDataOff;
 
 			//fprintf(outProj, "\nSong Info\n");
 			while (CharArrayToLong(&proj[tempMidiSetupData]) != 0xFFFFFFFF)
@@ -1197,11 +1226,22 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 
 				for (int y = 0; y < 16; y++)
 				{
-					songArray.songInfo[y].programNo = proj[tempMidiSetupData + 4 + (y * 8)];
-					songArray.songInfo[y].volume = proj[tempMidiSetupData + 4 + (y * 8) + 1];
-					songArray.songInfo[y].panning = proj[tempMidiSetupData + 4 + (y * 8) + 2];
-					songArray.songInfo[y].reverb = proj[tempMidiSetupData + 4 + (y * 8) + 3];
-					songArray.songInfo[y].chorus = proj[tempMidiSetupData + 4 + (y * 8) + 4];
+					if (absoluteOffsets)
+					{
+						songArray.songInfo[y].programNo = proj[tempMidiSetupData + 4 + (y * 5)];
+						songArray.songInfo[y].volume = proj[tempMidiSetupData + 4 + (y * 5) + 1];
+						songArray.songInfo[y].panning = proj[tempMidiSetupData + 4 + (y * 5) + 2];
+						songArray.songInfo[y].reverb = proj[tempMidiSetupData + 4 + (y * 5) + 3];
+						songArray.songInfo[y].chorus = proj[tempMidiSetupData + 4 + (y * 5) + 4];
+					}
+					else
+					{
+						songArray.songInfo[y].programNo = proj[tempMidiSetupData + 4 + (y * 8)];
+						songArray.songInfo[y].volume = proj[tempMidiSetupData + 4 + (y * 8) + 1];
+						songArray.songInfo[y].panning = proj[tempMidiSetupData + 4 + (y * 8) + 2];
+						songArray.songInfo[y].reverb = proj[tempMidiSetupData + 4 + (y * 8) + 3];
+						songArray.songInfo[y].chorus = proj[tempMidiSetupData + 4 + (y * 8) + 4];
+					}
 					// pad 3
 
 					//fprintf(outProj, "#%02X Program Number %02X Volume %02X Panning %02X Reverb %02X Chorus %02X\n", y, programNo, volume, panning, reverb, chorus);
@@ -1210,7 +1250,15 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 
 				songInfo[songArray.songId] = songArray;
 
-                tempMidiSetupData += 8 * 16 + 4;
+				if (absoluteOffsets)
+				{
+					tempMidiSetupData += 5 * 16 + 4;
+					break;
+				}
+				else
+				{
+					tempMidiSetupData += 8 * 16 + 4;
+				}
             }
 
 			for (map<int, Factor5SongArray>::iterator iter = songInfo.begin(); iter != songInfo.end(); iter++)
@@ -1511,7 +1559,7 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 
 									float sampleRate = (float)alBankInstr->samplerate;
 
-									sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
+									//sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
 
 									if (overrideSamplingRate)
 										sampleRate = samplingRate;
@@ -1796,7 +1844,7 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 
 									float sampleRate = (float)alBankInstr->samplerate;
 
-									sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
+									//sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
 
 									if (overrideSamplingRate)
 										sampleRate = samplingRate;
@@ -2067,7 +2115,7 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 
 							float sampleRate = (float)alBankInstr->samplerate;
 
-							sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
+							//sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
 
 							if (overrideSamplingRate)
 								sampleRate = samplingRate;
@@ -2297,10 +2345,12 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 				}
 			}
 		}
-		else // SFX
+		else if (type == 1)// SFX
 		{
 			//fprintf(outProj, "\SFX\n");
-			unsigned int tempSfxTableOff = subDataOff + sfxTableOff;
+			unsigned int tempSfxTableOff = sfxTableOff;
+			if (!absoluteOffsets)
+				tempSfxTableOff += subDataOff;
 
 			unsigned short count = CharArrayToShort(&proj[tempSfxTableOff]);
 
@@ -2318,9 +2368,18 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 				//fprintf(outProj, "%08X: Define %04X ObjectId %04X Priority %02X MaxVoices %02X Volume %02X Pan %02X Key %02X Unkn %02X\n", tempSfxTableOff + 4 + (y * 0xC), defineId, objectId, priority, maxVoices, volume, pan, key, unk);
 			}
 		}
+		else
+		{
+
+			MessageBox(NULL, "Unknown Soundbank type", "Error", NULL);
+			break;
+		}
 
 		//fprintf(outProj, "\nSound Macros Ids\n");
-		unsigned long tempSoundMacroIdsOff = subDataOff + soundMacroIdsOff;
+		/*unsigned long tempSoundMacroIdsOff = soundMacroIdsOff;
+		if (!absoluteOffsets)
+			tempSoundMacroIdsOff += subDataOff;
+
 		while (CharArrayToShort(&proj[tempSoundMacroIdsOff]) != 0xFFFF)
 		{
 			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempSoundMacroIdsOff]));
@@ -2328,7 +2387,10 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 		}
 
 		//fprintf(outProj, "\nTables Ids\n");
-		unsigned long tempTablesIdsOff = subDataOff + tableIdsOff;
+		unsigned long tempTablesIdsOff = tableIdsOff;
+		if (!absoluteOffsets)
+			tempTablesIdsOff += subDataOff;
+
 		while (CharArrayToShort(&proj[tempTablesIdsOff]) != 0xFFFF)
 		{
 			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempTablesIdsOff]));
@@ -2336,7 +2398,10 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 		}
 
 		//fprintf(outProj, "\nKeymap Ids\n");
-		unsigned long tempKeymapsIdsOff = subDataOff + keymapIdsOff;
+		unsigned long tempKeymapsIdsOff = keymapIdsOff;
+		if (!absoluteOffsets)
+			tempKeymapsIdsOff += subDataOff;
+
 		while (CharArrayToShort(&proj[tempKeymapsIdsOff]) != 0xFFFF)
 		{
 			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempKeymapsIdsOff]));
@@ -2344,16 +2409,22 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 		}
 
 		//fprintf(outProj, "\nLayers Macros Ids\n");
-		unsigned long tempLayersIdsOff = subDataOff + layerIdsOff;
+		unsigned long tempLayersIdsOff = layerIdsOff;
+		if (!absoluteOffsets)
+			tempLayersIdsOff += subDataOff;
+
 		while (CharArrayToShort(&proj[tempLayersIdsOff]) != 0xFFFF)
 		{
 			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempLayersIdsOff]));
 			tempLayersIdsOff += 4;
 		}
 
-		//fprintf(outProj, "\n");
+		//fprintf(outProj, "\n");*/
 
-		groupOffset += groupEndOff;
+		if (absoluteOffsets)
+			groupOffset = groupEndOff;
+		else
+			groupOffset += groupEndOff;
 		groupCounter++;
 	}
 

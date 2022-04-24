@@ -400,6 +400,12 @@ void CN64SoundbankToolDlg::InitializeSpecificGames()
 				line.Replace(":", "");
 				gameConfig[countGames].projOffset = CN64SoundToolReader::StringHexToLong(line);
 			}
+			else if (line.Find("AbsoluteOffsets") != -1)
+			{
+				line.Replace("AbsoluteOffsets", "");
+				line.Replace(":", "");
+				gameConfig[countGames].absoluteOffsets = true;
+			}
 			else if (line.Find("PoolOffset") != -1)
 			{
 				line.Replace("PoolOffset", "");
@@ -784,6 +790,7 @@ void CN64SoundbankToolDlg::OnBnClickedButtonloadrom()
 					|| (gameConfigMidiFound.gameType.CompareNoCase("Factor5ZlbNoHeaderGCStyle") == 0)
 					)
 			{
+				bool absoluteOffsets = gameConfigBank.absoluteOffsets;
 				mComboSongId.ResetContent();
 
 				int projOffset = gameConfigBank.projOffset;
@@ -913,8 +920,7 @@ void CN64SoundbankToolDlg::OnBnClickedButtonloadrom()
 					unsigned int drumTableOff = CharArrayToLong(&proj[groupOffset + 0x20]);
 					unsigned int midiSetupsOff = CharArrayToLong(&proj[groupOffset + 0x24]);
 
-					bool absOffs = false;
-					unsigned long subDataOff = absOffs ? groupOffset : groupOffset + 8;
+					unsigned long subDataOff = absoluteOffsets ? groupOffset : groupOffset + 8;
 
 					CString typeStr;
 					if (type == 0)
@@ -930,23 +936,35 @@ void CN64SoundbankToolDlg::OnBnClickedButtonloadrom()
 					
 					if (type == 0) // Song
 					{
-						unsigned int tempPageTableOff = subDataOff + pageTableOff;
+						unsigned long tempMidiSetupData = midiSetupsOff;
+						if (!absoluteOffsets)
+							tempMidiSetupData += subDataOff;
 
-						unsigned long tempMidiSetupData = subDataOff + midiSetupsOff;
-
-						//fprintf(outProj, "\nSong Info\n");
-						while (CharArrayToLong(&proj[tempMidiSetupData]) != 0xFFFFFFFF)
+						if (absoluteOffsets)
 						{
 							int songId = CharArrayToShort(&proj[tempMidiSetupData]);
 							if (std::find(songIds.begin(), songIds.end(), songId) == songIds.end())
 								songIds.push_back(songId);
+						}
+						else
+						{
+							//fprintf(outProj, "\nSong Info\n");
+							while (CharArrayToLong(&proj[tempMidiSetupData]) != 0xFFFFFFFF)
+							{
+								int songId = CharArrayToShort(&proj[tempMidiSetupData]);
+								if (std::find(songIds.begin(), songIds.end(), songId) == songIds.end())
+									songIds.push_back(songId);
 
-							tempMidiSetupData += 8 * 16 + 4;
+								tempMidiSetupData += 8 * 16 + 4;
+							}
 						}
 					}
 
 					
-					groupOffset += groupEndOff;
+					if (absoluteOffsets)
+						groupOffset = groupEndOff;
+					else
+						groupOffset += groupEndOff;
 					groupCounter++;
 				}
 
@@ -3305,7 +3323,7 @@ void CN64SoundbankToolDlg::ParseSoundMacroList(std::vector<Factor5SoundMacro> so
 	}
 }
 
-bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vector<ALBank*> alBanks, std::vector<int> soundBankIndexes, unsigned char* buffer, int romSize, unsigned long projOffset, unsigned long poolOffset, int projSize, int poolSize, FILE* outFileDebug)
+bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vector<ALBank*> alBanks, std::vector<int> soundBankIndexes, unsigned char* buffer, int romSize, unsigned long projOffset, unsigned long poolOffset, int projSize, int poolSize, FILE* outFileDebug, bool absoluteOffsets)
 {
 	CString gameName;
 	m_game.GetWindowText(gameName);
@@ -3725,8 +3743,7 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 		unsigned int drumTableOff = CharArrayToLong(&proj[groupOffset + 0x20]);
 		unsigned int midiSetupsOff = CharArrayToLong(&proj[groupOffset + 0x24]);
 
-		bool absOffs = false;
-		unsigned long subDataOff = absOffs ? groupOffset : groupOffset + 8;
+		unsigned long subDataOff = absoluteOffsets ? groupOffset : groupOffset + 8;
 
 		CString typeStr;
 		if (type == 0)
@@ -3746,7 +3763,9 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 			std::map<int, Factor5Page> drumPages; // by program number
 			std::map<int, Factor5SongArray> songInfo; // by Song id
 
-			unsigned int tempPageTableOff = subDataOff + pageTableOff;
+			unsigned int tempPageTableOff = pageTableOff;
+			if (!absoluteOffsets)
+				tempPageTableOff += subDataOff;
 
 			//fprintf(outProj, "\nPage Info\n");
 
@@ -3766,7 +3785,9 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 				tempPageTableOff += 8;
 			}
 
-			tempPageTableOff = subDataOff + drumTableOff;
+			tempPageTableOff = drumTableOff;
+			if (!absoluteOffsets)
+				tempPageTableOff += subDataOff;
 
 			//fprintf(outProj, "\nDrum Page Info\n");
 
@@ -3786,7 +3807,9 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 				tempPageTableOff += 8;
 			}
 
-			unsigned long tempMidiSetupData = subDataOff + midiSetupsOff;
+			unsigned long tempMidiSetupData = midiSetupsOff;
+			if (!absoluteOffsets)
+				tempMidiSetupData += subDataOff;
 
 			//fprintf(outProj, "\nSong Info\n");
 			while (CharArrayToLong(&proj[tempMidiSetupData]) != 0xFFFFFFFF)
@@ -3799,12 +3822,23 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 
 				for (int y = 0; y < 16; y++)
 				{
-					songArray.songInfo[y].programNo = proj[tempMidiSetupData + 4 + (y * 8)];
-					songArray.songInfo[y].volume = proj[tempMidiSetupData + 4 + (y * 8) + 1];
-					songArray.songInfo[y].panning = proj[tempMidiSetupData + 4 + (y * 8) + 2];
-					songArray.songInfo[y].reverb = proj[tempMidiSetupData + 4 + (y * 8) + 3];
-					songArray.songInfo[y].chorus = proj[tempMidiSetupData + 4 + (y * 8) + 4];
+					if (absoluteOffsets)
+					{
+						songArray.songInfo[y].programNo = proj[tempMidiSetupData + 4 + (y * 5)];
+						songArray.songInfo[y].volume = proj[tempMidiSetupData + 4 + (y * 5) + 1];
+						songArray.songInfo[y].panning = proj[tempMidiSetupData + 4 + (y * 5) + 2];
+						songArray.songInfo[y].reverb = proj[tempMidiSetupData + 4 + (y * 5) + 3];
+						songArray.songInfo[y].chorus = proj[tempMidiSetupData + 4 + (y * 5) + 4];
+					}
+					else
+					{
+						songArray.songInfo[y].programNo = proj[tempMidiSetupData + 4 + (y * 8)];
+						songArray.songInfo[y].volume = proj[tempMidiSetupData + 4 + (y * 8) + 1];
+						songArray.songInfo[y].panning = proj[tempMidiSetupData + 4 + (y * 8) + 2];
+						songArray.songInfo[y].reverb = proj[tempMidiSetupData + 4 + (y * 8) + 3];
+						songArray.songInfo[y].chorus = proj[tempMidiSetupData + 4 + (y * 8) + 4];
 					// pad 3
+					}
 
 					//fprintf(outProj, "#%02X Program Number %02X Volume %02X Panning %02X Reverb %02X Chorus %02X\n", y, programNo, volume, panning, reverb, chorus);
 				}
@@ -3812,7 +3846,15 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 
 				songInfo[songArray.songId] = songArray;
 
-                tempMidiSetupData += 8 * 16 + 4;
+                if (absoluteOffsets)
+				{
+					tempMidiSetupData += 5 * 16 + 4;
+					break;
+				}
+				else
+				{
+					tempMidiSetupData += 8 * 16 + 4;
+				}
             }
 
 			for (map<int, Factor5SongArray>::iterator iter = songInfo.begin(); iter != songInfo.end(); iter++)
@@ -3857,7 +3899,7 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 
 					float samplingRate = (float)alBankCurrent->samplerate;
 
-					samplingRate = alBankCurrent->inst[x]->sounds[y]->wav.sampleRateNotInDefaultNintendoSpec;
+					//samplingRate = alBankCurrent->inst[x]->sounds[y]->wav.sampleRateNotInDefaultNintendoSpec;
 
 					mSamplingRate.GetWindowText(tempStr);
 					samplingRate = atoi(tempStr);
@@ -4580,10 +4622,12 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 				}
 			}
 		}
-		else // SFX
+		else if (type == 1) // SFX
 		{
 			//fprintf(outProj, "\SFX\n");
-			unsigned int tempSfxTableOff = subDataOff + sfxTableOff;
+			unsigned int tempSfxTableOff = sfxTableOff;
+			if (!absoluteOffsets)
+				tempSfxTableOff += subDataOff;
 
 			unsigned short count = CharArrayToShort(&proj[tempSfxTableOff]);
 
@@ -4601,9 +4645,15 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 				//fprintf(outProj, "%08X: Define %04X ObjectId %04X Priority %02X MaxVoices %02X Volume %02X Pan %02X Key %02X Unkn %02X\n", tempSfxTableOff + 4 + (y * 0xC), defineId, objectId, priority, maxVoices, volume, pan, key, unk);
 			}
 		}
+		else
+		{
+			break;
+		}
 
 		//fprintf(outProj, "\nSound Macros Ids\n");
-		unsigned long tempSoundMacroIdsOff = subDataOff + soundMacroIdsOff;
+		unsigned long tempSoundMacroIdsOff = soundMacroIdsOff;
+		if (!absoluteOffsets)
+			tempSoundMacroIdsOff += subDataOff;
 		while (CharArrayToShort(&proj[tempSoundMacroIdsOff]) != 0xFFFF)
 		{
 			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempSoundMacroIdsOff]));
@@ -4611,7 +4661,9 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 		}
 
 		//fprintf(outProj, "\nTables Ids\n");
-		unsigned long tempTablesIdsOff = subDataOff + tableIdsOff;
+		unsigned long tempTablesIdsOff = tableIdsOff;
+		if (!absoluteOffsets)
+			tempTablesIdsOff += subDataOff;
 		while (CharArrayToShort(&proj[tempTablesIdsOff]) != 0xFFFF)
 		{
 			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempTablesIdsOff]));
@@ -4619,7 +4671,10 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 		}
 
 		//fprintf(outProj, "\nKeymap Ids\n");
-		unsigned long tempKeymapsIdsOff = subDataOff + keymapIdsOff;
+		unsigned long tempKeymapsIdsOff = keymapIdsOff;
+		if (!absoluteOffsets)
+			tempKeymapsIdsOff += subDataOff;
+
 		while (CharArrayToShort(&proj[tempKeymapsIdsOff]) != 0xFFFF)
 		{
 			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempKeymapsIdsOff]));
@@ -4627,7 +4682,10 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 		}
 
 		//fprintf(outProj, "\nLayers Macros Ids\n");
-		unsigned long tempLayersIdsOff = subDataOff + layerIdsOff;
+		unsigned long tempLayersIdsOff = layerIdsOff;
+		if (!absoluteOffsets)
+			tempLayersIdsOff += subDataOff;
+
 		while (CharArrayToShort(&proj[tempLayersIdsOff]) != 0xFFFF)
 		{
 			//fprintf(outProj, "%04X ", CharArrayToShort(&proj[tempLayersIdsOff]));
@@ -4636,7 +4694,10 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 
 		//fprintf(outProj, "\n");
 
-		groupOffset += groupEndOff;
+		if (absoluteOffsets)
+			groupOffset = groupEndOff;
+		else
+			groupOffset += groupEndOff;
 		groupCounter++;
 	}
 
@@ -5858,7 +5919,7 @@ void CN64SoundbankToolDlg::OnBnClickedButtonpreviewmidi()
 			}
 		}
 
-		midiPlayer->SetupMidiSoundBankFactor5(songId, buffer, romSize, gameConfigBank.projOffset, gameConfigBank.poolOffset, gameConfigBank.projSize, gameConfigBank.poolSize, alBankCurrent, timeMultiplier, mHalfSamplingRate.GetCheck(), false, atoi(tempStr), gameConfigSoundFound.gameType);
+		midiPlayer->SetupMidiSoundBankFactor5(songId, buffer, romSize, gameConfigBank.projOffset, gameConfigBank.poolOffset, gameConfigBank.projSize, gameConfigBank.poolSize, alBankCurrent, timeMultiplier, mHalfSamplingRate.GetCheck(), false, atoi(tempStr), gameConfigSoundFound.gameType, gameConfigBank.absoluteOffsets);
 	}
 	else if (mUseT1SamplingRate.GetCheck())
 		midiPlayer->SetupMidiSoundBank(alBanks, timeMultiplier, mHalfSamplingRate.GetCheck(), false, atoi(tempStr), gameConfigBank.skipInstruments, combineBanks, gameConfigMidi[gameNumber].gameType, mUseT1SamplingRate.GetCheck(), soundBankSelected, t1BankList);
@@ -6728,7 +6789,7 @@ void CN64SoundbankToolDlg::OnBnClickedButtonwritedlssoundfont3()
 			FILE* outDebugFile = NULL;
 			if (mDebug.GetCheck())
 				outDebugFile = fopen(m_svFile.GetPathName() + "Debug.txt", "w");
-			WriteDLSCombinedFactor5(m_svFile.GetPathName(), alBanks, bankIndexes, buffer, romSize, gameConfigBank.projOffset, gameConfigBank.poolOffset, gameConfigBank.projSize, gameConfigBank.poolSize, outDebugFile);
+			WriteDLSCombinedFactor5(m_svFile.GetPathName(), alBanks, bankIndexes, buffer, romSize, gameConfigBank.projOffset, gameConfigBank.poolOffset, gameConfigBank.projSize, gameConfigBank.poolSize, outDebugFile, gameConfigBank.absoluteOffsets);
 			if (outDebugFile)
 			{
 				fflush(outDebugFile);
