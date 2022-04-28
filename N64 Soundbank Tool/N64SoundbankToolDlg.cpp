@@ -3669,17 +3669,6 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 		//fprintf(outPool, "\nLayers Offset\n");
 
 		unsigned long tempLayersOffset = layersOffset;
-		if (CharArrayToLong(&pool[tempLayersOffset]) == 0xFFFFFFFF)
-		{
-			int iResults = MessageBox("Warning no layer offset in pool file, cannot cross-reference instruments to samples", "Do you want to continue?", MB_YESNO);
-			if (iResults == IDNO)
-			{
-				delete [] pool;
-				delete [] proj;
-				return false;
-			}
-		}
-
 		while (CharArrayToLong(&pool[tempLayersOffset]) != 0xFFFFFFFF)
 		{
 			unsigned long size = CharArrayToLong(&pool[tempLayersOffset]);
@@ -4017,6 +4006,8 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 
 								fprintfIfDebug(outFileDebug, "\nSample Id %04X Lookup Index %04X\n", sampleId, foundSampleId);
 
+								sampleId = foundSampleId;
+
 								DLSRgn* region = instr->AddRgn();
 								DLSArt* art = region->AddArt();
 
@@ -4205,6 +4196,8 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 								}
 
 								fprintfIfDebug(outFileDebug, "\nSample Id %04X Lookup Index %04X\n", sampleId, foundSampleId);
+
+								sampleId = foundSampleId;
 
 								DLSRgn* region = instr->AddRgn();
 								DLSArt* art = region->AddArt();
