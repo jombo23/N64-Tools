@@ -31518,7 +31518,7 @@ void CMidiParse::Factor5ToMidi(byte* inputMID, int inputSize, CString outFileNam
 									songNoteInfo.noteNumber = note + currentTranspose;
 
 									
-									songNoteInfo.instrument = numberChannels;
+									songNoteInfo.instrument = currentInstrument;
 
 									songNoteInfo.velocity = velocity;
 
@@ -31588,7 +31588,7 @@ void CMidiParse::Factor5ToMidi(byte* inputMID, int inputSize, CString outFileNam
 								songNoteInfo.noteNumber = note + currentTranspose;
 
 								
-								songNoteInfo.instrument = numberChannels;
+								songNoteInfo.instrument = currentInstrument;
 
 								songNoteInfo.velocity = velocity;
 
