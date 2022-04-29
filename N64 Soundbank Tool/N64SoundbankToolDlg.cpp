@@ -3886,12 +3886,12 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 					fread(pcmData, 1, sizePcm, inPcmData);
 					fclose(inPcmData);
 
-					float samplingRate = (float)alBankCurrent->samplerate;
+					float samplingRate = (float)alBankCurrent->inst[x]->samplerate;
 
 					//samplingRate = alBankCurrent->inst[x]->sounds[y]->wav.sampleRateNotInDefaultNintendoSpec;
 
-					mSamplingRate.GetWindowText(tempStr);
-					samplingRate = atoi(tempStr);
+					//mSamplingRate.GetWindowText(tempStr);
+					//samplingRate = atoi(tempStr);
 
 					if (mHalfSamplingRate.GetCheck())
 						samplingRate /= 2.0;
