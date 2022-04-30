@@ -3917,7 +3917,7 @@ bool CN64SoundbankToolDlg::WriteDLSCombinedFactor5(CString pathNameStr, std::vec
 					{
 						if (drumPages.find(programNumber) != drumPages.end())
 						{
-							bankNumber = F_INSTRUMENT_DRUMS;
+							//bankNumber = F_INSTRUMENT_DRUMS;
 							page = &drumPages[programNumber];
 						}
 						else
