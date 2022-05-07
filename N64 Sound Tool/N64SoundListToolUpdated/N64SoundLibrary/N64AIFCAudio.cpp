@@ -3351,7 +3351,7 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 				}
 
 				CAcclaimDEANAudioDecompression acclaimDEANAudioDecompression;
-				acclaimDEANAudioDecompression.DecompressMARKSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
+				acclaimDEANAudioDecompression.DecompressMARKSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat, alBank->inst[instrument]->sounds[sound]->wav.unknown1, alBank->inst[instrument]->sounds[sound]->wav.unknown2, alBank->inst[instrument]->sounds[sound]->wav.unknown3, alBank->inst[instrument]->sounds[sound]->wav.unknown4);
 			}
 			else if (alWave->type == AL_MP3)
 			{
@@ -4681,7 +4681,7 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 				}
 
 				CAcclaimDEANAudioDecompression acclaimDEANAudioDecompression;
-				acclaimDEANAudioDecompression.DecompressMARKSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
+				acclaimDEANAudioDecompression.DecompressMARKSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat, alBank->inst[instrument]->sounds[sound]->wav.unknown1, alBank->inst[instrument]->sounds[sound]->wav.unknown2, alBank->inst[instrument]->sounds[sound]->wav.unknown3, alBank->inst[instrument]->sounds[sound]->wav.unknown4);
 			}
 			else if (alWave->type == AL_MP3)
 			{
@@ -23334,6 +23334,14 @@ ALBank* CN64AIFCAudio::ReadAudio(unsigned char* ROM, unsigned char* ctl, int ctl
 											)
 										{
 											alBank->inst[x]->sounds[y]->wav.type = AL_ACCLAIM_MARK;
+											// 0000001C turns to 0007
+											alBank->inst[x]->sounds[y]->wav.unknown1 = (((alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[0x12] << 16) | alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[0x13]) >> 2);
+											// 0004 type
+											alBank->inst[x]->sounds[y]->wav.unknown2 = alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[0xF];
+											// 0036
+											alBank->inst[x]->sounds[y]->wav.unknown3 = alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[0x10];
+											// 00F5 length
+											alBank->inst[x]->sounds[y]->wav.unknown4 = ((alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[0x14] << 16) | alBank->inst[x]->sounds[y]->wav.adpcmWave->book->predictors[0x15]);
 										}
 									}
 								}
