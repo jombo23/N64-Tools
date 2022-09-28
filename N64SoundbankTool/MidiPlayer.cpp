@@ -1557,7 +1557,7 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 									CString wavPath;
 									wavPath.Format("%sSnd%02X_%04X_%04X.wav", mainFolder, writeBank, channel, trueSound);
 
-									float sampleRate = (float)alBankInstr->samplerate;
+									float sampleRate = (float)alBankInstr->inst[sampleId]->samplerate;
 
 									//sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
 
@@ -1842,7 +1842,7 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 									CString wavPath;
 									wavPath.Format("%sSnd%02X_%04X_%04X.wav", mainFolder, writeBank, channel, trueSound);
 
-									float sampleRate = (float)alBankInstr->samplerate;
+									float sampleRate = (float)alBankInstr->inst[sampleId]->samplerate;
 
 									//sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
 
@@ -2113,7 +2113,7 @@ HRESULT CMidiPlayer::SetupMidiSoundBankFactor5(int matchSongId, unsigned char* b
 							CString wavPath;
 							wavPath.Format("%sSnd%02X_%04X_%04X.wav", mainFolder, writeBank, channel, trueSound);
 
-							float sampleRate = (float)alBankInstr->samplerate;
+							float sampleRate = (float)alBankInstr->inst[sampleId]->samplerate;
 
 							//sampleRate = alBankInstr->inst[sampleId]->sounds[0]->wav.sampleRateNotInDefaultNintendoSpec;
 

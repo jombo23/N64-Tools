@@ -319,7 +319,7 @@
 			>
 		</File>
 		<File
-			RelativePath="..\N64MidiTool\gameconfigmidi.ini"
+			RelativePath="..\N64MidiTool\Release\gameconfigmidi.ini"
 			DeploymentContent="true"
 			>
 			<FileConfiguration
@@ -333,7 +333,7 @@
 			</FileConfiguration>
 		</File>
 		<File
-			RelativePath="..\N64SoundListToolUpdated\gameconfigsound.ini"
+			RelativePath="..\N64SoundListToolUpdated\Release\gameconfigsound.ini"
 			DeploymentContent="true"
 			>
 			<FileConfiguration

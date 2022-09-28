@@ -177,7 +177,7 @@ public:
 	static PCENT PercentToUnits(double percent);
 
 	void ParseSoundMacroList(std::vector<Factor5SoundMacro> soundMacroList, std::map<int, Factor5ADSR> poolTables, int& sampleId, unsigned long& attackTime, unsigned long& decayTime, float& sustainPercentage, unsigned long& releaseTime, unsigned char& macroPan);
-	HRESULT SetupMidiSoundBankFactor5(int matchSongId, unsigned char* buffer, int romSize, unsigned long projOffset, unsigned long poolOffset, int projSize, int poolSize, ALBank* alBankInstr, float timeMultiplier, bool halfSamplingRate, bool overrideSamplingRate, int samplingRate, CString gameSoundType);
+	HRESULT SetupMidiSoundBankFactor5(int matchSongId, unsigned char* buffer, int romSize, unsigned long projOffset, unsigned long poolOffset, int projSize, int poolSize, ALBank* alBankInstr, float timeMultiplier, bool halfSamplingRate, bool overrideSamplingRate, int samplingRate, CString gameSoundType, bool absoluteOffsets);
 
 	HRESULT SetupMidiSoundBank(std::vector<ALBank*> alBanks, float timeMultiplier, bool halfSamplingRate, bool overrideSamplingRate, int samplingRate, std::vector<int> skipInstruments, bool combineBanks, CString gameMidiType, bool useT1Bank, int soundbankNumber, std::vector<t1Result> t1Results);
 	HRESULT GetNextEvent(DMUS_NOTIFICATION_PMSG& pPmsg);

@@ -30,6 +30,7 @@ struct GameConfig
 	unsigned long poolSize;
 	unsigned long sDirOffset;
 	unsigned long sDirSize;
+	bool absoluteOffsets;
 
 	GameConfig()
 	{
@@ -45,6 +46,7 @@ struct GameConfig
 		poolSize = 0;
 		sDirOffset = 0xFFFFFFFF;
 		sDirSize = 0;
+		absoluteOffsets = false;
 	}
 };
 
@@ -99,7 +101,7 @@ public:
 	afx_msg void OnBnClickedButtonwritedlssoundfont();
 	void ParseSoundMacroList(std::vector<Factor5SoundMacro> soundMacroList, std::map<int, Factor5ADSR> poolTables, int& sampleId, unsigned long& attackTime, unsigned long& decayTime, float& sustainPercentage, unsigned long& releaseTime, unsigned char& macroPan);
 	bool WriteDLS(CString pathNameStr, std::vector<ALBank*> alBanks, std::vector<int> soundBankIndexes, bool combineBanks, FILE* outFileDebug = NULL);
-	bool WriteDLSCombinedFactor5(CString pathNameStr, std::vector<ALBank*> alBanks, std::vector<int> soundBankIndexes, unsigned char* buffer, int romSize, unsigned long projOffset, unsigned long poolOffset, int projSize, int poolSize, FILE* outFileDebug = NULL);
+	bool WriteDLSCombinedFactor5(CString pathNameStr, std::vector<ALBank*> alBanks, std::vector<int> soundBankIndexes, unsigned char* buffer, int romSize, unsigned long projOffset, unsigned long poolOffset, int projSize, int poolSize, FILE* outFileDebug, bool absoluteOffsets);
 	bool WriteDLSGMBankPaperMario(CString pathNameStr, std::vector<ALBank*> alBanks, std::vector<int> soundBankIndexes, std::vector<int> instrumentIndex, std::vector<int> instrumentOffset, FILE* outFileDebug = NULL);
 	bool WriteDLSCombinedPaperMario(CString pathNameStr, std::vector<ALBank*> alBanks, std::vector<int> soundBankIndexes, unsigned char* buffer, int romSize, unsigned long percussionOffset, std::vector<int> instrumentIndex, std::vector<int> instrumentOffset, FILE* outFileDebug = NULL);
 	float Round(float value);
