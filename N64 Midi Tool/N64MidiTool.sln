@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "N64MidiTool", "N64MidiTool\N64MidiTool.vcproj", "{7A50F022-CC4A-4296-9619-FD8A70EFB456}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A890D975-802E-465C-BB83-C087D7FE8DFE} = {A890D975-802E-465C-BB83-C087D7FE8DFE}
+		{7DC83CA9-6168-4ED5-974B-B84B17443876} = {7DC83CA9-6168-4ED5-974B-B84B17443876}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "N64MidiLibrary", "N64MidiLibrary\N64MidiLibrary.vcproj", "{7DC83CA9-6168-4ED5-974B-B84B17443876}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "N64MidiToolReader", "N64MidiToolReader\N64MidiToolReader.vcproj", "{A890D975-802E-465C-BB83-C087D7FE8DFE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7DC83CA9-6168-4ED5-974B-B84B17443876} = {7DC83CA9-6168-4ED5-974B-B84B17443876}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7A50F022-CC4A-4296-9619-FD8A70EFB456}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7A50F022-CC4A-4296-9619-FD8A70EFB456}.Debug|Win32.Build.0 = Debug|Win32
+		{7A50F022-CC4A-4296-9619-FD8A70EFB456}.Release|Win32.ActiveCfg = Release|Win32
+		{7A50F022-CC4A-4296-9619-FD8A70EFB456}.Release|Win32.Build.0 = Release|Win32
+		{7DC83CA9-6168-4ED5-974B-B84B17443876}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7DC83CA9-6168-4ED5-974B-B84B17443876}.Debug|Win32.Build.0 = Debug|Win32
+		{7DC83CA9-6168-4ED5-974B-B84B17443876}.Release|Win32.ActiveCfg = Release|Win32
+		{7DC83CA9-6168-4ED5-974B-B84B17443876}.Release|Win32.Build.0 = Release|Win32
+		{A890D975-802E-465C-BB83-C087D7FE8DFE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A890D975-802E-465C-BB83-C087D7FE8DFE}.Debug|Win32.Build.0 = Debug|Win32
+		{A890D975-802E-465C-BB83-C087D7FE8DFE}.Release|Win32.ActiveCfg = Release|Win32
+		{A890D975-802E-465C-BB83-C087D7FE8DFE}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
