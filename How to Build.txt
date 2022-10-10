@@ -1,0 +1,64 @@
+## Prerequisites
+Visual Studio 2008
+Visual Studio 2008 Feature Pack
+DirectX SDK August 2006
+
+## N64MidiTool
+`1>LINK : fatal error LNK1104: cannot open file '***.obj'`
+You will get this error if you have placed your project into a path containing spaces.
+To fix this, go to Project Settings -> Configuration Properties -> Linker -> Input -> Additional Dependencies.
+Change:
+$(OutDir)\N64MidiLibrary.lib
+$(OutDir)\N64MidiToolReader.lib
+To:
+"$(OutDir)\N64MidiLibrary.lib"
+"$(OutDir)\N64MidiToolReader.lib"
+
+In the debug build, remove vld.lib.
+
+## N64SoundListTool
+`1>LINK : fatal error LNK1104: cannot open file '***.obj'`
+You will get this error if you have placed your project into a path containing spaces.
+To fix this, go to Project Settings -> Configuration Properties -> Linker -> Input -> Additional Dependencies.
+Change:
+$(OutDir)\N64SoundLibrary.lib
+$(OutDir)\N64SoundToolReader.lib
+To:
+"$(OutDir)\N64SoundLibrary.lib"
+"$(OutDir)\N64SoundToolReader.lib"
+
+## N64SoundbankTool
+N64MidiTool and N64SoundListTool must be built first.
+
+`1>***\n64-tools\n64soundbanktool\midiplayer.h(3) : fatal error C1083: Cannot open include file: 'dmusicc.h': No such file or directory`
+To fix this error, point the Additional Includes directories to the installed location of the DirectX August SDK 2006 folder.
+Go to Project Settings -> Configuration Properties -> C++ -> Additional Include Directories.
+Change:
+C:\Program Files (x86)\Microsoft DirectX SDK (August 2006)\Samples\C++\DXUT\Optional
+C:\Program Files (x86)\Microsoft DirectX SDK (August 2006)\Include
+To
+"$(DXSDK_DIR)Samples\C++\DXUT\Optional"
+"$(DXSDK_DIR)Include"
+
+`1>LINK : fatal error LNK1104: cannot open file 'dxerr9.lib'`
+Go to Project Settings -> Configuration Properties -> Linker -> General -> Additional Library Directories.
+Change:
+C:\Program Files (x86)\Microsoft DirectX SDK (August 2006)\Lib\x86
+To:
+"$(DXSDK_DIR)Lib\x86"
+
+`1>LINK : fatal error LNK1104: cannot open file 'vld.lib'`
+Go to Project Settings -> Configuration Properties -> Linker -> Input -> Additional Dependencies.
+Remove vld.lib.
+
+```1>Performing Custom Build Step
+1>Invalid number of parameters
+1>Project : error PRJ0019: A tool returned an error code from "Performing Custom Build Step"```
+This happens in Release builds if you have placed your project into a path containing spaces.
+To fix this, right-click 2 of the .ini files in the project (`gameconfigmidi.ini` and `gameconfigsound.ini`), and select Properties (while the Release configuration is active).
+Go to Configuration Properties -> Custom Build Step -> General.
+Change:
+xcopy /y $(InputPath) $(ProjectDir)
+To:
+xcopy /y "$(InputPath)" "$(ProjectDir)"
+

@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Program Files (x86)\Microsoft DirectX SDK (August 2006)\Samples\C++\DXUT\Optional&quot;;./;vgmtrans2009;&quot;C:\Program Files (x86)\Microsoft DirectX SDK (August 2006)\Include&quot;;..\N64SoundListToolUpdated\N64SoundLibrary;..\N64MidiTool\N64MidiLibrary;..\N64SoundListToolUpdated\N64SoundToolReader;..\N64MidiTool\N64MidiToolReader"
+				AdditionalIncludeDirectories="&quot;$(DXSDK_DIR)Samples\C++\DXUT\Optional&quot;;./;vgmtrans2009;&quot;$(DXSDK_DIR)Include&quot;;..\N64SoundListToolUpdated\N64SoundLibrary;..\N64MidiTool\N64MidiLibrary;..\N64SoundListToolUpdated\N64SoundToolReader;..\N64MidiTool\N64MidiToolReader"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -68,9 +68,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="N64MidiLibrary.lib N64SoundLibrary.lib N64SoundToolReader.lib N64MidiToolReader.lib dxerr9.lib dxguid.lib dsound.lib winmm.lib DXUTOpt.lib Rpcrt4.lib vld.lib"
+				AdditionalDependencies="N64MidiLibrary.lib N64SoundLibrary.lib N64SoundToolReader.lib N64MidiToolReader.lib dxerr9.lib dxguid.lib dsound.lib winmm.lib DXUTOpt.lib Rpcrt4.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;..\N64SoundListToolUpdated\$(ConfigurationName)&quot;;&quot;..\N64MidiTool\$(ConfigurationName)&quot;;&quot;C:\Program Files (x86)\Microsoft DirectX SDK (August 2006)\Lib\x86&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\lib\Win32&quot;"
+				AdditionalLibraryDirectories="&quot;..\N64SoundListToolUpdated\$(ConfigurationName)&quot;;&quot;..\N64MidiTool\$(ConfigurationName)&quot;;&quot;$(DXSDK_DIR)Lib\x86&quot;;&quot;C:\Program Files (x86)\Visual Leak Detector\lib\Win32&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -130,7 +130,7 @@
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="0"
-				AdditionalIncludeDirectories="&quot;C:\Program Files (x86)\Microsoft DirectX SDK (August 2006)\Samples\C++\DXUT\Optional&quot;;./;vgmtrans2009;&quot;C:\Program Files (x86)\Microsoft DirectX SDK (August 2006)\Include&quot;;..\N64SoundListToolUpdated\N64SoundLibrary;..\N64MidiTool\N64MidiLibrary;..\N64SoundListToolUpdated\N64SoundToolReader;..\N64MidiTool\N64MidiToolReader"
+				AdditionalIncludeDirectories="&quot;$(DXSDK_DIR)Samples\C++\DXUT\Optional&quot;;./;vgmtrans2009;&quot;$(DXSDK_DIR)Include&quot;;..\N64SoundListToolUpdated\N64SoundLibrary;..\N64MidiTool\N64MidiLibrary;..\N64SoundListToolUpdated\N64SoundToolReader;..\N64MidiTool\N64MidiToolReader"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				StringPooling="true"
 				MinimalRebuild="false"
@@ -158,7 +158,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="N64MidiLibrary.lib N64SoundLibrary.lib N64SoundToolReader.lib N64MidiToolReader.lib dxerr9.lib dxguid.lib dsound.lib winmm.lib DXUTOpt.lib Rpcrt4.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;..\N64SoundListToolUpdated\$(ConfigurationName)&quot;;&quot;..\N64MidiTool\$(ConfigurationName)&quot;;&quot;C:\Program Files (x86)\Microsoft DirectX SDK (August 2006)\Lib\x86&quot;"
+				AdditionalLibraryDirectories="&quot;..\N64SoundListToolUpdated\$(ConfigurationName)&quot;;&quot;..\N64MidiTool\$(ConfigurationName)&quot;;&quot;$(DXSDK_DIR)Lib\x86&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -327,7 +327,7 @@
 				>
 				<Tool
 					Name="VCCustomBuildTool"
-					CommandLine="xcopy /y $(InputPath) $(ProjectDir)&#x0D;&#x0A;"
+					CommandLine="xcopy /y &quot;$(InputPath)&quot; &quot;$(ProjectDir)&quot;"
 					Outputs="gameconfigmidi.ini"
 				/>
 			</FileConfiguration>
@@ -341,7 +341,7 @@
 				>
 				<Tool
 					Name="VCCustomBuildTool"
-					CommandLine="xcopy /y $(InputPath) $(ProjectDir)&#x0D;&#x0A;"
+					CommandLine="xcopy /y &quot;$(InputPath)&quot; &quot;$(ProjectDir)&quot;"
 					Outputs="gameconfigsound.ini"
 				/>
 			</FileConfiguration>
