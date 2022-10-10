@@ -24,3 +24,9 @@ N64MidiTool/Debug/N64MidiToolReader.lib
 N64MidiTool/N64MidiTool.suo
 N64SoundbankTool/gameconfigmidi.ini
 N64SoundbankTool/gameconfigsound.ini
+N64SoundListToolUpdated/Debug/N64SoundLibrary.lib
+N64SoundbankTool/Debug/N64SoundbankTool.exe
+N64SoundListToolUpdated/Debug/N64SoundListTool.exe
+N64SoundListToolUpdated/Debug/N64SoundListToolENU.dll
+N64SoundListToolUpdated/Debug/N64SoundListToolPTB.dll
+N64SoundListToolUpdated/Debug/N64SoundToolReader.lib
