@@ -67,7 +67,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(OutDir)\N64MidiLibrary.lib $(OutDir)\N64MidiToolReader.lib vld.lib"
+				AdditionalDependencies="&quot;$(OutDir)\N64MidiLibrary.lib&quot; &quot;$(OutDir)\N64MidiToolReader.lib&quot;"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;"
 				GenerateDebugInformation="true"
@@ -149,7 +149,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="$(OutDir)\N64MidiLibrary.lib $(OutDir)\N64MidiToolReader.lib"
+				AdditionalDependencies="&quot;$(OutDir)\N64MidiLibrary.lib&quot; &quot;$(OutDir)\N64MidiToolReader.lib&quot;"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;"
 				GenerateDebugInformation="true"
