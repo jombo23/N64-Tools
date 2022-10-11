@@ -432,7 +432,7 @@ bool CMORTDecoder::Decode(unsigned char* ROM, int romSize, unsigned long address
 				//80044F98
 				A0 = variable800FCEDCPredictorPointer800D2940;
 				//80044F9C
-				Function80045780(ROM, A0);
+				Function80045780(ROM, A0, started);
 
 				//80044FA4
 				T8 = 0x800FCEDC;//44(SP);
@@ -1064,8 +1064,8 @@ label80045424:
 
 		if (!started)
 		{
-			if (variable800D4F11Status2 == 1)
-				started = true;
+			//if (variable800D4F11Status2 == 1)
+				//started = true;
 		}
 		else
 		{
@@ -1109,7 +1109,7 @@ label80045424:
 }
 
 // TWINE 8009D5D4
-void CMORTDecoder::Function80045780(unsigned char* ROM, unsigned long A0Param)
+void CMORTDecoder::Function80045780(unsigned char* ROM, unsigned long A0Param, bool& started)
 {
 	unsigned long AT = 0;
 	unsigned long A0 = A0Param;
@@ -1457,6 +1457,7 @@ label800459AC:
 		{
 			// Start playing
 			variable800D4F11Status2 = (unsigned char)T5; // 2
+			started = true;
 		}
 	}
 }
