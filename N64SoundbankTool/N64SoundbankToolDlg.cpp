@@ -1433,6 +1433,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 						unsigned char keyBase = 0x3C;
 						signed short fineTune = 0;
 						float keybaseFloat = 1.0;
+						bool usedFloatKeybase = false;
 						if (
 							(alBankCurrent->soundBankFormat == STANDARDFORMAT)
 							|| (alBankCurrent->soundBankFormat == CONKERFORMAT)
@@ -1491,6 +1492,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 						{
 							keybaseFloat = *reinterpret_cast<float*> (&alBankCurrent->inst[x]->sounds[y]->floatKeyBase);
 							keyBase = n64audio.ConvertEADGameValueToKeyBase(keybaseFloat);
+							usedFloatKeybase = true;
 						}
 						else if (
 								(alBankCurrent->soundBankFormat == MUSYX)
@@ -1533,7 +1535,12 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 						}
 
 						wsmp->SetPitchInfo(keyBase, fineTune, volumeAttenuation);
-						fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+						if ( usedFloatKeybase ) {
+							fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+						}
+						else {
+							fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X\n", keyBase, fineTune, volumeAttenuation);
+						}
 						wsmp->cSampleLoops = cSampleLoops;
 						wsmp->ulLoopType = ulLoopType;
 						wsmp->ulLoopStart = ulLoopStart;
@@ -1752,6 +1759,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 							unsigned char keyBase = 0x3C;
 							signed short fineTune = 0;
 							float keybaseFloat = 1.0f;
+							bool usedFloatKeybase = false;
 							if (
 									(alBankCurrent->soundBankFormat == SUPERMARIO64FORMAT)
 									|| (alBankCurrent->soundBankFormat == ZELDAFORMAT)
@@ -1760,9 +1768,15 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 							{
 								keybaseFloat = *reinterpret_cast<float*> (&alBankCurrent->inst[x]->sounds[y]->floatKeyBasePrev);
 								keyBase = n64audio.ConvertEADGameValueToKeyBase(keybaseFloat);
+								usedFloatKeybase = true;
 							}
 
-							fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+							if ( usedFloatKeybase ) {
+								fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+							}
+							else {
+								fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X\n", keyBase, fineTune, volumeAttenuation);
+							}
 
 							wsmp->SetPitchInfo(keyBase, fineTune, volumeAttenuation);
 							wsmp->cSampleLoops = cSampleLoops;
@@ -1961,6 +1975,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 							unsigned char keyBase = 0x3C;
 							signed short fineTune = 0;
 							float keybaseFloat = 1.0f;
+							bool usedFloatKeybase = false;
 							if (
 									(alBankCurrent->soundBankFormat == SUPERMARIO64FORMAT)
 									|| (alBankCurrent->soundBankFormat == ZELDAFORMAT)
@@ -1969,9 +1984,15 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 							{
 								keybaseFloat = *reinterpret_cast<float*> (&alBankCurrent->inst[x]->sounds[y]->floatKeyBaseSec);
 								keyBase = n64audio.ConvertEADGameValueToKeyBase(keybaseFloat);
+								usedFloatKeybase = true;
 							}
 
-							fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+							if ( usedFloatKeybase ) {
+								fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+							}
+							else {
+								fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X\n", keyBase, fineTune, volumeAttenuation);
+							}
 
 							wsmp->SetPitchInfo(keyBase, fineTune, volumeAttenuation);
 							wsmp->cSampleLoops = cSampleLoops;
@@ -2292,6 +2313,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 							unsigned char keyBase = 0x3C;
 							signed short fineTune = 0;
 							float keybaseFloat = 1.0f;
+							bool usedFloatKeybase = false;
 							if (
 								(alBankCurrent->soundBankFormat == STANDARDFORMAT)
 								|| (alBankCurrent->soundBankFormat == CONKERFORMAT)
@@ -2341,6 +2363,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 							{
 								keybaseFloat = *reinterpret_cast<float*> (&alBankCurrent->inst[x]->sounds[y]->floatKeyBase);
 								keyBase = n64audio.ConvertEADGameValueToKeyBase(keybaseFloat);
+								usedFloatKeybase = true;
 							}
 							else if (
 									(alBankCurrent->soundBankFormat == MUSYX)
@@ -2382,7 +2405,12 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 								keyBase = alBankCurrent->inst[x]->sounds[y]->key.keybase;
 							}
 
-							fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+							if ( usedFloatKeybase ) {
+								fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+							}
+							else {
+								fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X\n", keyBase, fineTune, volumeAttenuation);
+							}
 
 							wsmp->SetPitchInfo(keyBase, fineTune, volumeAttenuation);
 							wsmp->cSampleLoops = cSampleLoops;
@@ -2696,6 +2724,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 						unsigned char keyBase = 0x3C;
 						signed short fineTune = 0;
 						float keybaseFloat = 1.0f;
+						bool usedFloatKeybase = false;
 						if (
 							(alBankCurrent->soundBankFormat == STANDARDFORMAT)
 							|| (alBankCurrent->soundBankFormat == CONKERFORMAT)
@@ -2742,6 +2771,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 						{
 							keybaseFloat = *reinterpret_cast<float*> (&alBankCurrent->percussion->sounds[y]->floatKeyBase);
 							keyBase = n64audio.ConvertEADGameValueToKeyBase(keybaseFloat);
+							usedFloatKeybase = true;
 						}
 						else if (
 								(alBankCurrent->soundBankFormat == MUSYX)
@@ -2766,7 +2796,12 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 							keyBase = alBankCurrent->percussion->sounds[y]->key.keybase;
 						}
 
-						fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+						if ( usedFloatKeybase ) {
+							fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+						}
+						else {
+							fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X\n", keyBase, fineTune, volumeAttenuation);
+						}
 						wsmp->SetPitchInfo(keyBase, fineTune, volumeAttenuation);
 						wsmp->cSampleLoops = cSampleLoops;
 						wsmp->ulLoopType = ulLoopType;
@@ -2997,6 +3032,7 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 					unsigned char keyBase = 0x3C;
 					signed short fineTune = 0;
 					float keybaseFloat = 1.0f;
+					bool usedFloatKeybase = false;
 					if (
 							(alBankCurrent->soundBankFormat == SUPERMARIO64FORMAT)
 							|| (alBankCurrent->soundBankFormat == ZELDAFORMAT)
@@ -3005,9 +3041,15 @@ bool CN64SoundbankToolDlg::WriteDLS(CString pathNameStr, std::vector<ALBank*> al
 					{
 						keybaseFloat = *reinterpret_cast<float*> (&alBankCurrent->eadPercussion[y].keyBase);
 						keyBase = n64audio.ConvertEADGameValueToKeyBase(keybaseFloat);
+						usedFloatKeybase = true;
 					}
 
-					fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+					if ( usedFloatKeybase ) {
+						fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X Pitch %.17e\n", keyBase, fineTune, volumeAttenuation, keybaseFloat);
+					}
+					else {
+						fprintfIfDebug(outFileDebug, "Key Base %02X Fine Tune %04X Volume Attenuation %08X\n", keyBase, fineTune, volumeAttenuation);
+					}
 					wsmp->SetPitchInfo(keyBase, fineTune, volumeAttenuation);
 					wsmp->cSampleLoops = cSampleLoops;
 					wsmp->ulLoopType = ulLoopType;
