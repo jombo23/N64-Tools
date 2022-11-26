@@ -71,7 +71,7 @@ private:
 	unsigned long variable800FCF3CCounterIncrementVariable2;
 
 	void Function800456D0(unsigned long A0Param);
-	void Function80045780(unsigned char* ROM, unsigned long A0Param);
+	void Function80045780(unsigned char* ROM, unsigned long A0Param, bool& started);
 	void Function800459E0(unsigned long A0Param, unsigned long A1Param, unsigned long& V0);
 	void Function8005E3A0(unsigned long A1Param, unsigned long A2Param);
 	void Function80057FD0(unsigned long A0Param, unsigned long A1Param);
