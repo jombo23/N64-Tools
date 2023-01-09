@@ -20561,9 +20561,14 @@ void CMidiParse::ExportToMidi(CString gameName, unsigned char* gamebuffer, int g
 
 		GECompression gedecompress;
 		gedecompress.SetGame(MORTALKOMBAT);
-		gedecompress.SetCompressedBuffer(&gamebuffer[address], size);
+		gedecompress.SetCompressedBuffer(&gamebuffer[address], gamebufferSize - address);
 		int fileSizeUncompressed;
 		unsigned char* outputDecompressed = gedecompress.OutputDecompressedBuffer(fileSizeUncompressed, fileSizeCompressed);
+
+		/*FILE* a = fopen("C:\\temp\\a.bin", "wb");
+		fwrite(outputDecompressed, fileSizeUncompressed, 1, a);
+		fflush(a);
+		fclose(a);*/
 
 		if (outputDecompressed == NULL)
 		{
