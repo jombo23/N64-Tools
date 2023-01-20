@@ -565,7 +565,7 @@ bool CN64SoundListToolDlg::OpenROMFilename(CString filename, bool quiet)
 
 bool CN64SoundListToolDlg::OpenROMPlusDlg(CString filename)
 {
-	CFileDialog m_ldFile(TRUE, NULL, filename, OFN_HIDEREADONLY, "N64 ROM(*.v64;*.z64;*.rom;*.n64;*.u2;*.u3;*.u4;.bin)|*.v64;*.z64;*.rom;*.n64;*.u2;*.u3;*.u4;.bin|", this);
+	CFileDialog m_ldFile(TRUE, NULL, filename, OFN_HIDEREADONLY, "N64 ROM(*.v64;*.z64;*.rom;*.n64;*.u2;*.u3;*.u4;.bin:*.ndd)|*.v64;*.z64;*.rom;*.n64;*.u2;*.u3;*.u4;.bin;*.ndd|", this);
 
 	int statusFileOpen = (int) m_ldFile.DoModal();
 
@@ -8405,6 +8405,12 @@ void CN64SoundListToolDlg::OnBnClickedButtonvadpcmimport()
 					decode8 = mHalfVADPCMPrecision.GetCheck();
 				}
 
+				if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+				{
+					MessageBox("StarFox Special Sound Format unsupported");
+					return;
+				}
+
 				unsigned long samplingRate;
 				if (!n64AudioLibrary.ReplaceSoundWithWavData(alBankCurrent, instrSel, soundChoice, m_ldFile.GetPathName(), samplingRate, AL_ADPCM_WAVE, primSel, decode8, false))
 					return;
@@ -8510,6 +8516,12 @@ void CN64SoundListToolDlg::OnBnClickedButtonvadpcmimport()
 					decode8 = mHalfVADPCMPrecision.GetCheck();
 				}
 
+				if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+				{
+					MessageBox("StarFox Special Sound Format unsupported");
+					return;
+				}
+
 				unsigned long samplingRate;
 				if (!n64AudioLibrary.ReplaceEADPercussionWithWavData(alBankCurrent, percussionSel, m_ldFile.GetPathName(), samplingRate, AL_ADPCM_WAVE, decode8, false))
 					return;
@@ -8554,6 +8566,12 @@ void CN64SoundListToolDlg::OnBnClickedButtonvadpcmimport()
 				if ((alBankCurrent->soundBankFormat == ZELDAFORMAT) || (alBankCurrent->soundBankFormat == STARFOX64FORMAT))
 				{
 					decode8 = mHalfVADPCMPrecision.GetCheck();
+				}
+
+				if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+				{
+					MessageBox("StarFox Special Sound Format unsupported");
+					return;
 				}
 
 				unsigned long samplingRate;
@@ -9048,7 +9066,7 @@ void CN64SoundListToolDlg::OnFileSave()
 {
 	if (alBankCurrent != NULL)
 	{
-		CFileDialog m_svFileOutROM(FALSE, "rom", (romName + ".rom"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "N64 ROM(*.v64;*.z64;*.rom;*.n64;*.u2;*.u3;*.u4;.bin)|*.v64;*.z64;*.rom;*.n64;*.u2;*.u3;*.u4;.bin|", this);
+		CFileDialog m_svFileOutROM(FALSE, "rom", (romName + ".rom"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "N64 ROM(*.v64;*.z64;*.rom;*.n64;*.u2;*.u3;*.u4;.bin;*.ndd)|*.v64;*.z64;*.rom;*.n64;*.u2;*.u3;*.u4;.bin;*.ndd|", this);
 
 		int isFileOpened2 = m_svFileOutROM.DoModal();
 
@@ -10026,6 +10044,12 @@ void CN64SoundListToolDlg::OnBnClickedButtonimportpredictors()
 	{
 		if (percussionMode == NORMAL)
 		{
+			if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+			{
+				MessageBox("StarFox Special Sound Format unsupported");
+				return;
+			}
+
 			int instrumentSel = mInstrumentChoice.GetCurSel();
 			int soundSel = mSoundChoice.GetCurSel();
 
@@ -10060,6 +10084,12 @@ void CN64SoundListToolDlg::OnBnClickedButtonimportpredictors()
 		}
 		else if (percussionMode == PERCUSSION)
 		{
+			if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+			{
+				MessageBox("StarFox Special Sound Format unsupported");
+				return;
+			}
+
 			int soundSel = mSoundChoice.GetCurSel();
 			if (soundSel == -1)
 				return;
@@ -10089,6 +10119,18 @@ void CN64SoundListToolDlg::OnBnClickedButtonimportpredictors()
 		}
 		else if (percussionMode == EADPERCUSSION)
 		{
+			if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+			{
+				MessageBox("StarFox Special Sound Format unsupported");
+				return;
+			}
+
+			if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+			{
+				MessageBox("StarFox Special Sound Format unsupported");
+				return;
+			}
+
 			int percussionSel = mPercussionChoice.GetCurSel();
 
 			if (percussionSel == -1)
@@ -10108,6 +10150,12 @@ void CN64SoundListToolDlg::OnBnClickedButtonimportpredictors()
 		}
 		else if (percussionMode == SFX)
 		{
+			if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+			{
+				MessageBox("StarFox Special Sound Format unsupported");
+				return;
+			}
+
 			int sfxSel = mSfxChoice.GetCurSel();
 
 			if (sfxSel == -1)
@@ -10159,6 +10207,13 @@ void CN64SoundListToolDlg::OnBnClickedButtonexportpreditors()
 					primSel = PREVIOUS;
 				else if (subSoundStr == "Secondary")
 					primSel = SECONDARY;
+				
+
+				if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+				{
+					MessageBox("StarFox Special Sound Format unsupported");
+					return;
+				}
 
 				n64AudioLibrary.ExportPredictors(alBankCurrent, instrumentSel, soundSel, m_svFile.GetPathName(), primSel);
 			}
@@ -11616,6 +11671,18 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
 					}
+					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_STARFOX_SOUND)
+					{
+						mLoopCount.ShowWindow(SW_SHOW);
+						mLoopEnd.ShowWindow(SW_SHOW);
+						mLoopStart.ShowWindow(SW_SHOW);
+						mL1Text.ShowWindow(SW_SHOW);
+						mL2Text.ShowWindow(SW_SHOW);
+						mL3Text.ShowWindow(SW_SHOW);
+
+						mImportLoopPredictors.ShowWindow(SW_HIDE);
+						mExportLoopPredictors.ShowWindow(SW_HIDE);
+					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_MP3)
 					{
 						mLoopCount.ShowWindow(SW_HIDE);
@@ -12177,6 +12244,18 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
 					}
 					else if ( alBankCurrent->percussion->sounds[soundChoice]->wav.type == AL_ACCLAIM_MARK)
+					{
+						mLoopCount.ShowWindow(SW_SHOW);
+						mLoopEnd.ShowWindow(SW_SHOW);
+						mLoopStart.ShowWindow(SW_SHOW);
+						mL1Text.ShowWindow(SW_SHOW);
+						mL2Text.ShowWindow(SW_SHOW);
+						mL3Text.ShowWindow(SW_SHOW);
+
+						mImportLoopPredictors.ShowWindow(SW_HIDE);
+						mExportLoopPredictors.ShowWindow(SW_HIDE);
+					}
+					else if ( alBankCurrent->percussion->sounds[soundChoice]->wav.type == AL_STARFOX_SOUND)
 					{
 						mLoopCount.ShowWindow(SW_HIDE);
 						mLoopEnd.ShowWindow(SW_HIDE);
@@ -14257,6 +14336,12 @@ void CN64SoundListToolDlg::OnBnClickedButtonvadpcmimportsamepred()
 					decode8 = mHalfVADPCMPrecision.GetCheck();
 				}
 
+				if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+				{
+					MessageBox("StarFox Special Sound Format unsupported");
+					return;
+				}
+
 				unsigned long samplingRate;
 				if (!n64AudioLibrary.ReplaceSoundWithWavData(alBankCurrent, instrSel, soundChoice, m_ldFile.GetPathName(), samplingRate, AL_ADPCM_WAVE, primSel, decode8, true))
 					return;
@@ -14362,6 +14447,12 @@ void CN64SoundListToolDlg::OnBnClickedButtonvadpcmimportsamepred()
 					decode8 = mHalfVADPCMPrecision.GetCheck();
 				}
 
+				if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+				{
+					MessageBox("StarFox Special Sound Format unsupported");
+					return;
+				}
+
 				unsigned long samplingRate;
 				if (!n64AudioLibrary.ReplaceEADPercussionWithWavData(alBankCurrent, percussionSel, m_ldFile.GetPathName(), samplingRate, AL_ADPCM_WAVE, decode8, true))
 					return;
@@ -14406,6 +14497,12 @@ void CN64SoundListToolDlg::OnBnClickedButtonvadpcmimportsamepred()
 				if ((alBankCurrent->soundBankFormat == ZELDAFORMAT) || (alBankCurrent->soundBankFormat == STARFOX64FORMAT))
 				{
 					decode8 = mHalfVADPCMPrecision.GetCheck();
+				}
+
+				if ((alBankCurrent->soundBankFormat == STARFOX64FORMAT) && mCheckRaw.GetCheck())
+				{
+					MessageBox("StarFox Special Sound Format unsupported");
+					return;
 				}
 
 				unsigned long samplingRate;

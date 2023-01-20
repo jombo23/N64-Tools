@@ -19,6 +19,7 @@
 #include "..\N64SoundLibrary\WDCAudioDecompression.h"
 #include "..\N64SoundLibrary\AcclaimDEANAudioDecompression.h"
 #include "..\N64SoundLibrary\DecompressClayfighter.h"
+#include "..\N64SoundLibrary\StarFox64AudioDecompression.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -641,10 +642,10 @@ bool CN64AIFCAudio::ExtractEADPercussion(ALBank* alBank, int sound, CString outp
 			wavHeader[0x15] = 0x00;
 			wavHeader[0x16] = 0x01;
 			wavHeader[0x17] = 0x00;
-			wavHeader[0x18] = ((samplingRate >> 0) & 0xFF);
-			wavHeader[0x19] = ((samplingRate >> 8) & 0xFF);
-			wavHeader[0x1A] = ((samplingRate >> 16) & 0xFF);
-			wavHeader[0x1B] = ((samplingRate >> 24) & 0xFF);
+			wavHeader[0x18] = (((unsigned long)samplingRateFloat >> 0) & 0xFF);
+			wavHeader[0x19] = (((unsigned long)samplingRateFloat >> 8) & 0xFF);
+			wavHeader[0x1A] = (((unsigned long)samplingRateFloat >> 16) & 0xFF);
+			wavHeader[0x1B] = (((unsigned long)samplingRateFloat >> 24) & 0xFF);
 			wavHeader[0x1C] = ((((unsigned long)samplingRateFloat * 2) >> 0) & 0xFF);
 			wavHeader[0x1D] = ((((unsigned long)samplingRateFloat * 2) >> 8) & 0xFF);
 			wavHeader[0x1E] = ((((unsigned long)samplingRateFloat * 2) >> 16) & 0xFF);
@@ -1436,10 +1437,10 @@ bool CN64AIFCAudio::ExtractSfx(ALBank* alBank, int sound, CString outputFile, un
 				wavHeader[0x15] = 0x00;
 				wavHeader[0x16] = 0x01;
 				wavHeader[0x17] = 0x00;
-				wavHeader[0x18] = ((samplingRate >> 0) & 0xFF);
-				wavHeader[0x19] = ((samplingRate >> 8) & 0xFF);
-				wavHeader[0x1A] = ((samplingRate >> 16) & 0xFF);
-				wavHeader[0x1B] = ((samplingRate >> 24) & 0xFF);
+				wavHeader[0x18] = (((unsigned long)samplingRateFloat >> 0) & 0xFF);
+				wavHeader[0x19] = (((unsigned long)samplingRateFloat >> 8) & 0xFF);
+				wavHeader[0x1A] = (((unsigned long)samplingRateFloat >> 16) & 0xFF);
+				wavHeader[0x1B] = (((unsigned long)samplingRateFloat >> 24) & 0xFF);
 				wavHeader[0x1C] = ((((unsigned long)samplingRateFloat * 2) >> 0) & 0xFF);
 				wavHeader[0x1D] = ((((unsigned long)samplingRateFloat * 2) >> 8) & 0xFF);
 				wavHeader[0x1E] = ((((unsigned long)samplingRateFloat * 2) >> 16) & 0xFF);
@@ -2403,6 +2404,19 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 
 				fclose(outFileTempRaw);
 			}
+			else if (alWave->type == AL_STARFOX_SOUND)
+			{
+				FILE* outFileTempRaw = fopen(outputFile, "wb");
+				if (outFileTempRaw == NULL)
+				{
+					MessageBox(NULL, "Cannot open temporary file", "Error", NULL);
+					return false;
+				}
+
+				fwrite(alWave->wavData, 1, alWave->len, outFileTempRaw);
+
+				fclose(outFileTempRaw);
+			}
 			else if (alWave->type == AL_MP3)
 			{
 				FILE* outFileTempRaw = fopen(outputFile, "wb");
@@ -3352,6 +3366,16 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 
 				CAcclaimDEANAudioDecompression acclaimDEANAudioDecompression;
 				acclaimDEANAudioDecompression.DecompressMARKSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat, alBank->inst[instrument]->sounds[sound]->wav.unknown1, alBank->inst[instrument]->sounds[sound]->wav.unknown2, alBank->inst[instrument]->sounds[sound]->wav.unknown3, alBank->inst[instrument]->sounds[sound]->wav.unknown4);
+			}
+			else if (alWave->type == AL_STARFOX_SOUND)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CStarFox64AudioDecompression starFox64AudioDecompression;
+				starFox64AudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_MP3)
 			{
@@ -4682,6 +4706,16 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 
 				CAcclaimDEANAudioDecompression acclaimDEANAudioDecompression;
 				acclaimDEANAudioDecompression.DecompressMARKSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat, alBank->inst[instrument]->sounds[sound]->wav.unknown1, alBank->inst[instrument]->sounds[sound]->wav.unknown2, alBank->inst[instrument]->sounds[sound]->wav.unknown3, alBank->inst[instrument]->sounds[sound]->wav.unknown4);
+			}
+			else if (alWave->type == AL_STARFOX_SOUND)
+			{
+				if (halfSamplingRate)
+				{
+					samplingRateFloat = samplingRateFloat / 2;
+				}
+
+				CStarFox64AudioDecompression starFox64AudioDecompression;
+				starFox64AudioDecompression.DecompressSound(alBank->inst[instrument]->sounds[sound]->wav.wavData, 0, alBank->inst[instrument]->sounds[sound]->wav.len, outputFile, samplingRateFloat);
 			}
 			else if (alWave->type == AL_MP3)
 			{
@@ -10702,9 +10736,9 @@ void CN64AIFCAudio::WriteAudioZelda(unsigned char* ROM, int romSize, unsigned lo
 		}
 	}
 
-	ctl = new unsigned char[0x2000000];
-	tbl = new unsigned char[0x2000000];
-	for (int x = 0; x < 0x2000000; x++)
+	ctl = new unsigned char[0x4000000];
+	tbl = new unsigned char[0x4000000];
+	for (int x = 0; x < 0x4000000; x++)
 	{
 		ctl[x] = 0;
 		tbl[x] = 0;
@@ -20667,11 +20701,14 @@ ALBank* CN64AIFCAudio::ReadAudioStarFox(unsigned char* ctl, int ctlSize, int ctl
 							alBank->inst[x]->sounds[y]->wav.wavData[r] = tbl4[alBank->inst[x]->sounds[y]->wav.base + r];
 					}
 					
-					alBank->inst[x]->sounds[y]->wav.type = AL_ADPCM_WAVE;
+					if ((alBank->inst[x]->sounds[y]->wav.wavFlags & 0x20) == 0x20)
+						alBank->inst[x]->sounds[y]->wav.type = AL_STARFOX_SOUND;
+					else
+						alBank->inst[x]->sounds[y]->wav.type = AL_ADPCM_WAVE;
 					alBank->inst[x]->sounds[y]->wav.flags = 0;
 					// MUST PAD to 4s
 
-					if ((alBank->inst[x]->sounds[y]->wav.type == AL_ADPCM_WAVE) && ((alBank->inst[x]->sounds[y]->flags == 0x0) || (alBank->inst[x]->sounds[y]->flags == 0x1)))
+					//if ((alBank->inst[x]->sounds[y]->wav.type == AL_ADPCM_WAVE) && ((alBank->inst[x]->sounds[y]->flags == 0x0) || (alBank->inst[x]->sounds[y]->flags == 0x1)))
 					{
 						alBank->inst[x]->sounds[y]->wav.adpcmWave = new ALADPCMWaveInfo();
 						unsigned long loopOffset = CharArrayToLong(&ctl[offsetWaveTable + 0x8]);
@@ -20757,11 +20794,14 @@ ALBank* CN64AIFCAudio::ReadAudioStarFox(unsigned char* ctl, int ctlSize, int ctl
 								alBank->inst[x]->sounds[y]->wavSecondary.wavData[r] = tbl4[alBank->inst[x]->sounds[y]->wavSecondary.base + r];
 						}
 						
-						alBank->inst[x]->sounds[y]->wavSecondary.type = AL_ADPCM_WAVE;
+						if ((alBank->inst[x]->sounds[y]->wavSecondary.wavFlags & 0x20) == 0x20)
+							alBank->inst[x]->sounds[y]->wavSecondary.type = AL_STARFOX_SOUND;
+						else
+							alBank->inst[x]->sounds[y]->wavSecondary.type = AL_ADPCM_WAVE;
 						alBank->inst[x]->sounds[y]->wavSecondary.flags = 0;
 						// MUST PAD to 4s
 
-						if ((alBank->inst[x]->sounds[y]->wavSecondary.type == AL_ADPCM_WAVE) && ((alBank->inst[x]->sounds[y]->flags == 0x0) || (alBank->inst[x]->sounds[y]->flags == 0x1)))
+						//if ((alBank->inst[x]->sounds[y]->wavSecondary.type == AL_ADPCM_WAVE) && ((alBank->inst[x]->sounds[y]->flags == 0x0) || (alBank->inst[x]->sounds[y]->flags == 0x1)))
 						{
 							alBank->inst[x]->sounds[y]->wavSecondary.adpcmWave = new ALADPCMWaveInfo();
 							unsigned long loopOffsetSecondary = CharArrayToLong(&ctl[offsetWaveTableSecondary + 0x8]);
@@ -20847,11 +20887,14 @@ ALBank* CN64AIFCAudio::ReadAudioStarFox(unsigned char* ctl, int ctlSize, int ctl
 								alBank->inst[x]->sounds[y]->wavPrevious.wavData[r] = tbl4[alBank->inst[x]->sounds[y]->wavPrevious.base + r];
 						}
 						
-						alBank->inst[x]->sounds[y]->wavPrevious.type = AL_ADPCM_WAVE;
+						if ((alBank->inst[x]->sounds[y]->wavPrevious.wavFlags & 0x20) == 0x20)
+							alBank->inst[x]->sounds[y]->wavPrevious.type = AL_STARFOX_SOUND;
+						else
+							alBank->inst[x]->sounds[y]->wavPrevious.type = AL_ADPCM_WAVE;
 						alBank->inst[x]->sounds[y]->wavPrevious.flags = 0;
 						// MUST PAD to 4s
 
-						if ((alBank->inst[x]->sounds[y]->wavPrevious.type == AL_ADPCM_WAVE) && ((alBank->inst[x]->sounds[y]->flags == 0x0) || (alBank->inst[x]->sounds[y]->flags == 0x1)))
+						//if ((alBank->inst[x]->sounds[y]->wavPrevious.type == AL_ADPCM_WAVE) && ((alBank->inst[x]->sounds[y]->flags == 0x0) || (alBank->inst[x]->sounds[y]->flags == 0x1)))
 						{
 							alBank->inst[x]->sounds[y]->wavPrevious.adpcmWave = new ALADPCMWaveInfo();
 							unsigned long loopOffsetPrevious = CharArrayToLong(&ctl[offsetWaveTablePrevious + 0x8]);
@@ -20960,7 +21003,10 @@ ALBank* CN64AIFCAudio::ReadAudioStarFox(unsigned char* ctl, int ctlSize, int ctl
 						alBank->eadPercussion[percussionInNumber].wav.wavData[r] = tbl4[alBank->eadPercussion[percussionInNumber].wav.base + r];
 				}
 
-				alBank->eadPercussion[percussionInNumber].wav.type = AL_ADPCM_WAVE;
+				if ((alBank->eadPercussion[percussionInNumber].wav.wavFlags & 0x20) == 0x20)
+					alBank->eadPercussion[percussionInNumber].wav.type = AL_STARFOX_SOUND;
+				else
+					alBank->eadPercussion[percussionInNumber].wav.type = AL_ADPCM_WAVE;
 				alBank->eadPercussion[percussionInNumber].wav.flags = 0;
 
 				alBank->eadPercussion[percussionInNumber].wav.adpcmWave = new ALADPCMWaveInfo();

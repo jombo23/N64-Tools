@@ -67,10 +67,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib &quot;$(OutDir)\N64SoundLibrary.lib&quot; &quot;$(OutDir)\N64SoundToolReader.lib&quot;"
+				AdditionalDependencies="winmm.lib $(OutDir)\N64SoundLibrary.lib $(OutDir)\N64SoundToolReader.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
+				HeapReserveSize="40000000"
+				HeapCommitSize="64000"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -148,10 +150,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="winmm.lib &quot;$(OutDir)\N64SoundLibrary.lib&quot; &quot;$(OutDir)\N64SoundToolReader.lib&quot;"
+				AdditionalDependencies="winmm.lib $(OutDir)\N64SoundLibrary.lib $(OutDir)\N64SoundToolReader.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="2"
+				HeapReserveSize="40000000"
+				HeapCommitSize="64000"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				TargetMachine="1"

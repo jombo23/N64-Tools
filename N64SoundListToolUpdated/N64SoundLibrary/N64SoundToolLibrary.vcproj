@@ -281,6 +281,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\StarFox64AudioDecompression.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -472,6 +476,10 @@
 			</File>
 			<File
 				RelativePath=".\SPRallyAudioDecompression.h"
+				>
+			</File>
+			<File
+				RelativePath=".\StarFox64AudioDecompression.h"
 				>
 			</File>
 			<File
