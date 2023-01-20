@@ -163,6 +163,8 @@ BEGIN
     EDITTEXT        IDC_EDIT3,239,380,125,14,ES_AUTOHSCROLL | NOT WS_VISIBLE
     CONTROL         "Sort Textures Within Group",IDC_CHECKSORTTEXTURESWITHINGROUP,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,320,105,10
+    CONTROL         ".Obj output vertex colors in v command",IDC_CHECKOBJOUTPUTVCOLORS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,199,162,145,10
 END
 
 

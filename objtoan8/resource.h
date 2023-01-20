@@ -68,7 +68,8 @@
 #define IDC_LABELFBXEXPORTTYPE2         1058
 #define IDC_EDIT3                       1059
 #define IDC_CHECKSORTTEXTURESWITHINGROUP 1060
-#define IDC_CHECKMERGELIKEMATERIALS6    1060
+#define IDC_CHECKOBJOUTPUTVCOLROS       1061
+#define IDC_CHECKOBJOUTPUTVCOLORS       1061
 
 // Next default values for new objects
 // 

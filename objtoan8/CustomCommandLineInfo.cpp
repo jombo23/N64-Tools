@@ -429,4 +429,13 @@ void CCustomCommandLineInfo::ParseParam(const char* pszParam, BOOL bFlag, BOOL b
 	{
 		startupParameters.sortTexturesWithinGroup = false;
 	}
+
+	if (paramString.Find("+outputObjVColors") == 0)
+	{
+		startupParameters.outputObjVColors = true;
+	}
+	if (paramString.Find("-outputObjVColors") == 0)
+	{
+		startupParameters.outputObjVColors = false;
+	}
 }

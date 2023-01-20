@@ -69,4 +69,5 @@ public:
 	float fps;
 
 	bool sortTexturesWithinGroup;
+	bool outputObjVColors;
 };

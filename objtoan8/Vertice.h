@@ -11,4 +11,6 @@ public:
 	~CVertice(void);
 	
 	float3 vertex;
+	float3 vertexColor;
+	bool hasVertexColor;
 };

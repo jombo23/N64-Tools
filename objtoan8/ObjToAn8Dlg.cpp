@@ -85,6 +85,7 @@ void CObjToAn8Dlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LABELFBXEXPORTTYPE2, mFBXFPSLabel);
 	DDX_Control(pDX, IDC_EDIT3, mFBXFPS);
 	DDX_Control(pDX, IDC_CHECKSORTTEXTURESWITHINGROUP, mSortTexturesWithinGroup);
+	DDX_Control(pDX, IDC_CHECKOBJOUTPUTVCOLORS, mCheckOutputObjVColors);
 }
 
 BEGIN_MESSAGE_MAP(CObjToAn8Dlg, CDialog)
@@ -752,13 +753,43 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 		{
 			CVertice* newVertice = new CVertice();
 			
-			char* pch = strtok (currentLine," ");
-			pch = strtok (NULL, " ");
+			char* pch = strtok(currentLine, " ");
+			pch = strtok(NULL, " ");
 			newVertice->vertex.x = (atof(pch));
-			pch = strtok (NULL, " ");
+			pch = strtok(NULL, " ");
 			newVertice->vertex.y = (atof(pch));
-			pch = strtok (NULL, " ");
+			pch = strtok(NULL, " ");
 			newVertice->vertex.z = (atof(pch));
+
+			pch = strtok(NULL, " ");
+			// included color in extended spec http://paulbourke.net/dataformats/obj/colour.html
+			if (pch != NULL)
+			{
+				newVertice->vertexColor.x = (atof(pch));
+				if (newVertice->vertexColor.x > 1)
+					newVertice->vertexColor.x = 1;
+				if (newVertice->vertexColor.x < 0)
+					newVertice->vertexColor.x = 0;
+				pch = strtok(NULL, " ");
+				if (pch != NULL)
+				{
+					newVertice->vertexColor.y = (atof(pch));
+					if (newVertice->vertexColor.y > 1)
+						newVertice->vertexColor.y = 1;
+					if (newVertice->vertexColor.y < 0)
+						newVertice->vertexColor.y = 0;
+					pch = strtok(NULL, " ");
+					if (pch != NULL)
+					{
+						newVertice->vertexColor.z = (atof(pch));
+						if (newVertice->vertexColor.z > 1)
+							newVertice->vertexColor.z = 1;
+						if (newVertice->vertexColor.z < 0)
+							newVertice->vertexColor.z = 0;
+						newVertice->hasVertexColor = true;
+					}
+				}
+			}
 
 			vertices.push_back(newVertice);
 		}
@@ -1437,6 +1468,65 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 	}
 	
 	fclose(inFile);
+
+	std::vector<CGroup*>::iterator	itergroups;
+	for (itergroups = groups.begin(); itergroups != groups.end(); itergroups++)
+	{
+		CGroup* group = ((CGroup*)(*itergroups));
+
+		if (group->polygons.size() == 0)
+			continue;
+
+		std::vector<CPolygon*>::iterator	iterpolygon;
+		for (iterpolygon = group->polygons.begin(); iterpolygon != group->polygons.end(); iterpolygon++)
+		{
+			CPolygon* polygon = ((CPolygon*)(*iterpolygon));
+
+			bool allAssigned = true;
+			int countAdded = 0;
+			std::vector<CPolygonPoint*>::iterator	iterpolygonpoint;
+			for (iterpolygonpoint = polygon->polygonPoints.begin(); iterpolygonpoint != polygon->polygonPoints.end(); iterpolygonpoint++)
+			{
+				CPolygonPoint* polygonPoint = ((CPolygonPoint*)*iterpolygonpoint);
+
+				if (polygonPoint->verticeColorIndex == -1)
+				{
+					if (polygonPoint->verticeIndex < vertices.size())
+					{
+						if (vertices[polygonPoint->verticeIndex]->hasVertexColor)
+						{
+							CVerticeColor* newVerticeColor = new CVerticeColor();
+							newVerticeColor->color.r = vertices[polygonPoint->verticeIndex]->vertexColor.x * 255.0;
+							newVerticeColor->color.g = vertices[polygonPoint->verticeIndex]->vertexColor.y * 255.0;
+							newVerticeColor->color.b = vertices[polygonPoint->verticeIndex]->vertexColor.z * 255.0;
+							newVerticeColor->color.a = 255.0;
+							newVerticeColor->contains = true;
+							polygonPoint->verticeColorIndex = verticeColors.size();
+							verticeColors.push_back(newVerticeColor);
+							countAdded++;
+						}
+						else
+						{
+							allAssigned = false;
+							break;
+						}
+					}
+				}
+			}
+
+			if ((countAdded > 0) && !allAssigned) // Can't just do partial
+			{
+				for (iterpolygonpoint = polygon->polygonPoints.begin(); iterpolygonpoint != polygon->polygonPoints.end(); iterpolygonpoint++)
+				{
+					CPolygonPoint* polygonPoint = ((CPolygonPoint*)*iterpolygonpoint);
+					polygonPoint->verticeColorIndex = -1;
+				}
+
+				for (int x = 0; x < countAdded; x++)
+					verticeColors.pop_back();
+			}
+		}
+	}
 
 	if (errorString != "")
 	{
@@ -5920,7 +6010,7 @@ void CObjToAn8Dlg::WriteAssimpFile(CString outputFile, std::vector<CVerticeColor
 }
 
 void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-	bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, bool sortByTextureWithinGroup)
+	bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter, bool sortByTextureWithinGroup, bool outputObjVColors)
 {
 	CString lastGroup = "NOT A REAL GROUP";
 	FILE* outFile = fopen(outputFile, "w");
@@ -6019,12 +6109,66 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 		}
 		
 		std::vector<CVertice*>::iterator	iterPointList;
+		int vertexCounter = 0;
 		for (iterPointList = vertices.begin(); iterPointList != vertices.end(); iterPointList++)
 		{
 			CVertice* vertice = (CVertice*)*iterPointList;
 
-			CString formatVertice;
-			fprintf(outFile, "v %f %f %f\n", vertice->vertex.x, vertice->vertex.y, vertice->vertex.z);
+			if (vertice->hasVertexColor && outputObjVColors)
+			{
+				fprintf(outFile, "v %f %f %f %f %f %f\n", vertice->vertex.x, vertice->vertex.y, vertice->vertex.z, vertice->vertexColor.x, vertice->vertexColor.y, vertice->vertexColor.z);
+			}
+			else
+			{
+				if (outputObjVColors)
+				{
+					bool wroteColor = false;
+					std::vector<CGroup*>::iterator	itergroups;
+					for (itergroups = groups.begin(); itergroups != groups.end(); itergroups++)
+					{
+						CGroup* group = ((CGroup*)(*itergroups));
+
+						if (group->polygons.size() == 0)
+							continue;
+
+						std::vector<CPolygon*>::iterator	iterpolygon;
+						for (iterpolygon = group->polygons.begin(); iterpolygon != group->polygons.end(); iterpolygon++)
+						{
+							CPolygon* polygon = ((CPolygon*)(*iterpolygon));
+
+							int numPolyPointsExpected = polygon->polygonPoints.size();
+
+							if (foundVerticeColors)
+							{
+								std::vector<CPolygonPoint*>::iterator	iterpolygonpoint;
+								for (iterpolygonpoint = polygon->polygonPoints.begin(); iterpolygonpoint != polygon->polygonPoints.end(); iterpolygonpoint++)
+								{
+									CPolygonPoint* polygonPoint = ((CPolygonPoint*)*iterpolygonpoint);
+
+									if ((polygonPoint->verticeColorIndex != -1) && (polygonPoint->verticeIndex == vertexCounter))
+									{
+										if (!wroteColor)
+										{
+											fprintf(outFile, "v %f %f %f %f %f %f\n", vertice->vertex.x, vertice->vertex.y, vertice->vertex.z, verticeColors[polygonPoint->verticeColorIndex]->color.r / 255.0, verticeColors[polygonPoint->verticeColorIndex]->color.g / 255.0, verticeColors[polygonPoint->verticeColorIndex]->color.b / 255.0);
+											wroteColor = true;
+										}
+									}
+								}
+							}
+						}
+					}
+
+					if (!wroteColor)
+					{
+						fprintf(outFile, "v %f %f %f\n", vertice->vertex.x, vertice->vertex.y, vertice->vertex.z);
+					}
+				}
+				else
+				{
+					fprintf(outFile, "v %f %f %f\n", vertice->vertex.x, vertice->vertex.y, vertice->vertex.z);
+				}
+			}
+			vertexCounter++;
 		}
 
 		for (int x = 0; x < joints.size(); x++)
@@ -6057,17 +6201,20 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 			fprintf(outFile, "vn %f %f %f\n", normal->nx, normal->ny, normal->nz);
 		}
 
-		std::vector<CVerticeColor*>::iterator	iterVerticeColors;
-		for (iterVerticeColors = verticeColors.begin(); iterVerticeColors != verticeColors.end(); iterVerticeColors++)
+		if (!outputObjVColors)
 		{
-			CVerticeColor* verticeColor = (CVerticeColor*)*iterVerticeColors;
-			if (verticeColor->contains)
+			std::vector<CVerticeColor*>::iterator	iterVerticeColors;
+			for (iterVerticeColors = verticeColors.begin(); iterVerticeColors != verticeColors.end(); iterVerticeColors++)
 			{
-				fprintf(outFile, "#vcolor %f %f %f %f\n", verticeColor->color.r, verticeColor->color.g, verticeColor->color.b, verticeColor->color.a);
-			}
-			else
-			{
-				fprintf(outFile, "#vcolor null\n");
+				CVerticeColor* verticeColor = (CVerticeColor*)*iterVerticeColors;
+				if (verticeColor->contains)
+				{
+					fprintf(outFile, "#vcolor %f %f %f %f\n", verticeColor->color.r, verticeColor->color.g, verticeColor->color.b, verticeColor->color.a);
+				}
+				else
+				{
+					fprintf(outFile, "#vcolor null\n");
+				}
 			}
 		}
 
@@ -6211,7 +6358,7 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 				}
 				fprintf(outFile, "\n");
 
-				if (foundVerticeColors)
+				if (foundVerticeColors && !outputObjVColors)
 				{
 					bool wroteOnce = false;
 					
@@ -8133,7 +8280,8 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 		float scaleDiffuseFactor, float scaleAmbientFactor, float scaleSpecularFactor, float xMove, float yMove, float zMove, 
 		float scaleVerticesFactor, float texelSizeU, float texelSizeV, float scaleUVsFactor, 
 		float scaleAmbientFactorAn8Value, float scaleDiffuseFactorAn8Value, bool regexFilterCheck, CString regexFilter, 
-		CString inputFile, CString outputFile, CString replaceFile, CString fbxExportType, bool overrideSkeleton, CString overrideSkeletonFile, bool doMessageBoxes, CString jointMode, float fps, bool sortByTextureWithinGroup)
+		CString inputFile, CString outputFile, CString replaceFile, CString fbxExportType, bool overrideSkeleton, CString overrideSkeletonFile, bool doMessageBoxes, CString jointMode, float fps, bool sortByTextureWithinGroup,
+		bool outputObjVColors)
 {
 	JointType jointType = Absolute;
 	jointMode = jointMode.MakeLower();
@@ -8151,7 +8299,9 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 			MessageBox("Invalid input filename");
 		return false;
 	}
-	CString extensionInput = inputFile.Mid(inputFile.GetLength() -3, 3);
+
+	int lastDot = inputFile.ReverseFind('.');
+	CString extensionInput = inputFile.Mid(lastDot + 1);
 
 	CString inputPath = inputFile.Mid(0, (inputFile.ReverseFind('\\')+1));
 
@@ -8176,7 +8326,8 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 		return false;
 	}
 
-	CString extensionWrite = outputFile.Mid(outputFile.GetLength() -3, 3);
+	lastDot = outputFile.ReverseFind('.');
+	CString extensionWrite = outputFile.Mid(lastDot + 1);
 
 	if ((extensionWrite != "obj") && (extensionWrite != "an8") && (extensionWrite != "bvh") && (extensionWrite != "dae")
 		#ifdef FBXSDK_NEW_API
@@ -8364,7 +8515,7 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 	else if (extensionWrite.MakeLower() == "obj")
 	{
 		WriteObjFile(outputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
-			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter, sortByTextureWithinGroup);
+			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter, sortByTextureWithinGroup, outputObjVColors);
 	}
 	else if (extensionWrite.MakeLower() == "bvh")
 	{
@@ -8376,7 +8527,7 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 		WriteOwnDaeFile(outputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
 			specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter, sortByTextureWithinGroup);
 		//WriteAssimpFile(outputFile, verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations,
-			//specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter, extensionWrite.MakeLower());
+			//specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, ignoreShading, ignoreShadingPoint7, noGroups, primarySecondaryGroups, mergeHierarchicalGroupsToEnd, regexFilterCheck, regexFilter, extensionWrite.MakeLower(), sortByTextureWithinGroup);
 	}
 	#ifdef FBXSDK_NEW_API
 	else if (extensionWrite.MakeLower() == "fbx")
@@ -8512,6 +8663,8 @@ void CObjToAn8Dlg::OnBnClickedButton3()
 	if (fps < 0)
 		fps = 30;
 
+	bool outputObjVColors = mCheckOutputObjVColors.GetCheck();
+
 	PerformConversion(specialKeywordMode, mergeLikeMaterials, renameMaterials, renameGroups, stripImagePaths, 
 		roundVertices, roundVerticesTenths, roundVerticesHundredths, ignoreShading, ignoreShadingPoint7, recenterObjects, 
 		scaleVertices, noGroups, primarySecondaryGroups, useReplacementFile, fixKsKaNs, 
@@ -8521,7 +8674,7 @@ void CObjToAn8Dlg::OnBnClickedButton3()
 		scaleDiffuseFactor, scaleAmbientFactor, scaleSpecularFactor, xMove, yMove, zMove, 
 		scaleVerticesFactor, texelSizeU, texelSizeV, scaleUVsFactor, 
 		scaleAmbientFactorAn8Value, scaleDiffuseFactorAn8Value, regexFilterCheck, regexFilter,
-		inputFile, outputFile, replaceFile, fbxExportType, overrideSkeleton, overrideSkeletonFile, true, jointMode, fps, sortTexturesWithinGroup);
+		inputFile, outputFile, replaceFile, fbxExportType, overrideSkeleton, overrideSkeletonFile, true, jointMode, fps, sortTexturesWithinGroup, outputObjVColors);
 }
 
 void CObjToAn8Dlg::ReadMaterialOverridesFile(std::vector<CMaterial*>& replacementMaterialOverrides, CString replaceFile)
@@ -17031,6 +17184,22 @@ int CObjToAn8Dlg::ReturnThreeDigitsFromCharArray(char* newChar)
 		tempStr = "0" + tempStr;
 	int tempShort = ((HexToInt(tempStr.Mid(0, 1)) << 0x8) | (HexToInt(tempStr.Mid(1, 1)) << 0x4) | HexToInt(tempStr.Mid(2, 1)));
 	return tempShort;
+}
+
+
+int CObjToAn8Dlg::CharacterCount(CString csString_i, char sChar_i)
+{
+	if (csString_i.IsEmpty())
+	{
+		return 0;
+	}
+	int nFind = -1;
+	int nCount = 0;
+	while (-1 != (nFind = csString_i.Find(sChar_i, nFind + 1)))
+	{
+		nCount++;
+	}
+	return nCount;
 }
 
 bool CObjToAn8Dlg::SortPolygonGroupByTexture(CGroup* group)
