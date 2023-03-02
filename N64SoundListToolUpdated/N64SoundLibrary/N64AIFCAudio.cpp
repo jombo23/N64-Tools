@@ -21401,16 +21401,24 @@ ALBank* CN64AIFCAudio::ReadAudioMario(unsigned char* ctl, unsigned long& ctlSize
 			unsigned long percussionOffset = offsetSoundData + CharArrayToLong(&ctl[offsetInstrument+0x10]);
 			alBank->eadPercussion = new EADPercussion[alBank->countEADPercussion];
 
+			int last = 0;
+			for (int y = 0; y < alBank->countEADPercussion; y++)
+			{
+				if (CharArrayToLong(&ctl[percussionOffset+(4*y)]) != 0)
+				{
+					last = y + 1;
+				}
+			}
+			alBank->countEADPercussion = last;
+
 			for (int y = 0; y < alBank->countEADPercussion; y++)
 			{
 				alBank->eadPercussion[y].wav.type = AL_ADPCM_WAVE;
 
 				if (CharArrayToLong(&ctl[percussionOffset+(4*y)]) == 0)
 				{
-					alBank->countEADPercussion = y;
-
 					alBank->eadPercussion[y].wav.adpcmWave = NULL;
-					break;
+					continue;
 				}
 
 				unsigned long percussionItemOffset = offsetSoundData + CharArrayToLong(&ctl[percussionOffset+(4*y)]);

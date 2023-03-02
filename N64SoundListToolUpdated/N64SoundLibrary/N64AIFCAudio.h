@@ -287,6 +287,9 @@ struct EADPercussion
 
 		keyBase = 0x3C;
 		pan = 0;
+
+		for (int x = 0; x < 8; x++)
+			adsrEAD[x] = 0;
 	}
 };
 
