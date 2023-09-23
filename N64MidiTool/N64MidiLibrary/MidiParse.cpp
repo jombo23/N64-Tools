@@ -3984,7 +3984,7 @@ void CMidiParse::SngToDebugTextFile(CString gameName, unsigned long address, byt
 		unsigned long drumPointer = 0x00000000;
 
 		unsigned long instrumentPointer = CharArrayToLong(&inputMID[0x14]);
-		int totalInstruments = (inputSize - instrumentPointer) / 0x4;
+		int totalInstruments = (inputSize - instrumentPointer) / 0x2;
 
 		FILE* outFile = fopen(textFileOut, "w");
 		if (outFile == NULL)
@@ -4027,7 +4027,15 @@ void CMidiParse::SngToDebugTextFile(CString gameName, unsigned long address, byt
 
 			fprintf(outFile, "\nTrack Data\n");
 
+			/*FILE* trackDebugInstrument = fopen("C:\\temp\\a.txt", "a");
+			fprintf(trackDebugInstrument, "0x");
+			fflush(trackDebugInstrument);
+			fclose(trackDebugInstrument);*/
 			SngTrackToDebugTextFile(outFile, inputMID, trackDataPointer, trackEnd, instrumentPointer, adsrPointer, drumPointer, SngStyle::Bfx, totalInstruments);
+			/*trackDebugInstrument = fopen("C:\\temp\\a.txt", "a");
+			fprintf(trackDebugInstrument, ", //%04X\n", x);
+			fflush(trackDebugInstrument);
+			fclose(trackDebugInstrument);*/
 		}
 
 		fclose(outFile);
@@ -4802,12 +4810,20 @@ void CMidiParse::SngTrackToDebugTextFile(FILE* outFile, unsigned char* inputMID,
 					{
 						if (instrument < 0x80)
 						{
+							/*FILE* trackDebugInstrument = fopen("C:\\temp\\a.txt", "a");
+							fprintf(trackDebugInstrument, "%04X", CharArrayToShort(&inputMID[instrumentPointer + (inputMID[spot] * 2)]));
+							fflush(trackDebugInstrument);
+							fclose(trackDebugInstrument);*/
 							fprintf(outFile, " Instrument %02X (%d) (Looked up %02X)", inputMID[spot], instrument, CharArrayToShort(&inputMID[instrumentPointer + (inputMID[spot] * 2)]));
 							spot++;
 						}
 						else
 						{
-							fprintf(outFile, " Instrument %02X%02X (%d) (Looked up %02X)", inputMID[spot], inputMID[spot+1], instrument, CharArrayToShort(&inputMID[instrumentPointer + (inputMID[spot] * 2)]));
+							/*FILE* trackDebugInstrument = fopen("C:\\temp\\a.txt", "a");
+							fprintf(trackDebugInstrument, "%04X", CharArrayToShort(&inputMID[instrumentPointer + (inputMID[spot + 1] * 2)]));
+							fflush(trackDebugInstrument);
+							fclose(trackDebugInstrument);*/
+							fprintf(outFile, " Instrument %02X%02X (%d) (Looked up %02X)", inputMID[spot], inputMID[spot+1], instrument, CharArrayToShort(&inputMID[instrumentPointer + (inputMID[spot + 1] * 2)]));
 							spot += 2;
 						}
 					}
@@ -6425,7 +6441,7 @@ void CMidiParse::SngToMidi(byte* inputMID, int inputSize, CString outFileName, i
 			unsigned long trackPointer = 0x18;
 
 			unsigned long instrumentPointer = CharArrayToLong(&inputMID[0x14]);
-			int totalInstruments = (inputSize - instrumentPointer) / 0x4;
+			int totalInstruments = (inputSize - instrumentPointer) / 0x2;
 			unsigned long adsrPointer = 0x00000000;
 			unsigned long drumPointer = 0x00000000;
 
