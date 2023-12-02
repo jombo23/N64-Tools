@@ -4682,7 +4682,7 @@ void CN64SoundListToolDlg::ShowSoundBankControls()
 		mAddPercussionBank.ShowWindow(SW_HIDE);
 		mDeleteSfxBank.ShowWindow(SW_HIDE);
 		mAddSfxBank.ShowWindow(SW_HIDE);
-		m_importGroupBox.ShowWindow(SW_HIDE);
+		m_importGroupBox.ShowWindow(SW_SHOW);
 		m_addToEndGroupBox.ShowWindow(SW_HIDE);
 		m_deleteButton.ShowWindow(SW_HIDE);
 		m_miscGroupBox.ShowWindow(SW_HIDE);
@@ -4829,15 +4829,15 @@ void CN64SoundListToolDlg::ShowSoundBankControls()
 		mCheckUnknownEADFlag.ShowWindow(SW_HIDE);
 		mLabelTableIndex.ShowWindow(SW_HIDE);
 		mTableIndex.ShowWindow(SW_HIDE);
-		m_injectInPlaceButton.ShowWindow(SW_HIDE);
+		m_injectInPlaceButton.ShowWindow(SW_SHOW);
 		m_playButton.ShowWindow(SW_SHOW);
 		m_playLoopedButton.ShowWindow(SW_SHOW);
 		m_stopButton.ShowWindow(SW_SHOW);
 		m_saveButton.ShowWindow(SW_SHOW);
-		m_import16BitRaw.ShowWindow(SW_HIDE);
+		m_import16BitRaw.ShowWindow(SW_SHOW);
 		m_import16BitADPCM.ShowWindow(SW_HIDE);
 		m_import16BitADPCMSamePred.ShowWindow(SW_HIDE);
-		m_import16BitRawValues.ShowWindow(SW_HIDE);
+		m_import16BitRawValues.ShowWindow(SW_SHOW);
 		m_importPredictors.ShowWindow(SW_HIDE);
 		mImportFromSDKTools.ShowWindow(SW_HIDE);
 		m_add16BitRaw.ShowWindow(SW_HIDE);
@@ -4848,7 +4848,7 @@ void CN64SoundListToolDlg::ShowSoundBankControls()
 		mAddPercussionBank.ShowWindow(SW_HIDE);
 		mDeleteSfxBank.ShowWindow(SW_HIDE);
 		mAddSfxBank.ShowWindow(SW_HIDE);
-		m_importGroupBox.ShowWindow(SW_HIDE);
+		m_importGroupBox.ShowWindow(SW_SHOW);
 		m_addToEndGroupBox.ShowWindow(SW_HIDE);
 		m_deleteButton.ShowWindow(SW_HIDE);
 		m_miscGroupBox.ShowWindow(SW_HIDE);
@@ -8283,6 +8283,8 @@ void CN64SoundListToolDlg::OnBnClickedButton1()
 				else if (subSoundStr == "Secondary")
 					primSel = SECONDARY;
 
+				
+
 				unsigned long samplingRate;
 				if (!n64AudioLibrary.ReplaceSoundWithWavData(alBankCurrent, instrSel, soundChoice, m_ldFile.GetPathName(), samplingRate, AL_RAW16_WAVE, primSel, false, false))
 					return;
@@ -9637,6 +9639,10 @@ void CN64SoundListToolDlg::OnBnClickedInjectplace()
 			MessageBox("Sorry, no encoding yet for SN64 format");
 			return;
 		}
+		else if (alBankCurrent->soundBankFormat == MORT)
+		{
+			
+		}
 		else
 		{
 			MessageBox("Sorry, no encoding");
@@ -9668,6 +9674,27 @@ void CN64SoundListToolDlg::OnBnClickedInjectplace()
 			{
 
 			}
+		}
+		else if (alBankCurrent->soundBankFormat == MORT)
+		{
+			ctlTblResult result;
+			for (int x = 0; x < results.size(); x++)
+			{
+				if (alBanks[0] == results[x].bank)
+				{
+					result = results[x];
+					break;
+				}
+			}
+
+			if (alBankCurrent->inst[0]->sounds[0]->wav.len > result.ctlSize)
+			{
+				CString ctlError;
+				ctlError.Format("Error too big, %04X is too big for %04X", alBankCurrent->inst[0]->sounds[0]->wav.len, ctlSize);
+				MessageBox(ctlError, "Error");
+				return;
+			}
+			memcpy(&ROM[alBankCurrent->inst[0]->sounds[0]->wav.base], alBankCurrent->inst[0]->sounds[0]->wav.wavData, alBankCurrent->inst[0]->sounds[0]->wav.len);
 		}
 		else
 		{
@@ -11586,6 +11613,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_WAV)
 					{
@@ -11598,6 +11627,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_MORT_WAVE)
 					{
@@ -11610,6 +11641,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_KOBE2_WAVE)
 					{
@@ -11622,6 +11655,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_NAMCOMUSEUM)
 					{
@@ -11634,6 +11669,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_TOPGEARHYPERBIKE)
 					{
@@ -11646,6 +11683,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_ACCLAIM_DEAN)
 					{
@@ -11658,6 +11697,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_ACCLAIM_MARK)
 					{
@@ -11670,6 +11711,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_STARFOX_SOUND)
 					{
@@ -11682,6 +11725,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_MP3)
 					{
@@ -11694,6 +11739,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if (
 						(alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_EXCITEBIKE_SAM)
@@ -11712,6 +11759,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if (alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_WDC)
 					{
@@ -11724,6 +11773,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ((alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_SOUTHPARKRALLY)
 						)
@@ -11737,6 +11788,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ((alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_TWISTEDEDGESNOWBOARDING)
 						)
@@ -11750,6 +11803,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ((alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_TWISTEDEDGEMUSIC)
 						)
@@ -11763,6 +11818,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if (
 						(alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_MADDENBNKB)
@@ -11777,6 +11834,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if (
 						(alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_MADDEN64)
@@ -11791,6 +11850,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 					else if ( alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type == AL_MUSYX_WAVE)
 					{
@@ -11829,6 +11890,8 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosoundsubsound()
 
 						mImportLoopPredictors.ShowWindow(SW_HIDE);
 						mExportLoopPredictors.ShowWindow(SW_HIDE);
+						m_exportPredictors.EnableWindow(false);
+						m_importPredictors.EnableWindow(false);
 					}
 
 					CString tempStr;

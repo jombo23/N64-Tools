@@ -8187,7 +8187,28 @@ bool CN64AIFCAudio::ReplaceSoundWithWavData(ALBank*& alBank, int instrument, int
 		alWave->adpcmWave = NULL;
 	}
 
-	if (newType == AL_RAW16_WAVE)
+	if (alBank->soundBankFormat == MORT)
+	{
+		alWave->type = AL_MORT_WAVE;
+
+		delete [] alWave->wavData;
+		alWave->wavData = new unsigned char[0x100000];
+		for (int x = 0; x < 0x100000; x++)
+			alWave->wavData[x] = 0x00;
+
+		for (int x = 0; x < rawLength; x+=2)
+		{
+			unsigned char temp = wavPCMData[x+1];
+			wavPCMData[x+1] = wavPCMData[x];
+			wavPCMData[x] = temp;
+		}
+
+		CMORTDecoder mortDecoder;
+		int outputBufferSize = 0;
+		mortDecoder.Encode(wavPCMData, rawLength, alWave->wavData, outputBufferSize);
+		alWave->len = outputBufferSize;
+	}
+	else if (newType == AL_RAW16_WAVE)
 	{
 		alWave->wavFlags = (alWave->wavFlags & (0xFF ^ 0x30));
 

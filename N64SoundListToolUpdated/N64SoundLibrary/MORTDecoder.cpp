@@ -1,5 +1,6 @@
 #include "StdAfx.h"
 #include "MORTDecoder.h"
+#include <algorithm>
 
 CMORTDecoder::CMORTDecoder(void)
 {
@@ -64,19 +65,32 @@ void CMORTDecoder::WriteShortToBuffer(unsigned char* Buffer, unsigned long addre
 
 bool CMORTDecoder::Decode(unsigned char* ROM, int romSize, unsigned long address, unsigned long length, std::vector<unsigned short>& pcmSamples)
 {
+	if (outDebug != NULL)
+		fprintf(outDebug, "-----STARTING PARSING SOUND-----\n");
 	// Setup before figuring out for now
 	buffer800D2940Subtraction = 0x800D2940;
-	buffer800D2940Predictor = new unsigned char[0x190];
-	for (int x = 0; x < 0x190; x++)
-		buffer800D2940Predictor[x] = 0x00;
+	for (int x = 0; x < 0xA0; x++)
+		buffer800D2940Predictor[x] = 0x0000;
+	numberSkipResetPredictorCheck = 0; // 2-bytes buffer800D2940Predictor[0x18A]
+	numberResetPredictor = 0; // 2-bytes buffer800D2940Predictor[0x18C]
+	lastPredictorUpdateBase = 0;
+	lastSampleValue = 0;
+	for (int x = 0; x < 8; x++)
+	{
+		sampleBuffer[x] = 0;
+	}
 
+	currentSmootherPredictor = 0;
+
+	for (int x = 0; x < 8; x++)
+	{
+		smootherPredictorA[x] = 0x0000;
+		smootherPredictorB[x] = 0x0000;
+	}
 	buffer800D2AD8Subtraction = 0x800D2AD8;
-	buffer800D2AD8IntermediateValue = new unsigned char[0x1400];
 	for (int x = 0; x < 0x1400; x++)
 		buffer800D2AD8IntermediateValue[x] = 0x00;
 
-	buffer800D3ED8Subtraction = 0x800D3ED8;
-	buffer800D3ED8MORTRawInputDataBuffer = new unsigned char[0x1000];
 	for (int x = 0; x < 0x1000; x++)
 		buffer800D3ED8MORTRawInputDataBuffer[x] = 0x00;
 
@@ -94,7 +108,7 @@ bool CMORTDecoder::Decode(unsigned char* ROM, int romSize, unsigned long address
 	variable800D4EEC = 0x00000000;
 	variable800D4EF0 = 0x00000000;
 	variable800D4EF4 = 0x00000000;
-	variable800D4EFC = 0x00000000;
+	variable800D4EFCInputChunkCurrentReadBitPosition = 0x00000000;
 
 	variable800D4F00InputChunkUsed = 0x00000000;
 	variable800D4F04InputChunkAmountLeft = 0x00000000;
@@ -117,7 +131,7 @@ bool CMORTDecoder::Decode(unsigned char* ROM, int romSize, unsigned long address
 	variable800FCF04 = 0x00000000;
 
 	// Hardcoded passed in
-	variable800FCF0CVolume = 0x0000007E;
+	variable800FCF0CVolume = 0x0000007F;
 
 	// Not sure about this check
 	variable800FCF20 = 0x01;
@@ -136,10 +150,8 @@ bool CMORTDecoder::Decode(unsigned char* ROM, int romSize, unsigned long address
 	variable800FCF3CCounterIncrementVariable2 = 0x000001F8;
 
 	variable800FCEDCPredictorPointer800D2940 = 0x800D2940;
-	variable800FCEE4IntermediateValuePointer800D2AD8 = 0x800D2AD8;
 
 	variable800D2AD4ROMAddressMORTData = address;
-	variable800D2AD0PullDataPointer = 0x00000000;
 	variable800FCEFCROMMORTSoundAddress = address;
 
 	//Function called from 8003CD54 Main Loop
@@ -386,8 +398,8 @@ bool CMORTDecoder::Decode(unsigned char* ROM, int romSize, unsigned long address
 				A0 = variable800FCF3CCounterIncrementVariable2;
 				V1 = variable800FCF34CounterPlay2;
 
-				if (outDebug != NULL)
-					fprintf(outDebug, "80044F0C: A0 %08X V1 %08X\n", A0, V1);
+				//if (outDebug != NULL)
+					//fprintf(outDebug, "80044F0C: A0 %08X V1 %08X\n", A0, V1);
 
 				// T9/800FCEDC to 44(SP)
 
@@ -430,15 +442,12 @@ bool CMORTDecoder::Decode(unsigned char* ROM, int romSize, unsigned long address
 				}
 
 				//80044F98
-				A0 = variable800FCEDCPredictorPointer800D2940;
 				//80044F9C
-				Function80045780(ROM, A0, started);
+				Function80045780(ROM, started, pcmSamples);
 
 				//80044FA4
 				T8 = 0x800FCEDC;//44(SP);
-				AT = 2;
-		
-				A0 = variable800FCEDCPredictorPointer800D2940;
+
 				T3 = 0x800FCF20;
 
 				A1 = 0x1140;
@@ -454,32 +463,26 @@ bool CMORTDecoder::Decode(unsigned char* ROM, int romSize, unsigned long address
 				else
 				{
 					//80044FCC
-					A0 = variable800FCF2COutputBufferPointer800D4F20; //0(S4);
 					S2 = T9 + T3;
 
 					//80044FD0
-					Function80059120(A0, A1);
+					//Function80059120(A0, A1);
 
 					//80044FD8
 					T4 = 0x800FCEDC; //44(SP)
-					A0 = variable800FCEDCPredictorPointer800D2940; //0(T4)
 
 					//80044FDC
-					Function80045A48(A0);
-
-					T5 = 1;
+					Function80045A48();
 
 					AT = 0x80100000;
 					T6 = 0x800FCEDC; //44(SP)
 
-					variable800FCED0 = T5;
+					variable800FCED0 = 1;
 
 					if (T9 == 0)
 						variable800FCF20 = 0;
 					else
 						variable800FCF21 = 0;
-
-					A0 = variable800FCEDCPredictorPointer800D2940;
 
 					//80044FF8
 					goto label80045084;
@@ -529,7 +532,7 @@ bool CMORTDecoder::Decode(unsigned char* ROM, int romSize, unsigned long address
 						//80045038
 						if (T4 == 0)
 						{
-							Function80045A68(A0);
+							Function80045A68();
 						}
 
 						T5 = 1;
@@ -558,15 +561,9 @@ bool CMORTDecoder::Decode(unsigned char* ROM, int romSize, unsigned long address
 							variable800FCEF1MORTStatus2 = (unsigned char)T6;
 						}
 
-						A0 = variable800FCEE4IntermediateValuePointer800D2AD8;
 						A1 = 0x1400;
-
-						Function80057FD0(A0, A1);
-
-						A0 = variable800FCF2COutputBufferPointer800D4F20;
-						A1 = 0x1140;
-
-						Function80057FD0(A0, A1);
+						ClearBuffer_Function80057FD0(0x800D2AD8, A1);
+						ClearBuffer_Function80057FD0(0x800D4F20, A1);
 
 						// 8004507C
 						T8 = 0x800FCEDC; //44(SP);
@@ -576,11 +573,10 @@ bool CMORTDecoder::Decode(unsigned char* ROM, int romSize, unsigned long address
 label80045084:
 				// 80045084
 				A1 = S7;
-				Function800459E0(A0, A1, V0);
+				Function800459E0(A1, V0);
 
 				//8004508C
 				T9 = 0x800FCEDC; //44(SP)
-				T3 = variable800FCEDCPredictorPointer800D2940;
 				T4 = variable800D4F08;
 
 				//80045098
@@ -616,13 +612,14 @@ label80045084:
 					do
 					{
 						S0 = 0x800FCEE4;//0(S0)
-						T4 = variable800FCEE4IntermediateValuePointer800D2AD8;
 						//80045198 MFHI Remainder
 						T7 = V1 % S6;
 						T9 = T7 << 1;
-						T3 = T4 + T9;
+						T3 = T9;
 
-						T8 = (signed short)CharArrayToShort(&buffer800D2AD8IntermediateValue[T3 - buffer800D2AD8Subtraction]);
+						T8 = (signed short)CharArrayToShort(&buffer800D2AD8IntermediateValue[T3]);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "80045198: INTERMEDIATE VALUE READ %04X from %08X\n", (unsigned short)(T8 & 0xFFFF), T3);
 						T6 = variable800FCF04; //0(S2)
 						T7 = variable800FCF3CCounterIncrementVariable2; // 0(S3)
 
@@ -634,8 +631,6 @@ label80045084:
 						//800451B4
 						T4 = T7 + A0;
 						T9 = T4 + 1;
-
-						T5 = variable800FCF2COutputBufferPointer800D4F20;//0(S4)
 
 						//800451C0
 						A1 = S1 + 1;
@@ -656,17 +651,16 @@ label80045084:
 						T6 = T3 << 1;
 
 						V0 = (int)V0 >> 0x10;
-						T8 = T5 + T6;
+						T8 = T6;
 
 						//800451F8
-						WriteShortToBuffer(buffer800D4F20OutputBuffer, (T8 - buffer800D4F20Subtraction), (unsigned short)V0);
-						if (outDebug != NULL)
-							fprintf(outDebug, "800451F8: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T8);
-						if (started)
-							pcmSamples.push_back((unsigned short)V0);
+						WriteShortToBuffer(buffer800D4F20OutputBuffer, T8, (unsigned short)V0);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "800451F8: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T8);
+						//if (started)
+							//pcmSamples.push_back((unsigned short)V0);
 
 						T4 = variable800FCF3CCounterIncrementVariable2; // 0(S3)
-						T7 = variable800FCF2COutputBufferPointer800D4F20; // 0(S4)
 
 						//80045204
 						S1 = S1 + 4;
@@ -674,26 +668,26 @@ label80045084:
 						T3 = T9 % S5;
 						T5 = T3 << 1;
 
-						T6 = T7 + T5;
+						T6 = T5;
 						//80045220
-						WriteShortToBuffer(buffer800D4F20OutputBuffer, (T6 - buffer800D4F20Subtraction), (unsigned short)V0);
-						if (outDebug != NULL)
-							fprintf(outDebug, "80045220: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T6);
-						if (started)
-							pcmSamples.push_back((unsigned short)V0);
-						T8 = variable800FCEE4IntermediateValuePointer800D2AD8; //0(S0)
+						WriteShortToBuffer(buffer800D4F20OutputBuffer, T6, (unsigned short)V0);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "80045220: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T6);
+						//if (started)
+							//pcmSamples.push_back((unsigned short)V0);
 						T4 = T0 % S6;
 
 						//8004522C
 						T9 = T4 << 1;
 
-						T3 = T8 + T9;
+						T3 = T9;
 						
 						//80045234
-						T7 = (signed short)CharArrayToShort(&buffer800D2AD8IntermediateValue[T3 - buffer800D2AD8Subtraction]);
+						T7 = (signed short)CharArrayToShort(&buffer800D2AD8IntermediateValue[T3]);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "80045234: INTERMEDIATE VALUE READ %04X from %08X\n", (unsigned short)(T7 & 0xFFFF), T3);
 						T5 = variable800FCF04; //0(S2)
 						T4 = variable800FCF3CCounterIncrementVariable2; // 0(S3)
-						T6 = variable800FCF2COutputBufferPointer800D4F20; // 0(S4)
 
 						T8 = T4 + A1;
 						T9 = T8 + 1;
@@ -724,15 +718,14 @@ label80045084:
 						T5 = T3 << 1;
 						V0 = (int)V0 >> 0x10;
 
-						T7 = T6 + T5;
+						T7 = T5;
 						//8004528C
-						WriteShortToBuffer(buffer800D4F20OutputBuffer, (T7 - buffer800D4F20Subtraction), (unsigned short)V0);
-						if (outDebug != NULL)
-							fprintf(outDebug, "8004528C: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T7);
-						if (started)
-							pcmSamples.push_back((unsigned short)V0);
+						WriteShortToBuffer(buffer800D4F20OutputBuffer, T7, (unsigned short)V0);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "8004528C: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T7);
+						//if (started)
+							//pcmSamples.push_back((unsigned short)V0);
 						T8 = variable800FCF3CCounterIncrementVariable2; // 0(S3)
-						T4 = variable800FCF2COutputBufferPointer800D4F20; // 0(S4)
 
 						if (S5 == 0)
 						{
@@ -744,26 +737,26 @@ label80045084:
 						T9 = T8 + A1;
 						T3 = T9 % S5;
 						T6 = T3 << 1;
-						T5 = T4 + T6;
+						T5 = T6;
 						
 						//800452BC
-						WriteShortToBuffer(buffer800D4F20OutputBuffer, (T5 - buffer800D4F20Subtraction), (unsigned short)V0);
-						if (outDebug != NULL)
-							fprintf(outDebug, "800452BC: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T5);
-						if (started)
-							pcmSamples.push_back((unsigned short)V0);
+						WriteShortToBuffer(buffer800D4F20OutputBuffer, T5, (unsigned short)V0);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "800452BC: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T5);
+						//if (started)
+							//pcmSamples.push_back((unsigned short)V0);
 						
-						T7 = variable800FCEE4IntermediateValuePointer800D2AD8; //0(S0)
 						T8 = T1 % S6;
 
 						//800452C8
 						T9 = T8 << 1;
-						T3 = T7 + T9;
+						T3 = T9;
 
-						T4 = (signed short)CharArrayToShort(&buffer800D2AD8IntermediateValue[T3 - buffer800D2AD8Subtraction]);
+						T4 = (signed short)CharArrayToShort(&buffer800D2AD8IntermediateValue[T3]);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "800452C8: INTERMEDIATE VALUE READ %04X from %08X\n", (unsigned short)(T4 & 0xFFFF), T3);
 						T6 = variable800FCF04; //0(S2)
 						T8 = variable800FCF3CCounterIncrementVariable2; // 0(S3)
-						T5 = variable800FCF2COutputBufferPointer800D4F20; // 0(S4)
 
 						T7 = T8 + A2;
 						T9 = T7 + 1;
@@ -792,16 +785,15 @@ label80045084:
 
 						T6 = T3 << 1;
 						V0 = (int)V0 >> 0x10;
-						T4 = T5 + T6;
+						T4 = T6;
 
 						//80045328
-						WriteShortToBuffer(buffer800D4F20OutputBuffer, (T4 - buffer800D4F20Subtraction), (unsigned short)V0);
-						if (outDebug != NULL)
-							fprintf(outDebug, "80045328: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T4);
-						if (started)
-							pcmSamples.push_back((unsigned short)V0);
+						WriteShortToBuffer(buffer800D4F20OutputBuffer, T4, (unsigned short)V0);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "80045328: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T4);
+						//if (started)
+							//pcmSamples.push_back((unsigned short)V0);
 						T7= variable800FCF3CCounterIncrementVariable2; // 0(S3)
-						T8 = variable800FCF2COutputBufferPointer800D4F20; // 0(S4)
 			
 						if (S5 == 0)
 						{
@@ -814,25 +806,25 @@ label80045084:
 						T3 = T9 % S5;
 
 						T5 = T3 << 1;
-						T6 = T8 + T5;
+						T6 = T5;
 						
 						//80045358
-						WriteShortToBuffer(buffer800D4F20OutputBuffer, (T6 - buffer800D4F20Subtraction), (unsigned short)V0);
-						if (outDebug != NULL)
-							fprintf(outDebug, "80045358: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T6);
-						if (started)
-							pcmSamples.push_back((unsigned short)V0);
-						T4 = variable800FCEE4IntermediateValuePointer800D2AD8; //0(S0)
+						WriteShortToBuffer(buffer800D4F20OutputBuffer, T6, (unsigned short)V0);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "80045358: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T6);
+						//if (started)
+							//pcmSamples.push_back((unsigned short)V0);
 						T7 = T2 % S6;
 
 						//80045364
 						T9 = T7 << 1;
-						T3 = T4 + T9;
+						T3 = T9;
 
-						T8 = (signed short)CharArrayToShort(&buffer800D2AD8IntermediateValue[T3 - buffer800D2AD8Subtraction]);
+						T8 = (signed short)CharArrayToShort(&buffer800D2AD8IntermediateValue[T3]);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "80045364: INTERMEDIATE VALUE READ %04X from %08X\n", (unsigned short)(T8 & 0xFFFF), T3);
 						T5 = variable800FCF04; //0(S2)
 						T7 = variable800FCF3CCounterIncrementVariable2; // 0(S3)
-						T6 = variable800FCF2COutputBufferPointer800D4F20; // 0(S4)
 
 						//8004537C
 						tempRegister = T5 * T8;
@@ -862,18 +854,17 @@ label80045084:
 
 						T5 = T3 << 1;
 						V0 = (int)V0 >> 0x10;
-						T8 = T6 + T5;
+						T8 = T5;
 
 						//800453C4
-						WriteShortToBuffer(buffer800D4F20OutputBuffer, (T8 - buffer800D4F20Subtraction), (unsigned short)V0);
-						if (outDebug != NULL)
-							fprintf(outDebug, "800453C4: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T8);
-						if (started)
-							pcmSamples.push_back((unsigned short)V0);
+						WriteShortToBuffer(buffer800D4F20OutputBuffer, T8, (unsigned short)V0);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "800453C4: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T8);
+						//if (started)
+							//pcmSamples.push_back((unsigned short)V0);
 
 						//800453C8
 						T4 = variable800FCF3CCounterIncrementVariable2; // 0(S3)
-						T7 = variable800FCF2COutputBufferPointer800D4F20; // 0(S4)
 
 						if (S5 == 0)
 						{
@@ -892,7 +883,7 @@ label80045084:
 							return false;
 						}
 
-						T5 = T7 + T6;
+						T5 = T6;
 
 						if (S5 == 0)
 						{
@@ -901,11 +892,11 @@ label80045084:
 						}
 
 						//80045408
-						WriteShortToBuffer(buffer800D4F20OutputBuffer, (T5 - buffer800D4F20Subtraction), (unsigned short)V0);
-						if (outDebug != NULL)
-							fprintf(outDebug, "800453C4: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T5);
-						if (started)
-							pcmSamples.push_back((unsigned short)V0);
+						WriteShortToBuffer(buffer800D4F20OutputBuffer, T5, (unsigned short)V0);
+						//if (outDebug != NULL)
+							//fprintf(outDebug, "80045408: OUTPUT VALUE WRITE %04X to %08X\n", (unsigned short)(V0 & 0xFFFF), T5);
+						//if (started)
+							//pcmSamples.push_back((unsigned short)V0);
 
 						V1 = V1 + 4;
 
@@ -922,7 +913,6 @@ label80045424:
 					//80045424
 					T8 = variable800FCF3CCounterIncrementVariable2; // 0(S3)
 					T4 = S7 << 1;
-					A0 = variable800FCF2COutputBufferPointer800D4F20; // 0(S4)
 
 					T9 = T8 + T4;
 
@@ -943,7 +933,7 @@ label80045424:
 
 					//80045458
 					// Maybe this is something for output buffer to write it out for use?
-					Function80059120(A0, A1);
+					//Function80059120(A0, A1);
 
 					//80045460
 					V1 = 0x800FCEF0 + soundIndex; //5C(SP)
@@ -980,9 +970,7 @@ label80045424:
 							S0 = S8 + 4;
 
 							//800454B8
-							A0 = variable800FCEDCPredictorPointer800D2940;//0(T5);
-
-							Function800456D0(A0);
+							Function800456D0();
 
 							//800454C0
 							T3 = 0x800FCEF0 + soundIndex; //5C(SP)
@@ -1100,25 +1088,20 @@ label80045424:
 		}
 	}
 
-	delete [] buffer800D2940Predictor;
-	delete [] buffer800D2AD8IntermediateValue;
-	delete [] buffer800D3ED8MORTRawInputDataBuffer;
 	delete [] buffer800D4F20OutputBuffer;
 
 	return true;
 }
 
 // TWINE 8009D5D4
-void CMORTDecoder::Function80045780(unsigned char* ROM, unsigned long A0Param, bool& started)
+void CMORTDecoder::Function80045780(unsigned char* ROM, bool& started, std::vector<unsigned short>& pcmSamples)
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
 	unsigned long A1 = 0;
 	unsigned long A2 = 0;
 	unsigned long A3 = 0;
 	unsigned long V0 = 0;
 	unsigned long V1 = 0;
-	unsigned long S0 = 0;
 	unsigned long S1 = 0;
 	unsigned long S2 = 0;
 	unsigned long S3 = 0;
@@ -1139,11 +1122,9 @@ void CMORTDecoder::Function80045780(unsigned char* ROM, unsigned long A0Param, b
 	unsigned long T9 = 0;
 
 	T6 = variable800D4F10Status1; //25D0(A0)
-	S0 = A0; // 0x800D2940
 	S2 = variable800D4F12Status3;
 
 	//800457A4
-	A0 = A0 + 0x25A0; // TWINE 11AC
 	if (T6 != 0)
 	{
 		//800457AC
@@ -1151,7 +1132,7 @@ void CMORTDecoder::Function80045780(unsigned char* ROM, unsigned long A0Param, b
 		A2 = 0;
 
 		//800457B0
-		Function80056AD0(A0, A1, A2, V0);
+		Function80056AD0(V0);
 
 		//800457B8
 		if ((int)V0 < 0)
@@ -1171,12 +1152,12 @@ void CMORTDecoder::Function80045780(unsigned char* ROM, unsigned long A0Param, b
 			{
 				T9 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[4]);
 				if (outDebug != NULL)
-					fprintf(outDebug, "800457D4: INPUT VALUE %08X\n", T9);
+					fprintf(outDebug, "800457D4: HEADER 1 INPUT VALUE %08X\n", T9);
 				T0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[8]);
 				if (outDebug != NULL)
-					fprintf(outDebug, "800457D8: INPUT VALUE %08X\n", T0);
+					fprintf(outDebug, "800457D8: HEADER 2 INPUT VALUE %08X\n", T0);
 
-				variable800D4EFC = T2;
+				variable800D4EFCInputChunkCurrentReadBitPosition = T2;
 
 				T8 = T9 >> 0x10;
 				T1 = T0 & AT;
@@ -1262,20 +1243,17 @@ void CMORTDecoder::Function80045780(unsigned char* ROM, unsigned long A0Param, b
 				else
 				{
 					//80045898
-					T9 = variable800D2AD0PullDataPointer; //0190(S0);
 					T8 = variable800D2AD4ROMAddressMORTData; //0194(S0);
 		
 					T1 = T0 << 3;
-					A1 = S0 + T1;
+					A1 = T1;
 
 					variable800D4F10Status1 = (unsigned char)S3;
 
-					A1 = A1 + 0x1598;
-					A3 = S0 + 0x25A0;
-
 					// Index into ROM buffer
-					A0 = T8 + V1;
+					unsigned long A0 = T8 + V1;
 					
+					T9 = 0x800455DC; //variable800D2AD0PullDataPointer; //0190(S0);
 					// TWINE calls 80088F6C
 					if (T9 == 0x800455DC)
 					{
@@ -1346,26 +1324,25 @@ void CMORTDecoder::Function80045780(unsigned char* ROM, unsigned long A0Param, b
 				{
 label80045910:
 					//80045910
+					// 0x140 offset in buffers a time (modulus 0x1400, so 0x10 chunks)
 					T8 = S1 % AT;
 					T0 = T8 >> 2;
 					T1 = T0 << 3;
 
-					A1 = S0 + T1;
-					A1 = A1 + 0x198;
-					A0 = S0;
+					A1 = T1;
 
 					//80045928 // TWINE 8009D7C0
 					// Call 80045FF0 // TWINE calls 8009DF60
-					Function80045FF0(A0, A1);
+					Function80045FF0(A1, pcmSamples);
 
 					//80045930  // TWINE 8009D7C8
-					T9 = variable800D4EFC;
+					T9 = variable800D4EFCInputChunkCurrentReadBitPosition;
 					T4 = variable800D4F0C;
 					T8 = variable800D4F08;
 					T6 = variable800D4ED8Amountofsoundleft1_FirstWord; // TWINE it's T8
 
-					if (outDebug != NULL)
-						fprintf(outDebug, "80045930: T9: %08X T4: %08X T8: %08X T6: %08X\n", T9, T4, T8, T6);
+					//if (outDebug != NULL)
+						//fprintf(outDebug, "80045930: T9: %08X T4: %08X T8: %08X T6: %08X\n", T9, T4, T8, T6);
 					//80045940
 					AT = -4;
 					T2 = T9 >> 3;
@@ -1437,7 +1414,7 @@ label80045910:
 
 label800459AC:
 	/*FILE* pred = fopen("C:\\temp\\pred.bin", "wb");
-	fwrite(buffer800D2940Predictor, 1, 0x2000, pred);
+	fwrite(buffer800D2940Predictor, 2, 0xA0, pred);
 	fflush(pred);
 	fclose(pred);*/
 
@@ -1448,7 +1425,6 @@ label800459AC:
 	}
 	else
 	{
-		T5 = 2;
 		if (V1 < 0x8C0)
 		{
 			
@@ -1456,16 +1432,20 @@ label800459AC:
 		else
 		{
 			// Start playing
-			variable800D4F11Status2 = (unsigned char)T5; // 2
+			variable800D4F11Status2 = 2;
 			started = true;
+			if (outDebug != NULL)
+			{
+				fprintf(outDebug, "STARTED - SOUND NOW PLAYING!\n");
+				fflush(outDebug);
+			}
 		}
 	}
 }
 
-void CMORTDecoder::Function800459E0(unsigned long A0Param, unsigned long A1Param, unsigned long& V0)
+void CMORTDecoder::Function800459E0(unsigned long A1Param, unsigned long& V0)
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
 	unsigned long A1 = A1Param;
 	unsigned long A2 = 0;
 	unsigned long A3 = 0;
@@ -1601,10 +1581,10 @@ void CMORTDecoder::Function80059120(unsigned long A0Param, unsigned long A1Param
 	}
 }
 
-void CMORTDecoder::Function800456D0(unsigned long A0Param)
+void CMORTDecoder::Function800456D0()
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
+	unsigned long A0 = 0;
 	unsigned long A1 = 0;
 	unsigned long A2 = 0;
 	unsigned long A3 = 0;
@@ -1630,37 +1610,47 @@ void CMORTDecoder::Function800456D0(unsigned long A0Param)
 	unsigned long T8 = 0;
 	unsigned long T9 = 0;
 
-	A1 = 0x190;
 
-	Function80057FD0(A0, A1);
+	//ClearBuffer_Function80057FD0(0x800D2940, 0x140); // resets everything here
+	for (int x = 0; x < 0xA0; x++)
+		buffer800D2940Predictor[x] = 0x0000;
+	numberSkipResetPredictorCheck = 0; // 2-bytes buffer800D2940Predictor[0x18A]
+	numberResetPredictor = 0; // 2-bytes buffer800D2940Predictor[0x18C]
+	lastPredictorUpdateBase = 0;
+	lastSampleValue = 0;
+	for (int x = 0; x < 8; x++)
+	{
+		sampleBuffer[x] = 0;
+	}
+
+	currentSmootherPredictor = 0;
+
+	for (int x = 0; x < 8; x++)
+	{
+		smootherPredictorA[x] = 0x0000;
+		smootherPredictorB[x] = 0x0000;
+	}
+
+
+
 
 	//800456EC
-	A3 = variable800FCEDCPredictorPointer800D2940; //18(SP) Maybe from Function
-	T6 = 0x28;
-
-	A2 = 0x1;
-	// Why, isn't this part of buffer??
-	WriteShortToBuffer(buffer800D2940Predictor, (A3 + 0x166 - buffer800D2940Subtraction), (unsigned short)T6);
+	lastPredictorUpdateBase = (unsigned short)0x28;
 
 	T7 = 0x800455DC; //20(SP); Maybe from Function
-
-	A0 = A3 + 0x25A0;
-	A1 = A3 + 0x25B8;
-
 	//80045708
 	// Why, isn't this part of buffer??
-	//WriteLongToBuffer(buffer800D2940Predictor, (A3 + 0x190 - buffer800D2940Subtraction), T7);
-	variable800D2AD0PullDataPointer = T7;
+	//WriteLongToBuffer(buffer800D2940Predictor, 0x190), T7);
+	//variable800D2AD0PullDataPointer = T7;
 
 	T8 = variable800D2AD4ROMAddressMORTData; //1C(SP); Maybe from Function
 
 	// T8 to 194(A3)
 	variable800D2AD4ROMAddressMORTData = variable800FCEFCROMMORTSoundAddress;
 
-	Function8005E3A0(A1, A2);
+	Function8005E3A0(0x190, 0x1);
 
 	T9 = variable800D2AD4ROMAddressMORTData; //1C(SP) Maybe from Function
-	A3 = variable800FCEDCPredictorPointer800D2940; //18(SP)
 
 	V0 = 0;
 
@@ -1685,7 +1675,7 @@ void CMORTDecoder::Function800456D0(unsigned long A0Param)
 		variable800D4EDA_3E80FirstWord = (unsigned short)V0;
 		variable800D4ED8Amountofsoundleft1_FirstWord = (unsigned short)V0;
 
-		variable800D4EFC = 0;
+		variable800D4EFCInputChunkCurrentReadBitPosition = 0;
 		variable800D4F04InputChunkAmountLeft = 0;
 		variable800D4F00InputChunkUsed = 0;
 		variable800D4F0C = 0;
@@ -1695,7 +1685,7 @@ void CMORTDecoder::Function800456D0(unsigned long A0Param)
 	}
 }
 
-void CMORTDecoder::Function80057FD0(unsigned long A0Param, unsigned long A1Param)
+void CMORTDecoder::ClearBuffer_Function80057FD0(unsigned long A0Param, unsigned long A1Param)
 {
 	unsigned long AT = 0;
 	unsigned long A0 = A0Param;
@@ -1727,18 +1717,14 @@ void CMORTDecoder::Function80057FD0(unsigned long A0Param, unsigned long A1Param
 	// I think just clears out buffers to 00
 	for (unsigned long x = 0; x < A1; x++)
 	{
-		if ((A0 >= 0x800D2940) && (A0 < 0x800D2AD0))
-		{
-			// Predictors
-			buffer800D2940Predictor[A0 + x - buffer800D2940Subtraction] = 0;
-		}
-		else if ((A0 >= 0x800D2AD8) && (A0 < 0x800D3ED8))
+		if ((A0 >= 0x800D2AD8) && (A0 < 0x800D3ED8)) // 0x1400 sized buffer
 		{
 			// Intermediate Value
 			buffer800D2AD8IntermediateValue[A0 + x - buffer800D2AD8Subtraction] = 0;
 		}
-		else if (A0 == 0x800D4F20)
+		else if ((A0 >= 0x800D4F20) && (A0 < 0x800D6320)) // 0x1400 sized offset
 		{
+			// Output Buffer
 			buffer800D4F20OutputBuffer[A0 + x - buffer800D4F20Subtraction] = 0;
 		}
 		else
@@ -1790,7 +1776,7 @@ void CMORTDecoder::Function8005E3A0(unsigned long A1Param, unsigned long A2Param
 
 void CMORTDecoder::Function800455DC(unsigned char* ROM, unsigned long A0Param, unsigned long A1Param, unsigned long A2Param)
 {
-	memcpy(&buffer800D3ED8MORTRawInputDataBuffer[A1Param - buffer800D3ED8Subtraction], &ROM[A0Param], A2Param);
+	memcpy(&buffer800D3ED8MORTRawInputDataBuffer[A1Param], &ROM[A0Param], A2Param);
 	return;
 
 	unsigned long AT = 0;
@@ -1980,12 +1966,12 @@ void CMORTDecoder::Function8005E0F0()
 
 }
 
-void CMORTDecoder::Function80056AD0(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long& V0)
+void CMORTDecoder::Function80056AD0(unsigned long& V0)
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
-	unsigned long A1 = A1Param;
-	unsigned long A2 = A2Param;
+	unsigned long A0 = 0;
+	unsigned long A1 = 0;
+	unsigned long A2 = 0;
 	unsigned long A3 = 0;
 	unsigned long V1 = 0;
 	unsigned long S0 = 0;
@@ -2029,12 +2015,312 @@ void CMORTDecoder::Function80062A90(unsigned long& V0)
 	// Not sure, some kind of DMA thing
 }
 
+unsigned long CMORTDecoder::ReadBitsFrom80045FF0Buffer(int numberBits, unsigned char* buffer800D3ED8MORTRawInputDataBuffer, unsigned long& currentInputData, unsigned long& bitsleft, unsigned long& currentOverallBitPosition)
+{
+	if ((int)bitsleft >= (numberBits + 1))
+	{
+		unsigned long bitmask = (unsigned long)1 << numberBits;
+		bitmask = bitmask - 1;
+
+		unsigned long returnValue = (currentInputData & bitmask);
+		currentInputData = currentInputData >> numberBits;
+		bitsleft = bitsleft - numberBits;
+		return (unsigned short)returnValue;
+	}
+	else
+	{
+		unsigned long T6 = (unsigned long)1 << bitsleft;
+		unsigned long T9 = T6 - 1;
+		currentOverallBitPosition = currentOverallBitPosition + 0x20;
+		unsigned long T8 = currentOverallBitPosition >> 5;
+		T6 = T8 & 0x3FF;
+		unsigned long T7 = T9 & currentInputData;
+		T9 = T6 << 2;
+		T8 = T9;
+		unsigned long returnValue = (unsigned short)T7;
+		unsigned long T4 = numberBits;
+
+		//8004625C
+		currentInputData = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8]);
+		if (outDebug != NULL)
+			fprintf(outDebug, "8004625C: INPUT VALUE %08X\n", currentInputData);
+
+		if (bitsleft != T4)
+		{
+			//80046268
+			T6 = T4 - bitsleft;
+			T9 = 1;
+			T8 = T9 << T6;
+			T9 = T8 - 1;
+			T6 = currentInputData & T9;
+			T8 = T6 << bitsleft;
+			T6 = T7;
+			T7 = T6 | T8;
+			returnValue = (unsigned short)T7;
+		}
+
+		//8004628C
+		T9 = T4 - bitsleft;
+		currentInputData = currentInputData >> T9;
+		bitsleft = bitsleft + (0x20 - numberBits);
+
+		return returnValue;
+	}
+}
+
 //TWINE 8009DF60
-void CMORTDecoder::Function80045FF0(unsigned long A0Param, unsigned long A1Param)
+void CMORTDecoder::Function80045FF0(unsigned long currentIntermediateValueOffset, std::vector<unsigned short>& pcmSamples)
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
-	unsigned long A1 = A1Param;
+	unsigned long A0 = 0;
+	unsigned long A2 = 0;
+	unsigned long A3 = 0;
+	unsigned long S1 = 0;
+	unsigned long S2 = 0;
+	unsigned long S3 = 0;
+	unsigned long S4 = 0;
+	unsigned long S5 = 0;
+	unsigned long S6 = 0;
+	unsigned long S7 = 0;
+	unsigned long S8 = 0;
+	unsigned long T1 = 0;
+	unsigned long T2 = 0;
+	unsigned long T3 = 0;
+	unsigned long T4 = 0;
+	unsigned long T5 = 0;
+	unsigned long T6 = 0;
+	unsigned long T7 = 0;
+	unsigned long T8 = 0;
+	unsigned long T9 = 0;
+
+	//800AA3E0
+	unsigned short shortsSP60[4][0xD];
+	for (int y = 0; y < 4; y++)
+	{
+		for (int x = 0; x < 0xD; x++)
+		{
+			shortsSP60[y][x] = 0x0000;
+		}
+	}
+	unsigned short shortsSPC8[0x4];
+	unsigned short shortsSPD0[0x4];
+	unsigned short stackBuffer2Offsets[0x4];
+	unsigned short shortsSPE0[0x4];
+	for (int x = 0; x < 0x4; x++)
+	{
+		shortsSPC8[x] = 0x0000;
+		shortsSPD0[x] = 0x0000;
+		stackBuffer2Offsets[x] = 0x0000;
+		shortsSPE0[x] = 0x0000;
+	}
+
+	unsigned short shortsSPE8[8];
+	for (int x = 0; x < 8; x++)
+	{
+		shortsSPE8[x] = 0x0000;
+	}
+
+	//S0 to 28(SP) 800D2940
+	// A1 to (0xFC(SP), 0x1400 size buffer total, from 800D2AD8
+
+	unsigned long currentOverallBitPosition = variable800D4EFCInputChunkCurrentReadBitPosition;
+
+	//S0 = A0; //800D2940 Predictor Buffer pointer
+	T6 = (int)currentOverallBitPosition >> 5;
+	T7 = T6 & 0x3FF;
+	T8 = T7 << 2;
+	T9 = T8;
+
+	//8004601C
+	unsigned long currentInputWord = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T9]);
+	if (outDebug != NULL)
+		fprintf(outDebug, "8004601C: INPUT VALUE %08X\n", currentInputWord);
+
+	unsigned long bitsUsed = currentOverallBitPosition & 0x1F;
+
+	A3 = 0x20 - bitsUsed;
+	unsigned long bitsleft = A3;
+
+	/*FILE* aa = fopen("C:\\temp\\aa.bin", "wb");
+	fwrite(buffer800D2940Predictor, 2, 0xA0, aa);
+	fflush(aa);
+	fclose(aa);*/
+	//80046030
+	unsigned long currentInputData = currentInputWord >> bitsUsed;
+
+	//80046018
+	if (numberSkipResetPredictorCheck == 0)
+	{
+		// 0x18A is periods of skip bit check predictors
+		// 0x18C is periods of null predictors
+		if (numberResetPredictor == 0)
+		{
+			T3 = ReadBitsFrom80045FF0Buffer(1, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+
+			//800460B4
+			if (T3 != 0)
+			{
+				//800460BC
+				numberResetPredictor = ReadBitsFrom80045FF0Buffer(4, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+
+				//8004613C
+				numberResetPredictor++;
+
+				if (numberResetPredictor != 1 && outDebug != NULL)
+					fprintf(outDebug, "800461C8: NUMBER RESET PREDICTOR %04X\n", numberResetPredictor);
+			}
+			else
+			{
+				//8004614C
+				numberSkipResetPredictorCheck = ReadBitsFrom80045FF0Buffer(7, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+				
+				//800461C8
+				numberSkipResetPredictorCheck++;
+
+				if (numberSkipResetPredictorCheck != 1 && outDebug != NULL)
+					fprintf(outDebug, "800461C8: NUMBER SKIP RESET PREDICTOR %04X\n", numberSkipResetPredictorCheck);
+			}
+		}
+	}
+	else
+	{
+		if (outDebug != NULL)
+			fprintf(outDebug, "800461D8: SKIPPING numberSkipResetPredictorCheck %04X\n", numberSkipResetPredictorCheck);
+	}
+
+	//800461D8
+	if (numberResetPredictor != 0)
+	{
+		if (outDebug != NULL)
+			fprintf(outDebug, "800461D8: CLEARING DUE TO numberResetPredictor %04X\n", numberResetPredictor);
+
+		A0 = currentIntermediateValueOffset; //FC(SP);
+		currentIntermediateValueOffset = 0x140;
+		
+		//bitsleft to 58(SP);
+		//currentOverallBitPosition to 50(SP);
+
+		//800461F4
+		ClearBuffer_Function80057FD0(0x800D2AD8 + A0, currentIntermediateValueOffset);
+
+		//800461FC
+		numberResetPredictor--;
+
+		//8004620C
+	}
+	else
+	{
+		//80046214
+
+		unsigned long readValue = ReadBitsFrom80045FF0Buffer(6, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+		shortsSPE8[0x0] = (unsigned short)readValue; //T7 to E8(SP)
+
+		//80046298
+
+		readValue = ReadBitsFrom80045FF0Buffer(6, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+		shortsSPE8[0x1] = (unsigned short)readValue; //T6 to EA(SP)
+
+		//80046318
+		readValue = ReadBitsFrom80045FF0Buffer(5, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+		shortsSPE8[0x2] = (unsigned short)readValue; //T7 to EC(SP)
+
+		//8004631C
+		
+		//800463A0
+
+		//800463A4
+		readValue = ReadBitsFrom80045FF0Buffer(5, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+		shortsSPE8[0x3] = (unsigned short)readValue; //T6 to EE(SP)
+
+		//80046420
+
+		//80046424
+
+		readValue = ReadBitsFrom80045FF0Buffer(4, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+		shortsSPE8[0x4] = (unsigned short)readValue; //T7 to F0(SP)
+
+		//800464A0
+		readValue = ReadBitsFrom80045FF0Buffer(4, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+		shortsSPE8[0x5] = (unsigned short)readValue; //T6 to F2(SP)
+
+		//800464A4
+		
+		//80046520
+		readValue = ReadBitsFrom80045FF0Buffer(3, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+		shortsSPE8[0x6] = (unsigned short)readValue; //T7 to F4(SP)
+		
+		//800465A8
+
+		//800465AC
+		readValue = ReadBitsFrom80045FF0Buffer(3, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+		shortsSPE8[0x7] = (unsigned short)readValue; //T6 to F6(SP)
+
+		if (outDebug != NULL)
+			fprintf(outDebug, "800465AC: ShortsSPE8 %04X %04X %04X %04X %04X %04X %04X %04X\n", shortsSPE8[0], shortsSPE8[1], shortsSPE8[2], shortsSPE8[3], shortsSPE8[4], shortsSPE8[5], shortsSPE8[6], shortsSPE8[7]);
+
+		for (int x = 0; x < 4; x++)
+		{
+			//80046624
+			readValue = ReadBitsFrom80045FF0Buffer(7, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+			shortsSPE0[x] = (unsigned short)readValue; //T7 to 0(A2)
+
+			//800466A0
+
+			readValue = ReadBitsFrom80045FF0Buffer(2, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+			shortsSPD0[x] = (unsigned short)readValue; //T8 to 0(A3)
+
+			//80046720
+
+			readValue = ReadBitsFrom80045FF0Buffer(2, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+			stackBuffer2Offsets[x] = (unsigned short)readValue; //T7 to 0(T1)
+
+			//800467A0
+
+			readValue = ReadBitsFrom80045FF0Buffer(6, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+			shortsSPC8[x] = (unsigned short)readValue; //T8 to 0(T2)
+
+			for (int y = 0; y < 0xD; y++)
+			{
+				readValue = ReadBitsFrom80045FF0Buffer(3, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
+				shortsSP60[x][y] = (unsigned short)readValue; //T7 to 0(A0)
+			}
+
+			//80046E6C
+
+			//80046E70
+		}
+
+		//80046E78
+		numberSkipResetPredictorCheck--;
+
+		//80046EA8
+
+		//80046EB8
+		Function80045C78(currentIntermediateValueOffset, shortsSP60, shortsSPC8, shortsSPD0, stackBuffer2Offsets, shortsSPE0, shortsSPE8, pcmSamples);
+
+		//80046EC0
+	}
+
+//80046EC8
+	AT = -0x20;
+	T9 = currentOverallBitPosition & AT;
+	T6 = T9 - bitsleft;
+	T8 = T6 + 0x20;
+	
+	variable800D4EFCInputChunkCurrentReadBitPosition = T8;
+
+	// RA = 2C(SP);
+	// S0 = 28(SP);
+	//SP = SP + 0xF8;
+	currentInputData = 0;
+}
+
+//TWINE 8009DBE8
+void CMORTDecoder::Function80045C78(int currentIntermediateValueOffset, unsigned short shortsSP60[4][0xD], unsigned short shortsSPC8[0x4], unsigned short shortsSPD0[0x4], unsigned short stackBuffer2Offsets[0x4], unsigned short shortsSPE0[0x4], unsigned short shortsSPE8[8], std::vector<unsigned short>& pcmSamples)
+{
+	unsigned long AT = 0;
+	unsigned long A0 = 0;
+	unsigned long A1 = 0;
 	unsigned long A2 = 0;
 	unsigned long A3 = 0;
 	unsigned long V0 = 0;
@@ -2059,1624 +2345,36 @@ void CMORTDecoder::Function80045FF0(unsigned long A0Param, unsigned long A1Param
 	unsigned long T8 = 0;
 	unsigned long T9 = 0;
 
-	//800AA3E0
-	unsigned char stackBuffer[0x100];
-	for (int x = 0; x < 0x100; x++)
-	{
-		stackBuffer[x] = 0x00;
-	}
-
-	//S0 to 28(SP) 800D2940
-	WriteLongToBuffer(stackBuffer, 0xFC, A1); //A1 to FC(SP)
-
-	T0 = variable800D4EFC;
-
-	S0 = A0; //800D2940 Predictor Buffer pointer
-	T6 = (int)T0 >> 5;
-
-	T7 = T6 & 0x3FF;
-
-	T8 = T7 << 2;
-	T9 = A0 + T8;
-
-	//80046018
-	T8 = (signed short)CharArrayToShort(&buffer800D2940Predictor[A0 + 0x18A - buffer800D2940Subtraction]);
-
-	//8004601C
-	T6 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T9 + 0x1598 - buffer800D3ED8Subtraction]);
-	if (outDebug != NULL)
-		fprintf(outDebug, "8004601C: INPUT VALUE %08X\n", T6);
-
-	T7 = 0x20;
-	A2 = T0 & 0x1F;
-
-	A3 = T7 - A2;
-	V1 = A3;
-
-	/*FILE* aa = fopen("C:\\temp\\aa.bin", "wb");
-	fwrite(buffer800D2940Predictor, 1, 0x2000, aa);
-	fflush(aa);
-	fclose(aa);*/
-	//80046030
-	V0 = T6 >> A2;
-	if (T8 == 0)
-	{
-		T9 = (signed short)CharArrayToShort(&buffer800D2940Predictor[A0 + 0x18C - buffer800D2940Subtraction]);
-
-		if (T9 != 0)
-		{
-			T8 = (signed short)CharArrayToShort(&buffer800D2940Predictor[S0 + 0x18C - buffer800D2940Subtraction]);
-		}
-		else
-		{
-			A0 = 1;
-			//80046048
-			if ((int)A3 < 2)
-			{
-				//80046060
-				T6 = 1;
-				T7 = T6 << V1;
-				T0 = T0 + 0x20;
-				T9 = (int)T0 >> 5;
-				T8 = T7 - 1;
-				T6 = T9 & 0x3FF;
-				T7 = T6 << 2;
-				T3 = T8 & V0;
-				//80046080
-				T8 = S0 + T7;
-
-				V0 = CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046084: INPUT VALUE %08X\n", V0);
-				//80046084
-				if (V1 != A0)
-				{
-					//8004608C
-					T9 = A0 - V1;
-					T6 = 1;
-					T7 = T6 << T9;
-					T8 = T7 - 1;
-					T6 = V0 & T8;
-					T9 = T6 << V1;
-					T3 = T3 | T9;
-				}
-
-				//800460A8
-				T7 = A0 - V1;
-				V0 = V0 >> T7;
-				V1 = V1 + 0x1F;
-			}
-			else
-			{
-				//80046050
-				T3 = V0 & 0x1;
-				V0 = V0 >> 1;
-				V1 = A3 - 1;
-			}
-
-			//800460B4
-			AT = (int)V1 < 8;
-			if (T3 != 0)
-			{
-				//800460BC
-				AT = (int)V1 < 5;
-
-				A1 = 4;
-
-				if (AT == 0)
-				{
-					T8 = V0 & 0xF;
-					WriteShortToBuffer(buffer800D2940Predictor, S0 + 0x18C - buffer800D2940Subtraction, (unsigned short)T8);
-
-					V0 = V0 >> 4;
-				
-					V1 = V1 - 4;
-				}
-				else
-				{
-					//800460DC
-					T6 = 1;
-					T9 = T6 << V1;
-					T7 = T9 - 1;
-					T0 = T0 + 0x20;
-					T6 = (int)T0 >> 5;
-					T8 = T7 & V0;
-					T9 = T6 & 0x3FF;
-					T7 = T9 << 2;
-					//800460FC
-					WriteShortToBuffer(buffer800D2940Predictor, S0 + 0x18C - buffer800D2940Subtraction, (unsigned short)T8);
-					T8 = S0 + T7;
-
-					//80046104
-					V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-					if (outDebug != NULL)
-						fprintf(outDebug, "80046104: INPUT VALUE %08X\n", V0);
-					if (V1 != A1)
-					{
-						T9 = A1 - V1;
-						T7 = 1;
-						T8 = T7 << T9;
-						T6 = (signed short)CharArrayToShort(&buffer800D2940Predictor[S0 + 0x18C - buffer800D2940Subtraction]);
-						T7 = T8 - 1;
-						T9 = V0 & T7;
-						T8 = T9 << V1;
-						T7 = T6 | T8;
-						WriteShortToBuffer(buffer800D2940Predictor, S0 + 0x18C - buffer800D2940Subtraction, (unsigned short)T7);
-					}
-
-					//80046130
-					T9 = A1 - V1;
-					V0 = V0 >> T9;
-					V1 = V1 + 0x1C;
-				}
-
-				//8004613C
-				T6 = (signed short)CharArrayToShort(&buffer800D2940Predictor[S0 + 0x18C - buffer800D2940Subtraction]);
-				T8 = T6 + 1;
-				WriteShortToBuffer(buffer800D2940Predictor, S0 + 0x18C - buffer800D2940Subtraction, (unsigned short)T8);
-			}
-			else
-			{
-				//8004614C
-				AT = (int)V1 < 8;
-
-				T5 = 7;
-				if (AT == 0)
-				{
-					T7 = V0 & 0x7F;
-					WriteShortToBuffer(buffer800D2940Predictor, S0 + 0x18A - buffer800D2940Subtraction, (unsigned short)T7);
-					V0 = V0 >> 7;
-					V1 = V1 - 7;
-				}
-				else
-				{
-					//80046168
-					T9 = 1;
-					T6 = T9 << V1;
-					T8 = T6 - 1;
-					T0 = T0 + 0x20; 
-					T9 = T0 >> 5;
-					T7 = T8 & V0;
-					T6 = T9 & 0x3FF;
-					T8 = T6 << 2;
-					WriteShortToBuffer(buffer800D2940Predictor, S0 + 0x18A - buffer800D2940Subtraction, (unsigned short)T7);
-					T7 = S0 + T8;
-					//80046190
-					V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T7 + 0x1598 - buffer800D3ED8Subtraction]);
-					if (outDebug != NULL)
-						fprintf(outDebug, "80046190: INPUT VALUE %08X\n", V0);
-					if (V1 != T5)
-					{
-						//80046198
-						T6 = T5 - V1;
-						T8 = 1;
-						T7 = T8 << T6;
-						T9 = (signed short)CharArrayToShort(&buffer800D2940Predictor[S0 + 0x18A - buffer800D2940Subtraction]);
-						if (outDebug != NULL)
-							fprintf(outDebug, "800461A4: PREDICTOR VALUE READ %04X from %08X\n", (unsigned short)(T9 & 0xFFFF), (S0 + 0x18A));
-						T8 = T7 - 1;
-						T6 = V0 & T8;
-						T7 = T6 << V1;
-						T8 = T9 | T7;
-						WriteShortToBuffer(buffer800D2940Predictor, S0 + 0x18A - buffer800D2940Subtraction, (unsigned short)T8);
-					}
-
-					//800461BC
-					T6 = T5 - V1;
-					V0 = V0 >> T6;
-					V1 = V1 + 0x19;
-				}
-
-				//800461C8
-				T9 = (signed short)CharArrayToShort(&buffer800D2940Predictor[S0 + 0x18A - buffer800D2940Subtraction]);
-				T7 = T9 + 1;
-				WriteShortToBuffer(buffer800D2940Predictor, S0 + 0x18A - buffer800D2940Subtraction, (unsigned short)T7);
-				T8 = (signed short)CharArrayToShort(&buffer800D2940Predictor[S0 + 0x18C - buffer800D2940Subtraction]);
-			}
-		}
-	}
-	else
-	{
-		T8 = (signed short)CharArrayToShort(&buffer800D2940Predictor[S0 + 0x18C - buffer800D2940Subtraction]);
-	}
-
-	//800461D8
-	A1 = 4;
-	T5 = 7;
-
-	AT = (int)V1 < 7;
-	if (T8 != 0)
-	{
-		A0 = CharArrayToLong(&stackBuffer[0xFC]); //FC(SP);
-		A1 = 0x140;
-		
-		//V1 to 58(SP);
-		//T0 to 50(SP);
-
-		//800461F4
-		Function80057FD0(A0, A1);
-
-		//800461FC
-		T6 = (signed short)CharArrayToShort(&buffer800D2940Predictor[S0 + 0x18C - buffer800D2940Subtraction]);
-		//V1 = 58(SP);
-		//T0 = 50(SP);
-
-		T9 = T6 - 1;
-
-		//8004620C
-		WriteShortToBuffer(buffer800D2940Predictor, S0 + 0x18C - buffer800D2940Subtraction, (unsigned short)T9);
-	}
-	else
-	{
-		unsigned long RA = 0;
-		unsigned long SP = 0;
-
-		//80046214
-		A2 = SP + 0xE0;
-		if (AT == 0)
-		{
-			T7 = V0 & 0x3F;
-			WriteShortToBuffer(stackBuffer, SP + 0xE8, (unsigned short)T7); //T7 to E8(SP)
-			V0 = V0 >> 6;
-			V1 = V1 - 6;
-
-			T4 = 6;
-		}
-		else
-		{
-			//80046234
-			T8 = 1;
-			T6 = T8 << V1;
-			T9 = T6 - 1;
-			T0 = T0 + 0x20;
-			T8 = T0 >> 5;
-			T6 = T8 & 0x3FF;
-			T7 = T9 & V0;
-			T9 = T6 << 2;
-			T8 = S0 + T9;
-			WriteShortToBuffer(stackBuffer, SP + 0xE8, (unsigned short)T7); //T7 to E8(SP);
-			T4 = 6;
-
-			//8004625C
-			V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-			if (outDebug != NULL)
-				fprintf(outDebug, "8004625C: INPUT VALUE %08X\n", V0);
-
-			if (V1 != T4)
-			{
-				//80046268
-				T6 = T4 - V1;
-				T9 = 1;
-				T8 = T9 << T6;
-				T9 = T8 - 1;
-				T6 = V0 & T9;
-				T8 = T6 << V1;
-				T6 = T7;
-				T7 = T6 | T8;
-				WriteShortToBuffer(stackBuffer, SP + 0xE8, (unsigned short)T7); //T7 to E8(SP)
-			}
-
-			//8004628C
-			T9 = T4 - V1;
-			V0 = V0 >> T9;
-			V1 = V1 + 0x1A;
-		}
-
-		//80046298
-		A3 = SP + 0xD0;
-		AT = ((int)V1 < 7);
-
-		//8004629C
-		if (AT == 0)
-		{
-			T6 = V0 & 0x3F;
-			WriteShortToBuffer(stackBuffer, SP + 0xEA, (unsigned short)T6); //T6 to EA(SP)
-			V0 = V0 >> 6;
-			V1 = V1 - 6;
-		}
-		else
-		{
-			//800462B8
-			T8 = 1;
-			T7 = T8 << V1;
-			T9 = T7 - 1;
-			T0 = T0 + 0x20;
-			T8 = T0 >> 5;
-			T7 = T8 & 0x3FF;
-			T6 = T9 & V0;
-			T9 = T7 << 2;
-			T8 = S0 + T9;
-			WriteShortToBuffer(stackBuffer, SP + 0xEA, (unsigned short)T6); //T6 to EA(SP)
-			//800462E0
-			V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-			if (outDebug != NULL)
-				fprintf(outDebug, "800462E0: INPUT VALUE %08X\n", V0);
-			if (V1 != T4)
-			{
-				T7 = T4 - V1;
-				T9 = 1;
-				T8 = T9 << T7;
-				T9 = T8 - 1;
-				T7 = V0 & T9;
-				T8 = T7 << V1;
-				T7 = T6;
-				T6 = T7 | T8;
-				WriteShortToBuffer(stackBuffer, SP + 0xEA, (unsigned short)T6); //T6 to EA(SP)
-			}
-
-			//8004630C
-			T9 = T4 - V1;
-			V0 = V0 >> T9;
-			V1 = V1 + 0x1A;
-		}
-
-		//80046318
-		AT = (int)V1 < 6;
-
-		//8004631C
-		T1 = SP + 0xD8;
-		if (AT == 0)
-		{
-			//80046324
-			T7 = V0 & 0x1F;
-			WriteShortToBuffer(stackBuffer, SP + 0xEC, (unsigned short)T7); //T7 to EC(SP)
-			V0 = V0 >> 5;
-			V1 = V1 - 5;
-			A0 = 5;
-		}
-		else
-		{
-			//8004633C
-			T8 = 1;
-			T6 = T8 << V1;
-			T9 = T6 - 1;
-			T0 = T0 + 0x20;
-			T8 = T0 >> 5;
-			T6 = T8 & 0x3FF;
-			T7 = T9 & V0;
-			T9 = T6 << 2;
-			T8 = S0 + T9;
-			WriteShortToBuffer(stackBuffer, SP + 0xEC, (unsigned short)T7); //T7 to EC(SP)
-			A0 = 5;
-
-			//80046368
-			V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-			if (outDebug != NULL)
-				fprintf(outDebug, "80046368: INPUT VALUE %08X\n", V0);
-			if (V1 != A0)
-			{
-				T6 = A0 - V1;
-				T9 = 1;
-				T8 = T9 << T6;
-				T9 = T8 - 1;
-				T6 = V0 & T9;
-				T8 = T6 << V1;
-				T6 = T7;
-				T7 = T6 | T8;
-				WriteShortToBuffer(stackBuffer, SP + 0xEC, (unsigned short)T7); //T7 to EC(SP)
-			}
-
-			//80046394
-			T9 = A0 - V1;
-			V0 = V0 >> T9;
-			V1 = V1 + 0x1B;
-		}
-
-		//800463A0
-		AT = (int)V1 < 6;
-		T2 = SP + 0xC8;
-
-		//800463A4
-		if (AT == 0)
-		{
-			T6 = V0 & 0x1F;
-			WriteShortToBuffer(stackBuffer, SP + 0xEE, (unsigned short)T6); //T6 to EE(SP)
-			V0 = V0 >> 5;
-			V1 = V1 - 5;
-
-		}
-		else
-		{
-			//800463C0
-			T8 = 1;
-			T7 = T8 << V1;
-			T9 = T7 - 1;
-			T0 = T0 + 0x20;
-			T8 = T0 >> 5;
-			T7 = T8 & 0x3FF;
-			T6 = T9 & V0;
-			T9 = T7 << 2;
-			T8 = S0 + T9;
-			WriteShortToBuffer(stackBuffer, SP + 0xEE, (unsigned short)T6); //T6 to EE(SP)
-
-			//800463E8
-			V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-			if (outDebug != NULL)
-				fprintf(outDebug, "800463E8: INPUT VALUE %08X\n", V0);
-
-			if (V1 != A0)
-			{
-				T7 = A0 - V1;
-				T9 = 1;
-				T8 = T9 << T7;
-				T9 = T8 - 1;
-				T7 = V0 & T9;
-				T8 = T7 << V1;
-				T7 = T6;
-				T6 = T7 | T8;
-				WriteShortToBuffer(stackBuffer, SP + 0xEE, (unsigned short)T6); //T6 to EE(SP)
-			}
-
-			//80046414
-			T9 = A0 - V1;
-			V0 = V0 >> T9;
-			V1 = V1 + 0x1B;
-		}
-
-		//80046420
-		AT = (int)V1 < 5;
-
-		//80046424
-		A0 = SP + 0x60;
-		if (AT == 0)
-		{
-			T7 = V0 & 0xF;
-			WriteShortToBuffer(stackBuffer, SP + 0xF0, (unsigned short)T7); //T7 to F0(SP)
-			V0 = V0 >> 4;
-			V1 = V1 - 4;
-		}
-		else
-		{
-			//80046440
-			T8 = 1;
-			T6 = T8 << V1;
-			T9 = T6 - 1;
-			T0 = T0 + 0x20;
-			T8 = T0 >> 5;
-			T6 = T8 & 0x3FF;
-			T7 = T9 & V0;
-			T9 = T6 << 2;
-			T8 = S0 + T9;
-			WriteShortToBuffer(stackBuffer, SP + 0xF0, (unsigned short)T7); //T7 to F0(SP)
-
-			//80046464
-			V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-			if (outDebug != NULL)
-				fprintf(outDebug, "80046464: INPUT VALUE %08X\n", V0);
-
-			if (V1 != A1)
-			{
-				T6 = A1 - V1;
-				T9 = 1;
-				T8 = T9 << T6;
-				T9 = T8 - 1;
-				T6 = V0 & T9;
-				T8 = T6 << V1;
-				T6 = T7;
-				T7 = T6 | T8;
-				WriteShortToBuffer(stackBuffer, SP + 0xF0, (unsigned short)T7); //T7 to F0(SP)
-			}
-
-			//80046494
-			T9 = A1 - V1;
-			V0 = V0 >> T9;
-			V1 = V1 + 0x1C;
-		}
-
-		//800464A0
-		AT = (int)V1 < 5;
-
-		//800464A4
-		RA = SP + 0xC8;
-		if (AT == 0)
-		{
-			T6 = V0 & 0xF;
-			WriteShortToBuffer(stackBuffer, SP + 0xF2, (unsigned short)T6); //T6 to F2(SP)
-			V0 = V0 >> 4;
-			V1 = V1 - 4;
-		}
-		else
-		{
-			//800464C0
-			T8 = 1;
-			T7 = T8 << V1;
-			T9 = T7 - 1;
-			T0 = T0 + 0x20;
-			T8 = T0 >> 5;
-			T7 = T8 & 0x3FF;
-			T6 = T9 & V0;
-			T9 = T7 << 2;
-			T8 = S0 + T9;
-			WriteShortToBuffer(stackBuffer, SP + 0xF2, (unsigned short)T6); //T6 to F2(SP)
-
-			//800463E8
-			V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-			if (outDebug != NULL)
-				fprintf(outDebug, "800463E8: INPUT VALUE %08X\n", V0);
-
-			if (V1 != A1)
-			{
-				T7 = A1 - V1;
-				T9 = 1;
-				T8 = T9 << T7;
-				T9 = T8 - 1;
-				T7 = V0 & T9;
-				T8 = T7 << V1;
-				T7 = T6;
-				T6 = T7 | T8;
-				WriteShortToBuffer(stackBuffer, SP + 0xF2, (unsigned short)T6); //T6 to F2(SP)
-			}
-
-			//80046514
-			T9 = A1 - V1;
-			V0 = V0 >> T9;
-			V1 = V1 + 0x1C;
-		}
-
-		//80046520
-		AT = (int)V1 < 4;
-
-		T3 = 2;
-		if (AT == 0)
-		{
-			T7 = V0 & 0x7;
-			WriteShortToBuffer(stackBuffer, SP + 0xF4, (unsigned short)T7); //T7 to F4(SP)
-			V0 = V0 >> 3;
-			V1 = V1 - 3;
-
-			A1 = 3;
-		}
-		else
-		{
-			//80046544
-			T8 = 1;
-			T6 = T8 << V1;
-			T9 = T6 - 1;
-			T0 = T0 + 0x20;
-			T8 = T0 >> 5;
-			T6 = T8 & 0x3FF;
-			T7 = T9 & V0;
-			T9 = T6 << 2;
-			T8 = S0 + T9;
-			WriteShortToBuffer(stackBuffer, SP + 0xF4, (unsigned short)T7); //T7 to F4(SP)
-
-			A1 = 3;
-
-			//80046568
-			V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-			if (outDebug != NULL)
-				fprintf(outDebug, "8004601C: INPUT VALUE %08X\n", V0);
-
-			if (V1 != A1)
-			{
-				T6 = A1 - V1;
-				T9 = 1;
-				T8 = T9 << T6;
-				T9 = T8 - 1;
-				T6 = V0 & T9;
-				T8 = T6 << V1;
-				T6 = T7;
-				T7 = T6 | T8;
-				WriteShortToBuffer(stackBuffer, SP + 0xF4, (unsigned short)T7); //T7 to F4(SP)
-			}
-
-			//8004659C
-			T9 = A1 - V1;
-			V0 = V0 >> T9;
-			V1 = V1 + 0x1D;
-		}
-
-		//800465A8
-		AT = ((int)V1 < 4);
-
-		//800465AC
-		T8 = 1;
-		if (AT == 0)
-		{
-			T6 = V0 & 0x7;
-			WriteShortToBuffer(stackBuffer, SP + 0xF6, (unsigned short)T6); //T6 to F6(SP)
-			V0 = V0 >> 3;
-			V1 = V1 - 3;
-
-		}
-		else
-		{
-			//800465C8
-			T7 = T8 << V1;
-			T9 = T7 - 1;
-			T0 = T0 + 0x20;
-			T8 = T0 >> 5;
-			T7 = T8 & 0x3FF;
-			T6 = T9 & V0;
-			T9 = T7 << 2;
-			T8 = S0 + T9;
-			WriteShortToBuffer(stackBuffer, SP + 0xF6, (unsigned short)T6); //T6 to F6(SP)
-
-			//800465EC
-			V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-			if (outDebug != NULL)
-				fprintf(outDebug, "800465EC: INPUT VALUE %08X\n", V0);
-
-			if (V1 != A1)
-			{
-				T7 = A1 - V1;
-				T9 = 1;
-				T8 = T9 << T7;
-				T9 = T8 - 1;
-				T7 = V0 & T9;
-				T8 = T7 << V1;
-				T7 = T6;
-				T6 = T7 | T8;
-				WriteShortToBuffer(stackBuffer, SP + 0xF6, (unsigned short)T6); //T6 to F6(SP)
-			}
-
-			//80046618
-			T9 = A1 - V1;
-			V0 = V0 >> T9;
-			V1 = V1 + 0x1D;
-		}
-
-		do
-		{
-			//80046624
-			AT = (int)V1 < 8;
-
-			T8 = 1;
-			if (AT == 0)
-			{
-				T7 = V0 & 0x7F;
-				WriteShortToBuffer(stackBuffer, A2 + 0x0, (unsigned short)T7); //T7 to 0(A2)
-				V0 = V0 >> 7;
-				V1 = V1 - 7;
-			}
-			else
-			{
-				//80046644
-				T6 = T8 << V1;
-				T9 = T6 - 1;
-				T0 = T0 + 0x20;
-				T8 = T0 >> 5;
-				T7 = T9 & V0;
-				T6 = T8 & 0x3FF;
-				T9 = T6 << 2;
-				T8 = S0 + T9;
-				WriteShortToBuffer(stackBuffer, A2 + 0x0, (unsigned short)T7); //T7 to 0(A2)
-				T7 = S0 + T9;
-
-
-				//80046668
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T7 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046668: INPUT VALUE %08X\n", V0);
-
-				if (V1 != T5)
-				{
-					T6 = T5 - V1;
-					T9 = 1;
-					T7 = T9 << T6;
-					T8 = (signed short)CharArrayToShort(&stackBuffer[A2 + 0x0]); //0(A2)
-					T9 = T7 - 1;
-					T6 = V0 & T9;
-					T7 = T6 << V1;
-					T9 = T8 | T7;
-					WriteShortToBuffer(stackBuffer, A2 + 0x0, (unsigned short)T9); //T9 to 0(A2)
-				}
-
-				//80046694
-				T6 = T5 - V1;
-				V0 = V0 >> T6;
-				V1 = V1 + 0x19;
-			}
-
-			//800466A0
-			AT = (int)V1 < 3;
-
-			A2 = A2 + 2;
-
-			if (AT == 0)
-			{
-				T8 = V0 & 0x3;
-				WriteShortToBuffer(stackBuffer, A3 + 0x0, (unsigned short)T8); //T8 to 0(A3)
-				V0 = V0 >> 2;
-				V1 = V1 - 2;
-			}
-			else
-			{
-				//800466C0
-				T7 = 1;
-				T9 = T7 << V1;
-				T6 = T9 - 1;
-				T0 = T0 + 0x20;
-				T7 = T0 >> 5;
-				T8 = T6 & V0;
-				T9 = T7 & 0x3FF;
-				T6 = T9 << 2;
-				WriteShortToBuffer(stackBuffer, A3 + 0x0, (unsigned short)T8); //T8 to 0(A3)
-				T8 = S0 + T6;
-
-				//800466E8
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "800466E8: INPUT VALUE %08X\n", V0);
-
-				if (V1 != T3)
-				{
-					T9 = T3 - V1;
-					T6 = 1;
-					T8 = T6 << T9;
-					T7 = (signed short)CharArrayToShort(&stackBuffer[A3 + 0x0]); //0(A3)
-					T6 = T8 - 1;
-					T9 = V0 & T6;
-					T8 = T9 << V1;
-					T6 = T7 | T8;
-					WriteShortToBuffer(stackBuffer, A3 + 0x0, (unsigned short)T6); //T6 to 0(A3)
-				}
-
-				//80046714
-				T9 = T3 - V1;
-				V0 = V0 >> T9;
-				V1 = V1 + 0x1E;
-			}
-			//80046720
-			AT = (int)V1 < 3;
-
-			A3 = A3 + 2;
-
-			if (AT == 0)
-			{
-				T7 = V0 & 0x3;
-				WriteShortToBuffer(stackBuffer, T1 + 0x0, (unsigned short)T7); //T7 to 0(T1)
-				V0 = V0 >> 2;
-				V1 = V1 - 2;
-			}
-			else
-			{
-				//80046740
-				T8 = 1;
-				T6 = T8 << V1;
-				T9 = T6 - 1;
-				T0 = T0 + 0x20;
-				T8 = T0 >> 5;
-				T7 = T9 & V0;
-				T6 = T8 & 0x3FF;
-				T9 = T6 << 2;
-				WriteShortToBuffer(stackBuffer, T1 + 0x0, (unsigned short)T7); //T7 to 0(T1)
-				T7 = S0 + T9;
-
-				//80046768
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T7 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046768: INPUT VALUE %08X\n", V0);
-
-				if (V1 != T3)
-				{
-					T6 = T3 - V1;
-					T9 = 1;
-					T7 = T9 << T6;
-					T8 = (signed short)CharArrayToShort(&stackBuffer[T1 + 0x0]); //0(T1)
-					T9 = T7 - 1;
-					T6 = V0 & T9;
-					T7 = T6 << V1;
-					T9 = T8 | T7;
-					WriteShortToBuffer(stackBuffer, T1 + 0x0, (unsigned short)T9); //T9 to 0(T1)
-				}
-
-				//80046794
-				T6 = T3 - V1;
-				V0 = V0 >> T6;
-				V1 = V1 + 0x1E;
-			}
-
-			//800467A0
-			AT = (int)V1 < 7;
-
-			T1 = T1 + 2;
-
-			if (AT == 0)
-			{
-				T8 = V0 & 0x3F;
-				WriteShortToBuffer(stackBuffer, T2 + 0x0, (unsigned short)T8); //T8 to 0(T2)
-				V0 = V0 >> 6;
-				V1 = V1 - 6;
-			}
-			else
-			{
-				//800467C0
-				T7 = 1;
-				T9 = T7 << V1;
-				T6 = T9 - 1;
-				T0 = T0 + 0x20;
-				T7 = T0 >> 5;
-				T8 = T6 & V0;
-				T9 = T7 & 0x3FF;
-				T6 = T9 << 2;
-				WriteShortToBuffer(stackBuffer, T2 + 0x0, (unsigned short)T8); //T8 to 0(T2)
-				T8 = S0 + T6;
-
-				//800467E4
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "800467E4: INPUT VALUE %08X\n", V0);
-
-				if (V1 != T4)
-				{
-					T9 = T4 - V1;
-					T6 = 1;
-					T8 = T6 << T9;
-					T7 = (signed short)CharArrayToShort(&stackBuffer[T2 + 0x0]); //0(T2)
-					T6 = T8 - 1;
-					T9 = V0 & T6;
-					T8 = T9 << V1;
-					T6 = T7 | T8;
-					WriteShortToBuffer(stackBuffer, T2 + 0x0, (unsigned short)T6); //T6 to 0(T2)
-				}
-
-				//80046814
-				T9 = T4 - V1;
-				V0 = V0 >> T9;
-				V1 = V1 + 0x1A;
-			}
-
-			//80046820
-			AT = ((int)V1 < 4);
-
-			T8 = 1;
-
-			if (AT == 0)
-			{
-				T7 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0x0, (unsigned short)T7); //T7 to 0(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//80046840
-				T6 = T8 << V1;
-				T9 = T6 - 1;
-				T0 = T0 + 0x20;
-				T8 = T0 >> 5;
-				T7 = T9 & V0;
-				T6 = T8 & 0x3FF;
-				T9 = T6 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0x0, (unsigned short)T7); //T7 to 0(A0)
-				T7 = S0 + T9;
-
-				//80046864
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T7 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046864: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T6 = A1 - V1;
-					T9 = 1;
-					T7 = T9 << T6;
-					T8 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0x0]); //0(A0)
-					T9 = T7 - 1;
-					T6 = V0 & T9;
-					T7 = T6 << V1;
-					T9 = T8 | T7;
-					WriteShortToBuffer(stackBuffer, A0 + 0x0, (unsigned short)T9); //T9 to 0(A0)
-				}
-
-				//80046890
-				T6 = A1 - V1;
-				V0 = V0 >> T6;
-				V1 = V1 + 0x1D;
-			}
-			
-			//8004689C
-			AT = ((int)V1 < 4);
-
-			T7 = 1;
-
-			if (AT == 0)
-			{
-				T8 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0x2, (unsigned short)T8); //T8 to 2(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//800468BC
-				T9 = T7 << V1;
-				T6 = T9 - 1;
-				T0 = T0 + 0x20;
-				T7 = T0 >> 5;
-				T8 = T6 & V0;
-				T9 = T7 & 0x3FF;
-				T6 = T9 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0x2, (unsigned short)T8); //T8 to 2(A0)
-				T8 = S0 + T6;
-
-				//800468E0
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "800468E0: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T9 = A1 - V1;
-					T6 = 1;
-					T8 = T6 << T9;
-					T7 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0x2]); //2(A0)
-					T6 = T8 - 1;
-					T9 = V0 & T6;
-					T8 = T9 << V1;
-					T6 = T7 | T8;
-					WriteShortToBuffer(stackBuffer, A0 + 0x2, (unsigned short)T6); //T6 to 2(A0)
-				}
-
-				//8004690C
-				T9 = A1 - V1;
-				V0 = V0 >> T9;
-				V1 = V1 + 0x1D;
-			}
-
-			//80046918
-			AT = ((int)V1 < 4);
-
-			//8004691C
-			T8 = 1;
-
-			if (AT == 0)
-			{
-				T7 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0x4, (unsigned short)T7); //T7 to 4(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//80046938
-				T6 = T8 << V1;
-				T9 = T6 - 1;
-				T0 = T0 + 0x20;
-				T8 = T0 >> 5;
-				T7 = T9 & V0;
-				T6 = T8 & 0x3FF;
-				T9 = T6 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0x4, (unsigned short)T7); //T7 to 4(A0)
-				T7 = S0 + T9;
-
-				//8004695C
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T7 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "8004695C: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T6 = A1 - V1;
-					T9 = 1;
-					T7 = T9 << T6;
-					T8 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0x4]); //4(A0)
-					T9 = T7 - 1;
-					T6 = V0 & T9;
-					T7 = T6 << V1;
-					T9 = T8 | T7;
-					WriteShortToBuffer(stackBuffer, A0 + 0x4, (unsigned short)T9); //T9 to 4(A0)
-				}
-
-				//
-				T6 = A1 - V1;
-				V0 = V0 >> T6;
-				V1 = V1 + 0x1D;
-			}
-
-			//80046994
-			AT = ((int)V1 < 4);
-
-			//80046998
-			T7 = 1;
-
-			if (AT == 0)
-			{
-				T8 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0x6, (unsigned short)T8); //T8 to 6(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//800469B4
-				T9 = T7 << V1;
-				T6 = T9 - 1;
-				T0 = T0 + 0x20;
-				T7 = T0 >> 5;
-				T8 = T6 & V0;
-				T9 = T7 & 0x3FF;
-				T6 = T9 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0x6, (unsigned short)T8); //T8 to 6(A0)
-				T8 = S0 + T6;
-
-				//800469D8
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "800469D8: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T9 = A1 - V1;
-					T6 = 1;
-					T8 = T6 << T9;
-					T7 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0x6]); //6(A0)
-					T6 = T8 - 1;
-					T9 = V0 & T6;
-					T8 = T9 << V1;
-					T6 = T7 | T8;
-					WriteShortToBuffer(stackBuffer, A0 + 0x6, (unsigned short)T6); //T6 to 6(A0)
-				}
-
-				//80046A04
-				T9 = A1 - V1;
-				V0 = V0 >> T9;
-				V1 = V1 + 0x1D;
-			}
-
-			//80046A10
-			AT = ((int)V1 < 4);
-
-			//80046A14
-			if (AT == 0)
-			{
-				T7 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0x8, (unsigned short)T7); //T7 to 8(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//80046A30
-				T6 = T8 << V1;
-				T9 = T6 - 1;
-				T0 = T0 + 0x20;
-				T8 = T0 >> 5;
-				T7 = T9 & V0;
-				T6 = T8 & 0x3FF;
-				T9 = T6 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0x8, (unsigned short)T7); //T7 to 8(A0)
-				T7 = S0 + T9;
-
-				//80046A54
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T7 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046A54: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T6 = A1 - V1;
-					T9 = 1;
-					T7 = T9 << T6;
-					T8 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0x8]); //8(A0)
-					T9 = T7 - 1;
-					T6 = V0 & T9;
-					T7 = T6 << V1;
-					T9 = T8 | T7;
-					WriteShortToBuffer(stackBuffer, A0 + 0x8, (unsigned short)T9); //T9 to 8(A0)
-				}
-
-				//80046A80
-				T6 = A1 - V1;
-				V0 = V0 >> T6;
-				V1 = V1 + 0x1D;
-			}
-
-			//80046A8C
-			AT = ((int)V1 < 4);
-
-			T7 = 1;
-
-			if (AT == 0)
-			{
-				T8 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0xA, (unsigned short)T8); //T8 to A(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//80046AAC
-				T9 = T7 << V1;
-				T6 = T9 - 1;
-				T0 = T0 + 0x20;
-				T7 = T0 >> 5;
-				T8 = T6 & V0;
-				T9 = T7 & 0x3FF;
-				T6 = T9 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0xA, (unsigned short)T8); //T8 to A(A0)
-				T8 = S0 + T6;
-
-				//80046AD0
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046AD0: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T9 = A1 - V1;
-					T6 = 1;
-					T8 = T6 << T9;
-					T7 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0xA]); //A(A0)
-					T6 = T8 - 1;
-					T9 = V0 & T6;
-					T8 = T9 << V1;
-					T6 = T7 | T8;
-					WriteShortToBuffer(stackBuffer, A0 + 0xA, (unsigned short)T6); //T6 to A(A0)
-				}
-
-				//80046AFC
-				T9 = A1 - V1;
-				V0 = V0 >> T9;
-				V1 = V1 + 0x1D;
-			}
-
-			//80046B08
-			AT = ((int)V1 < 4);
-
-			T8 = 1;
-
-			if (AT == 0)
-			{
-				T7 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0xC, (unsigned short)T7); //T7 to C(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//80046B28
-				T6 = T8 << V1;
-				T9 = T6 - 1;
-				T0 = T0 + 0x20;
-				T8 = T0 >> 5;
-				T7 = T9 & V0;
-				T6 = T8 & 0x3FF;
-				T9 = T6 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0xC, (unsigned short)T7); //T7 to C(A0)
-				T7 = S0 + T9;
-
-				//80046B4C
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T7 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046B4C: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T6 = A1 - V1;
-					T9 = 1;
-					T7 = T9 << T6;
-					T8 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0xC]); //8(A0)
-					T9 = T7 - 1;
-					T6 = V0 & T9;
-					T7 = T6 << V1;
-					T9 = T8 | T7;
-					WriteShortToBuffer(stackBuffer, A0 + 0xC, (unsigned short)T9); //T9 to C(A0)
-				}
-
-				//80046B78
-				T6 = A1 - V1;
-				V0 = V0 >> T6;
-				V1 = V1 + 0x1D;
-			}
-
-			//80046B84
-			AT = ((int)V1 < 4);
-
-			T7 = 1;
-
-			if (AT == 0)
-			{
-				T8 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0xE, (unsigned short)T8); //T8 to E(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//80046BA4
-				T9 = T7 << V1;
-				T6 = T9 - 1;
-				T0 = T0 + 0x20;
-				T7 = T0 >> 5;
-				T8 = T6 & V0;
-				T9 = T7 & 0x3FF;
-				T6 = T9 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0xE, (unsigned short)T8); //T8 to E(A0)
-				T8 = S0 + T6;
-
-				//80046BC8
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "8004601C: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T9 = A1 - V1;
-					T6 = 1;
-					T8 = T6 << T9;
-					T7 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0xE]); //E(A0)
-					T6 = T8 - 1;
-					T9 = V0 & T6;
-					T8 = T9 << V1;
-					T6 = T7 | T8;
-					WriteShortToBuffer(stackBuffer, A0 + 0xE, (unsigned short)T6); //T6 to E(A0)
-				}
-
-				//80046BF4
-				T9 = A1 - V1;
-				V0 = V0 >> T9;
-				V1 = V1 + 0x1D;
-			}
-
-			//80046C00
-			AT = ((int)V1 < 4);
-
-			T8 = 1;
-
-			if (AT == 0)
-			{
-				T7 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0x10, (unsigned short)T7); //T7 to 10(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//80046C20
-				T6 = T8 << V1;
-				T9 = T6 - 1;
-				T0 = T0 + 0x20;
-				T8 = T0 >> 5;
-				T7 = T9 & V0;
-				T6 = T8 & 0x3FF;
-				T9 = T6 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0x10, (unsigned short)T7); //T7 to 10(A0)
-				T7 = S0 + T9;
-
-				//80046C44
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T7 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046C44: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T6 = A1 - V1;
-					T9 = 1;
-					T7 = T9 << T6;
-					T8 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0x10]); //10(A0)
-					T9 = T7 - 1;
-					T6 = V0 & T9;
-					T7 = T6 << V1;
-					T9 = T8 | T7;
-					WriteShortToBuffer(stackBuffer, A0 + 0x10, (unsigned short)T9); //T9 to 10(A0)
-				}
-
-				//80046C70
-				T6 = A1 - V1;
-				V0 = V0 >> T6;
-				V1 = V1 + 0x1D;
-			}
-
-			//80046C7C
-			AT = ((int)V1 < 4);
-
-			T7 = 1;
-
-			if (AT == 0)
-			{
-				T8 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0x12, (unsigned short)T8); //T8 to 12(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//80046C9C
-				T9 = T7 << V1;
-				T6 = T9 - 1;
-				T0 = T0 + 0x20;
-				T7 = T0 >> 5;
-				T8 = T6 & V0;
-				T9 = T7 & 0x3FF;
-				T6 = T9 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0x12, (unsigned short)T8); //T8 to 12(A0)
-				T8 = S0 + T6;
-
-				//80046CC0
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046CC0: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T9 = A1 - V1;
-					T6 = 1;
-					T8 = T6 << T9;
-					T7 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0x12]); //12(A0)
-					T6 = T8 - 1;
-					T9 = V0 & T6;
-					T8 = T9 << V1;
-					T6 = T7 | T8;
-					WriteShortToBuffer(stackBuffer, A0 + 0x12, (unsigned short)T6); //T6 to 12(A0)
-				}
-
-				//80046CEC
-				T9 = A1 - V1;
-				V0 = V0 >> T9;
-				V1 = V1 + 0x1D;
-			}
-
-			//80046CF8
-			AT = ((int)V1 < 4);
-
-			T8 = 1;
-
-			if (AT == 0)
-			{
-				T7 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0x14, (unsigned short)T7); //T7 to 14(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//80046D18
-				T6 = T8 << V1;
-				T9 = T6 - 1;
-				T0 = T0 + 0x20;
-				T8 = T0 >> 5;
-				T7 = T9 & V0;
-				T6 = T8 & 0x3FF;
-				T9 = T6 << 2; 
-				WriteShortToBuffer(stackBuffer, A0 + 0x14, (unsigned short)T7); //T7 to 14(A0)
-				T7 = S0 + T9;
-
-				//80046D3C
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T7 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046D3C: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T6 = A1 - V1;
-					T9 = 1;
-					T7 = T9 << T6;
-					T8 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0x14]); //14(A0)
-					T9 = T7 - 1;
-					T6 = V0 & T9;
-					T7 = T6 << V1;
-					T9 = T8 | T7;
-					WriteShortToBuffer(stackBuffer, A0 + 0x14, (unsigned short)T9); //T9 to 14(A0)
-				}
-
-				//80046D68
-				T6 = A1 - V1;
-				V0 = V0 >> T6;
-				V1 = V1 + 0x1D;
-			}
-
-			//80046D74
-			AT = ((int)V1 < 4);
-
-			T7 = 1;
-
-			if (AT == 0)
-			{
-				T8 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0x16, (unsigned short)T8); //T8 to 16(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//80046D94
-				T9 = T7 << V1;
-				T6 = T9 - 1;
-				T0 = T0 + 0x20;
-				T7 = T0 >> 5;
-				T8 = T6 & V0;
-				T9 = T7 & 0x3FF;
-				T6 = T9 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0x16, (unsigned short)T8); //T8 to 16(A0)
-				T8 = S0 + T6;
-
-				//80046DB8
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T8 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046DB8: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T9 = A1 - V1;
-					T6 = 1;
-					T8 = T6 << T9;
-					T7 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0x16]); //16(A0)
-					T6 = T8 - 1;
-					T9 = V0 & T6;
-					T8 = T9 << V1;
-					T6 = T7 | T8;
-					WriteShortToBuffer(stackBuffer, A0 + 0x16, (unsigned short)T6); //T6 to 16(A0)
-				}
-
-				//80046DE4
-				T9 = A1 - V1;
-				V0 = V0 >> T9;
-				V1 = V1 + 0x1D;
-			}
-			
-			//80046DF0
-			AT = ((int)V1 < 4);
-
-			T8 = 1;
-
-			if (AT == 0)
-			{
-				T7 = V0 & 0x7;
-				WriteShortToBuffer(stackBuffer, A0 + 0x18, (unsigned short)T7); //T7 to 18(A0)
-				V0 = V0 >> 3;
-				V1 = V1 - 3;
-			}
-			else
-			{
-				//80046E10
-				T6 = T8 << V1;
-				T9 = T6 - 1;
-				T0 = T0 + 0x20;
-				T8 = T0 >> 5;
-				T7 = T9 & V0;
-				T6 = T8 & 0x3FF;
-				T9 = T6 << 2;
-				WriteShortToBuffer(stackBuffer, A0 + 0x18, (unsigned short)T7); //T7 to 18(A0)
-				T7 = S0 + T9;
-
-				//80046E34
-				V0 = (signed long)CharArrayToLong(&buffer800D3ED8MORTRawInputDataBuffer[T7 + 0x1598 - buffer800D3ED8Subtraction]);
-				if (outDebug != NULL)
-					fprintf(outDebug, "80046E34: INPUT VALUE %08X\n", V0);
-
-				if (V1 != A1)
-				{
-					T6 = A1 - V1;
-					T9 = 1;
-					T7 = T9 << T6;
-					T8 = (signed short)CharArrayToShort(&stackBuffer[A0 + 0x18]); //18(A0)
-					T9 = T7 - 1;
-					T6 = V0 & T9;
-					T7 = T6 << V1;
-					T9 = T8 | T7;
-					WriteShortToBuffer(stackBuffer, A0 + 0x18, (unsigned short)T9); //T9 to 18(A0)
-				}
-
-				//80046E60
-				T6 = A1 - V1;
-				V0 = V0 >> T6;
-				V1 = V1 + 0x1D;
-			}
-
-			//80046E6C
-			A0 = A0 + 0x1A;
-
-			//80046E70
-			T2 = T2 + 2;
-		}
-		while(A0 != RA);
-
-		//80046E78
-		T8 = (signed short)CharArrayToShort(&buffer800D2940Predictor[S0 + 0x18A - buffer800D2940Subtraction]);
-		T9 = SP + 0xD8;
-		T6 = SP + 0xC8;
-
-		T7 = T8 - 1;
-		WriteShortToBuffer(buffer800D2940Predictor, S0 + 0x18A - buffer800D2940Subtraction, (unsigned short)T7);
-
-		T7 = CharArrayToLong(&stackBuffer[0xFC]); //FC(SP);
-		T8 = SP + 0x60;
-
-		WriteLongToBuffer(stackBuffer, SP + 0x18, T8); //T8 to 0x18(SP)
-		WriteLongToBuffer(stackBuffer, SP + 0x50, T0); //T0 to 0x50(SP)
-		WriteLongToBuffer(stackBuffer, SP + 0x58, V1); //V1 to 0x58(SP)
-		WriteLongToBuffer(stackBuffer, SP + 0x14, T6); //T6 to 0x14(SP)
-		WriteLongToBuffer(stackBuffer, SP + 0x10, T9); //T9 to 0x10(SP)
-
-		//80046EA8
-		A0 = S0; //800D2940
-
-		A1 = SP + 0xE8;
-		A2 = SP + 0xE0;
-		A3 = SP + 0xD0;
-		WriteLongToBuffer(stackBuffer, SP + 0x1C, T7); //T7 to 1C(SP)
-
-		/*FILE* out = fopen("C:\\temp\\a.bin", "wb");
-		fwrite(stackBuffer, 1, 0x100, out);
-		fflush(out);
-		fclose(out);*/
-
-		//80046EB8
-		Function80045C78(A0, A1, A2, A3, T8, stackBuffer);
-
-		//80046EC0
-		V1 = (signed long)CharArrayToLong(&stackBuffer[SP + 0x58]); // 58(SP)
-		T0 = (signed long)CharArrayToLong(&stackBuffer[SP + 0x50]); //T0 = 50(SP);
-	}
-
-//80046EC8
-	AT = -0x20;
-	T9 = T0 & AT;
-	T6 = T9 - V1;
-	T8 = T6 + 0x20;
-	
-	variable800D4EFC = T8;
-
-	// RA = 2C(SP);
-	// S0 = 28(SP);
-	//SP = SP + 0xF8;
-	V0 = 0;
-}
-
-//TWINE 8009DBE8
-void CMORTDecoder::Function80045C78(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long A3Param, unsigned long T8Param, unsigned char stackBuffer[0x100])
-{
-	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
-	unsigned long A1 = A1Param;
-	unsigned long A2 = A2Param;
-	unsigned long A3 = A3Param;
-	unsigned long V0 = 0;
-	unsigned long V1 = 0;
-	unsigned long S0 = 0;
-	unsigned long S1 = 0;
-	unsigned long S2 = 0;
-	unsigned long S3 = 0;
-	unsigned long S4 = 0;
-	unsigned long S5 = 0;
-	unsigned long S6 = 0;
-	unsigned long S7 = 0;
-	unsigned long S8 = 0;
-	unsigned long T0 = 0;
-	unsigned long T1 = 0;
-	unsigned long T2 = 0;
-	unsigned long T3 = 0;
-	unsigned long T4 = 0;
-	unsigned long T5 = 0;
-	unsigned long T6 = 0;
-	unsigned long T7 = 0;
-	unsigned long T8 = T8Param;
-	unsigned long T9 = 0;
-
 	//SP = SP - 0x98;
-	S1 = A2;
-	S2 = A3;
-	S8 = A0;
-
 	//RA to 3C(SP)
 	//A1 to 9C(SP)
 
-	S0 = 0;
-	S3 = 0xC8; //AC(SP)
-	S4 = 0xD8; //A8(SP)
-	S5 = 0x60; //B0(SP);
 	//S6 = SP + 0x44;
-	S7 = 4;
 
 	//800AA38C
-	unsigned char stackBuffer2[0x50];
-	for (int x = 0; x < 0x50; x++)
+	unsigned short stackBuffer2[0x28];
+	for (int x = 0; x < 0x28; x++)
 	{
 		stackBuffer2[x] = 0x00;
 	}
 
-	do
+	for (int x = 0; x < 4; x++)
 	{
-		//80045CCC
-		A0 = (signed short)CharArrayToShort(&stackBuffer[S3]); //0(S3);
-		A1 = (signed short)CharArrayToShort(&stackBuffer[S4]); //0(S4);
-		A2 = S5;
+		if (outDebug != NULL)
+			fprintf(outDebug, "80046E70: Index %X ShortsSPE0 %04X ShortsSPD0 %04X ShortsSPD8 %04X ShortsSPC8 %04X - ShortsSP60 %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X %04X\n", x,
+				shortsSPE0[x], shortsSPD0[x], stackBuffer2Offsets[x], shortsSPC8[x],
+				shortsSP60[x][0], shortsSP60[x][1], shortsSP60[x][2], shortsSP60[x][3],
+				shortsSP60[x][4], shortsSP60[x][5], shortsSP60[x][6], shortsSP60[x][7],
+				shortsSP60[x][8], shortsSP60[x][9], shortsSP60[x][0xA], shortsSP60[x][0xB],
+				shortsSP60[x][0xC]);
 
-		A3 = S6;
+		//80045CCC
+		if (outDebug != NULL)
+			fprintf(outDebug, "80045CCC: Function80048590: shortsSPC8 %04X stackBuffer2Offsets %04X Index %02X\n", shortsSPC8[x], stackBuffer2Offsets[x], x);
 		//80045CD8
-		Function80048590(A0, A1, A2, T8, stackBuffer, stackBuffer2);
+
+		// Updating stackBuffer2 at stackBuffer2Offset, every 3 values, with shortsSP60 values, adjusted by table based on shortsSPC8Value
+		Function80048590((signed short)shortsSPC8[x], (signed short)stackBuffer2Offsets[x], stackBuffer2, shortsSP60[x]);
 
 		/*FILE* out = fopen("C:\\temp\\b.bin", "wb");
 		fwrite(stackBuffer2, 1, 0x50, out);
@@ -3684,46 +2382,28 @@ void CMORTDecoder::Function80045C78(unsigned long A0Param, unsigned long A1Param
 		fclose(out);*/
 
 		//80045CE0
-		A0 = S8;
-		A1 = (signed short)CharArrayToShort(&stackBuffer[S1]); //0(S1);
-		A2 = (signed short)CharArrayToShort(&stackBuffer[S2]); //0(S2);
-
-		A3 = S6;
+		if (outDebug != NULL)
+			fprintf(outDebug, "80045CE0: Function80048684: shortsSPE0 %04X shortsSPD0 %04X\n", shortsSPE0[x], shortsSPD0[x]);
 		//80045CEC
-		Function80048684(A0, A1, A2, A3, stackBuffer2);
-
-		S0 = S0 + 1;
-		S3 = S3 + 2;
-		S2 = S2 + 2;
-		S1 = S1 + 2;
-		S4 = S4 + 2;
-
+		// Move back predictors, 0x28-0xA0 to 0x00 to 0x78
+		// Read 0x28 of previous predictors, from 0x78 - shortsSPE0Value, adjusted by shortsSPD0Value value, add to stackBuffer2 value, and write to 0x78 index of predictors forward
+		Function80048684((signed short)shortsSPE0[x], (signed short)shortsSPD0[x], stackBuffer2);
 
 		//80045D08
-		S5 = S5 + 0x1A;
-	} while (S0 != S7);
+	}
 
 	//80045D10
 	//S5 to B0(SP);
 	//S4 to A8(SP);
 	//S3 to AC(SP);
 
-	A0 = S8;
-	A1 = 0xE8; //9C(SP);
-	A2 = S8;
-
-	A3 = CharArrayToLong(&stackBuffer[0x1C]); //B4(SP)
-	Function80045A80(A0, A1, A2, A3, stackBuffer);
+	Function80045A80(currentIntermediateValueOffset, shortsSPE8, pcmSamples);
 }
 
 // TWINE 8009EE60
-void CMORTDecoder::Function80048590(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long T8Param, unsigned char stackBuffer[0x100], unsigned char stackBuffer2[0x50])
+void CMORTDecoder::Function80048590(unsigned short shortsSPC8Value, unsigned short stackBuffer2Offset, unsigned short stackBuffer2[0x28], unsigned short shortsSP60[0xD])
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
-	unsigned long A1 = A1Param;
-	unsigned long A2 = A2Param;
-	unsigned long A3 = 0; // Really would be S6, but using own buffer
 	unsigned long V0 = 0;
 	unsigned long V1 = 0;
 	unsigned long S0 = 0;
@@ -3743,131 +2423,84 @@ void CMORTDecoder::Function80048590(unsigned long A0Param, unsigned long A1Param
 	unsigned long T5 = 0;
 	unsigned long T6 = 0;
 	unsigned long T7 = 0;
-	unsigned long T8 = T8Param;
+	unsigned long T8 = 0;
 	unsigned long T9 = 0;
 
-	unsigned long RA = 0; //0x80045CE0
-
-	unsigned char table8004867C[0x8];
 	// NEMU FOR SOME REASON LOADS THIS WRONG
-	table8004867C[0x00] = 0xC7;
-	table8004867C[0x01] = 0xD7;
-	table8004867C[0x02] = 0xE3;
-	table8004867C[0x03] = 0xE7;
-	table8004867C[0x04] = 0xF1;
-	table8004867C[0x05] = 0xF3;
-	table8004867C[0x06] = 0xF5;
-	table8004867C[0x07] = 0xF7;
+	signed char table8004867CValue1[0x8];
+	table8004867CValue1[0x00] = (signed char)0xFC;
+	table8004867CValue1[0x01] = (signed char)0xFD;
+	table8004867CValue1[0x02] = (signed char)0xFE;
+	table8004867CValue1[0x03] = (signed char)0xFE;
+	table8004867CValue1[0x04] = (signed char)0xFF;
+	table8004867CValue1[0x05] = (signed char)0xFF;
+	table8004867CValue1[0x06] = (signed char)0xFF;
+	table8004867CValue1[0x07] = (signed char)0xFF;
+	unsigned char table8004867CValue2[0x8];
+	table8004867CValue2[0x00] = 0x7;
+	table8004867CValue2[0x01] = 0x7;
+	table8004867CValue2[0x02] = 0x3;
+	table8004867CValue2[0x03] = 0x7;
+	table8004867CValue2[0x04] = 0x1;
+	table8004867CValue2[0x05] = 0x3;
+	table8004867CValue2[0x06] = 0x5;
+	table8004867CValue2[0x07] = 0x7;
 
-	//80048590
-	AT = A0 - 7;
-	if ((int)AT <= 0)
+	if (shortsSPC8Value < 8)
 	{
-		AT = RA;
-		// BLTZAL
-		RA = 0x800485A8;
-
-		T7 = RA + 0xD4; //8004867C
-		RA = AT;
-		T7 = T7 + A0;
-
-		//800485B4
-		AT = (signed char)table8004867C[T7 - 0x8004867C]; //0(T7);
-
-		T0 = AT >> 4;
-		T1 = AT & 0x7;
+		T0 = (signed long)table8004867CValue1[shortsSPC8Value];
+		T1 = table8004867CValue2[shortsSPC8Value];
 	}
 	else
 	{
-		//800485CC
-		T0 = A0 - 8;
-		T0 = T0 >> 3;
-
-		T1 = A0 & 7;
+		T0 = (shortsSPC8Value - 8) >> 3;
+		T1 = shortsSPC8Value & 7;
 	}
+
+	T0 = 6 - T0;
 
 	//800485D8
-	T4 = T1 << 0xB;
-	T4 = T4 + 0x47FF;
-	T2 = 6;
+	T4 = (T1 * 0x800) + 0x47FF;
 
 	//800485E4
-	T2 = T2 - T0;
-	T3 = 1;
-	AT = T2 - 1;
 
-	T3 = T3 << AT;
-	T6 = 0xD;
+	for (int x = 0; x < 0x28; x++)
+	{
+		stackBuffer2[x] = 0; //0 to 0(T9);
+	}
 
-	T8 = A2;
-
-	do
+	for (int x = 0; x < 0xD; x++)
 	{
 		//800485FC
-		T5 = (signed short)CharArrayToShort(&stackBuffer[T8]); //0(T8);
-
-		T5 = T5 << 0xD;
-		T5 = T5 - 0x7000;
-
-		T5 = T5 * T4;
 
 		//80048614
-		T5 = T5 + 0x4000;
-		T5 = (int)T5 >> 0xF;
+		T5 = ((int)(((((signed short)shortsSP60[x] * 0x2000) - 0x7000) * T4) + 0x4000) >> 0xF);
+		T5 = (int)(T5 + (1 << (T0 - 1))) >> T0; // Sort of round up when shifting?
 
-		T5 = T5 + T3;
-		T5 = (int)T5 >> T2;
-
-		WriteShortToBuffer(stackBuffer, T8, (unsigned short)T5); //T5 to 0(T8);
-		T6 = T6 - 1;
+		shortsSP60[x] = (unsigned short)T5; //T5 to 0(T8);
 
 		//8004862C
-		T8 = T8 + 2;
+
+		stackBuffer2[stackBuffer2Offset + (x * 3)] = (signed short)shortsSP60[x]; // AT to 0(T9);
+
+		if (outDebug != NULL)
+			fprintf(outDebug, "8004862C: STACK BUFFER2 WRITE %04X to %04X\n", shortsSP60[x], (stackBuffer2Offset + (x * 3)));
 	}
-	while ((int)T6 > 0);
 
 	//80048634
-	T9 = A3; // Really stack at 800AA38C
-	T6 = 0x28;
-
-	do
-	{
-		WriteShortToBuffer(stackBuffer2, T9, 0); //0 to 0(T9);
-		T6 = T6 - 1;
-		
-		T9 = T9 + 2;
-	} while ((int)T6 > 0);
 
 	//8004864C
-	T9 = A3 + A1;
-	T9 = T9 + A1;
-
-	T8 = A2;
-	T6 = 0xD;
 
 	//8004865C
-	do
-	{
-		AT = (signed short)CharArrayToShort(&stackBuffer[T8]); //AT = 0(T8)
-
-		T8 = T8 + 2;
-	
-		WriteShortToBuffer(stackBuffer2, T9, (unsigned short)AT); // AT to 0(T9);
-		T6 = T6 - 1;
-
-		T9 = T9 + 6;
-	} while ((int)T6 > 0);	
 }
 
 // Rogue 8009D8C4
 // TWINE 8009EF54
-void CMORTDecoder::Function80048684(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long A3Param, unsigned char stackBuffer2[0x50])
+void CMORTDecoder::Function80048684(unsigned short shortsSPE0Value, unsigned short shortsSPD0Value, unsigned short stackBuffer2[0x28])
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
-	unsigned long A1 = A1Param;
-	unsigned long A2 = A2Param;
-	unsigned long A3 = A3Param;
+	unsigned long A0 = 0;
+	unsigned long A3 = 0;
 	unsigned long V0 = 0;
 	unsigned long V1 = 0;
 	unsigned long S0 = 0;
@@ -3901,98 +2534,63 @@ void CMORTDecoder::Function80048684(unsigned long A0Param, unsigned long A1Param
 	table80048738[0x04] = 0x852A;
 	table80048738[0x05] = 0x0000;
 
-	T3 = (signed short)CharArrayToShort(&buffer800D2940Predictor[(A0 + 0x166 - buffer800D2940Subtraction)]); //0x166(A0);
-
-	AT = A1 - 0x28;
-
-	if ((int)AT >= 0)
+	if ((shortsSPE0Value >= 0x28) && (((int)shortsSPE0Value) <= 0x78))
 	{
-		AT = AT - 0x50;
-		if ((int)AT <= 0)
-		{
-			T3 = A1;
-		}
+		lastPredictorUpdateBase = (unsigned short)shortsSPE0Value;
 	}
 
 	//800486A4
-	WriteShortToBuffer(buffer800D2940Predictor, (A0 + 0x166 - buffer800D2940Subtraction), (unsigned short)T3); //T3 to 0x166(A0);
-
-	AT = RA;
 	//BLTZAL NOOP
-	RA = 0x800486B4;
 
 	//800486B4
-	T0 = RA + 0x84; //80048738
-	RA = AT;
-	T0 = T0 + A2;
-	T0 = T0 + A2;
+
+
+	if (outDebug != NULL)
+		fprintf(outDebug, "800486D8: PREDICTOR VALUE SHIFT 0x28\n");
 
 	//800486C4
-	T0 = (unsigned short)table80048738[(T0 - 0x80048738) / 2]; // 0(T0);
-	T2 = 0x77;
-	T5 = A0;
-
-	do
+	// Move back predictors, 0x50-0x140 to 0x00 to 0xF0
+	for (int x = 0; x < 0x78; x++)
 	{
 		//800486D0
-		T4 = CharArrayToShort(&buffer800D2940Predictor[T5 + 0x50 - buffer800D2940Subtraction]); // T4 = 0x50(T5)
-		T2 = T2 - 1;
+		T4 = buffer800D2940Predictor[x + 0x28]; // T4 = 0x50(T5)
 
 		//800486D8
-		WriteShortToBuffer(buffer800D2940Predictor, T5 - buffer800D2940Subtraction, (unsigned short)T4); // T4 to 0(T5);
-
-		if (outDebug != NULL)
-			fprintf(outDebug, "800486D8: PREDICTOR VALUE WRITE %04X to %08X\n", (unsigned short)(T4 & 0xFFFF), T5);
-
-		T5 = T5 + 2;
+		buffer800D2940Predictor[x] = (unsigned short)T4; // T4 to 0(T5);
 	}
-	while ((int)T2 >= 0);
 
 	//800486E4
-	T2 = 0x27;
-	T6 = A0;
-	T5 = A0;
-
-	T5 = T5 - T3;
-	T5 = T5 - T3;
-
-	T7 = A3;
 
 	//800486FC
-	do
+	// Read 0x50 of predictors, from F0 - (2 * passed in spot), adjusted by shortsSPD0Value value, add to stackBuffer2 value, and write to F0
+	for (int x = 0; x < 0x28; x++)
 	{
-		T1 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T5 + 0xF0 - buffer800D2940Subtraction]); //F0(T5);
+		T1 = (signed short)buffer800D2940Predictor[(0x78 - (signed long)lastPredictorUpdateBase + x)]; //F0(T5);
+
 		if (outDebug != NULL)
-			fprintf(outDebug, "800486FC: PREDICTOR VALUE READ %04X from %08X\n", (unsigned short)(T1 & 0xFFFF), (T5 + 0xF0));
+			fprintf(outDebug, "800486FC: PREDICTOR VALUE READ %04X from %04X\n", (unsigned short)(T1 & 0xFFFF), (0x78 - (signed long)lastPredictorUpdateBase + x));
 
-		T5 = T5 + 2;
-		T1 = T1 * T0;
 
-		T1 = T1 + 0x4000;
-		
-		T1 = (int)T1 >> 0xF;
+		T1 = ((int)((T1 * (unsigned short)table80048738[shortsSPD0Value]) + 0x4000) >> 0xF);
 
 		//80048714
-		AT = (signed short)CharArrayToShort(&stackBuffer2[T7]); //0(T7);
-		T7 = T7 + 2;
-		T1 = T1 + AT;
+		if (outDebug != NULL)
+			fprintf(outDebug, "80048714: STACK BUFFER2 READ %04X from %04X\n", stackBuffer2[x], x);
 
 		//800D48720
-		WriteShortToBuffer(buffer800D2940Predictor, (T6 + 0xF0 - buffer800D2940Subtraction), (unsigned short)T1); //T1 to 0xF0(T6);
-		T6 = T6 + 2;
-
-		T2 = T2 - 1;
-	} while ((int)T2 >= 0);
+		buffer800D2940Predictor[0x78 + x] = (unsigned short)(T1 + (signed short)stackBuffer2[x]); //T1 to 0xF0(T6);
+		if (outDebug != NULL)
+			fprintf(outDebug, "800486D8: PREDICTOR VALUE WRITE %04X to %04X\n", (unsigned short)(T1 + (signed short)stackBuffer2[x]), 0x78 + x);
+	}
 }
 
 //TWINE 8009D9F0
-void CMORTDecoder::Function80045A80(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long A3Param, unsigned char stackBuffer[0x100])
+void CMORTDecoder::Function80045A80(unsigned long currentIntermediateValueOffset, unsigned short shortsSPE8[8], std::vector<unsigned short>& pcmSamples)
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
-	unsigned long A1 = A1Param;
-	unsigned long A2 = A2Param;
-	unsigned long A3 = A3Param;
+	unsigned long A0 = 0;
+	unsigned long A1 = 0;
+	unsigned long A2 = 0;
 	unsigned long V0 = 0;
 	unsigned long V1 = 0;
 	unsigned long S0 = 0;
@@ -4020,176 +2618,65 @@ void CMORTDecoder::Function80045A80(unsigned long A0Param, unsigned long A1Param
 	//S0 to 18(SP)
 	//A2 to 28(SP)
 
-	T8 = (signed short)CharArrayToShort(&stackBuffer[A1]); //0(A1);
-	V1 = 0x3333;
+	// Alternating 0/1
+	signed short* smootherPredictor;
+	if (!currentSmootherPredictor)
+		smootherPredictor = smootherPredictorA;
+	else
+		smootherPredictor = smootherPredictorB;
 
-	T6 = (signed short)CharArrayToShort(&buffer800D2940Predictor[A0 + 0x188 - buffer800D2940Subtraction]); //0x188(A0);
-
-	T9 = T8 - 0x20;
-	T0 = T9 << 0xA;
-
-	T7 = T6 << 4;
-	V0 = A0 + T7;
-
-	AT = -0x332F000;
-	
 	//80045AB8
-	V0 = V0 + 0x168;
-
-	A2 = A3;
-	T1 = T0 * V1;
 
 	//80045AC4
-	T2 = T1 + 0x4000;
-	T3 = (int)T2 >> 0xF;
+	T4 = (int)(((((signed short)shortsSPE8[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+	smootherPredictor[0] = (unsigned short)T4; //T4 to 0(V0);
 
-	T4 = T3 << 1;
-	WriteShortToBuffer(buffer800D2940Predictor, V0 - buffer800D2940Subtraction, (unsigned short)T4); //T4 to 0(V0);
-	T5 = (signed short)CharArrayToShort(&stackBuffer[A1 + 0x2]); //2(A1);
-
-	T6 = T5 - 0x20;
-	T7 = T6 << 0xA;
-
-	T8 = T7 * V1;
-	T9 = T8 + 0x4000;
-
-	T0 = (int)T9 >> 0xF; 
-	T1 = T0 << 1;
-
-	WriteShortToBuffer(buffer800D2940Predictor, V0 + 0x2 - buffer800D2940Subtraction, (unsigned short)T1); //T1 to 2(V0);
+	T1 = (int)(((((signed short)shortsSPE8[0x1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+	smootherPredictor[1] = (unsigned short)T1; //T1 to 2(V0);
 	
 	//80045AF8
-	T2 = (signed short)CharArrayToShort(&stackBuffer[A1 + 0x4]); //4(A1);
-	T3 = T2 - 0x10;
-
-	T4 = T3 << 0xA;
-	T5 = T4 * V1;
-
-	// TODO Check signing here
-	T6 = T5 + AT;
-	T7 = (int)T6 >> 0xF;
-
-	T8 = T7 << 1;
-	WriteShortToBuffer(buffer800D2940Predictor, V0 + 0x4 - buffer800D2940Subtraction, (unsigned short)T8); //T8 to 4(V0);
+	T8 = (int)(((((signed short)shortsSPE8[0x2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+	smootherPredictor[2] = (unsigned short)T8; //T8 to 4(V0);
 
 	//80045B1C
-	T9 = (signed short)CharArrayToShort(&stackBuffer[A1 + 0x6]); //6(A1);
-
-	AT = 0x04003C00;
-	T0 = T9 - 0x10;
-	T1 = T0 << 0xA;
-
-	T2 = T1 * V1;
-	T3 = T2 + AT;
-	T4 = (int)T3 >> 0xF;
-	T5 = T4 << 1;
-	WriteShortToBuffer(buffer800D2940Predictor, V0 + 0x6 - buffer800D2940Subtraction, (unsigned short)T5); //T5 to 6(V0);
+	T5 = (int)(((((signed short)shortsSPE8[0x3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+	smootherPredictor[3] = (unsigned short)T5; //T5 to 6(V0);
 
 	//80045B48
-	T6 = (signed short)CharArrayToShort(&stackBuffer[A1 + 0x8]); //8(A1);
-	AT = 0x4B17;
-	T7 = T6 - 8;
-	T8 = T7 << 0xA;
-
-	T9 = T8 * AT;
-	AT = 0xFFC91B1C;
-	
-	T0 = T9 + AT;
-	T1 = (int)T0 >> 0xF;
-
-	T2 = T1 << 1;
-	WriteShortToBuffer(buffer800D2940Predictor, V0 + 0x8 - buffer800D2940Subtraction, (unsigned short)T2); //T2 to 8(V0);
+	T2 = (int)(((((signed short)shortsSPE8[0x4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
+	smootherPredictor[4] = (unsigned short)T2; //T2 to 8(V0);
 
 	//80045B78
-	T3 = (signed short)CharArrayToShort(&stackBuffer[A1 + 0xA]); //A(A1);
-
-	AT = 0x03BBF800;
-	T4 = T3 - 8;
-	T5 = T4 << 0xA;
-	T6 = T5 << 4;
-
-	T6 = T6 + T5;
-	T6 = T6 << 4;
-
-	T6 = T6 + T5;
-	T6 = T6 << 4;
-
-	//80045BA0
-	T6 = T6 + T5;
-	T6 = T6 << 2;
-
-	T7 = T6 + AT;
-	T8 = (int)T7 >> 0xF;
-
-	T9 = T8 << 1;
-	WriteShortToBuffer(buffer800D2940Predictor, V0 + 0xA - buffer800D2940Subtraction, (unsigned short)T9); //T9 to A(V0);
+	T9 = (int)(((((signed short)shortsSPE8[0x5] - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
+	smootherPredictor[5] = (unsigned short)T9; //T9 to A(V0);
 
 	//80045BB8
-	T0 = (signed short)CharArrayToShort(&stackBuffer[A1 + 0xC]); //C(A1);
-	AT = 0x147936C;
-	T1 = T0 - 4;
-
-	T2 = T1 << 0xA;
-	T3 = T2 << 0x5;
-	T3 = T3 - T2;
-	T3 = T3 << 2;
-	T3 = T3 - T2;
-	T3 = T3 << 3;
-	T3 = T3 - T2;
-	T3 = T3 << 4;
-	T3 = T3 - T2;
-	T3 = T3 << 1;
-	T4 = T3 + AT;
-	T5 = (int)T4 >> 0xF;
-	T6 = T5 << 1;
-	WriteShortToBuffer(buffer800D2940Predictor, V0 + 0xC - buffer800D2940Subtraction, (unsigned short)T6); //T6 to C(V0);
+	T6 = (int)(((((signed short)shortsSPE8[0x6] - 4) * (unsigned long)0x400) * (unsigned long)0x7ADE) + 0x147936C) >> 0xF << 1;
+	smootherPredictor[6] = (unsigned short)T6; //T6 to C(V0);
 
 	//80045C00
-	T7 = (signed short)CharArrayToShort(&stackBuffer[A1 + 0xE]); //E(A1);
-	AT = 0x40D6B40;
-	T8 = T7 - 4;
-
-	T9 = T8 << 0xA;
-	T0 = T9 << 3;
-	T0 = T0 - T9;
-	T0 = T0 << 2;
-	T0 = T0 + T9;
-	T0 = T0 << 6;
-	T0 = T0 + T9;
-	T0 = T0 << 2;
-	T0 = T0 - T9;
-	T0 = T0 << 2;
-	T1 = T0 + AT;
-	T2 = (int)T1 >> 0xF;
-	T3 = T2 << 1;
-	WriteShortToBuffer(buffer800D2940Predictor, V0 + 0xE - buffer800D2940Subtraction, (unsigned short)T3); //T3 to E(V0);
+	T3 = (int)((((((signed short)shortsSPE8[0x7] - 4) * (unsigned long)0x400) * (unsigned long)0x740C) + 0x40D6B40)) >> 0xF << 1;
+	smootherPredictor[7] = (unsigned short)T3; //T3 to E(V0);
 
 	//80045C48
 	//A0 to 20(SP);
 
-	A1 = variable800FCEDCPredictorPointer800D2940;//28(SP);
 	//80045C4C
-	Function80048904(A0, A1, A2, A3);
-
+	Function80048904(currentIntermediateValueOffset, pcmSamples);
 	//A0 = 20(SP);
-	T4 = (signed short)CharArrayToShort(&buffer800D2940Predictor[A0 + 0x188 - buffer800D2940Subtraction]);
-	T5 = T4 ^ 0x0001;
 
-	//80045C60
-	WriteShortToBuffer(buffer800D2940Predictor, (A0 + 0x188 - buffer800D2940Subtraction), (unsigned short)T5); //T5 to 0x188(A0);
+	// Flip between 0/1
+	currentSmootherPredictor = !currentSmootherPredictor;
 	//RA = 1A(SP)
 	//S0 = 18(SP)
 
 	// SP = SP + 0x20;
 }
 
-void CMORTDecoder::Function80048904(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long A3Param)
+void CMORTDecoder::Function80048904(unsigned long currentIntermediateValueOffset, std::vector<unsigned short>& pcmSamples)
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
-	unsigned long A1 = A1Param;
-	unsigned long A2 = A2Param;
-	unsigned long A3 = A3Param;
+	unsigned long A3 = 0;
 	unsigned long V0 = 0;
 	unsigned long V1 = 0;
 	unsigned long S0 = 0;
@@ -4226,61 +2713,51 @@ void CMORTDecoder::Function80048904(unsigned long A0Param, unsigned long A1Param
 	//S6 to 2C(SP)
 	//S7 to 30(SP)
 
-	AT = A0 + 0x140; // 800D2A80
-	S0 = (signed long)CharArrayToLong(&buffer800D2940Predictor[AT + 0 - buffer800D2940Subtraction]); //0(AT)
-	S1 = (signed long)CharArrayToLong(&buffer800D2940Predictor[AT + 4 - buffer800D2940Subtraction]); //4(AT)
-	S2 = (signed long)CharArrayToLong(&buffer800D2940Predictor[AT + 8 - buffer800D2940Subtraction]); //8(AT)
-	S3 = (signed long)CharArrayToLong(&buffer800D2940Predictor[AT + 0xC - buffer800D2940Subtraction]); //C(AT)
-	S4 = (signed long)CharArrayToLong(&buffer800D2940Predictor[AT + 0x10 - buffer800D2940Subtraction]); //10(AT)
-	S5 = (signed long)CharArrayToLong(&buffer800D2940Predictor[AT + 0x14 - buffer800D2940Subtraction]); //14(AT)
-	S6 = (signed long)CharArrayToLong(&buffer800D2940Predictor[AT + 0x18  - buffer800D2940Subtraction]); //18(AT)
-	S7 = (signed long)CharArrayToLong(&buffer800D2940Predictor[AT + 0x1C - buffer800D2940Subtraction]); //1C(AT)
-	A3 = (signed short)CharArrayToShort(&buffer800D2940Predictor[A0 + 0x164 - buffer800D2940Subtraction]); //0x164(A0)
+	S0 = (signed long)sampleBuffer[0]; //0(AT)
+	S1 = (signed long)sampleBuffer[1]; //4(AT)
+	S2 = (signed long)sampleBuffer[2]; //8(AT)
+	S3 = (signed long)sampleBuffer[3]; //C(AT)
+	S4 = (signed long)sampleBuffer[4]; //10(AT)
+	S5 = (signed long)sampleBuffer[5]; //14(AT)
+	S6 = (signed long)sampleBuffer[6]; //18(AT)
+	S7 = (signed long)sampleBuffer[7]; //1C(AT)
+	A3 = (signed short)lastSampleValue; //0x164(A0)
 
 	// Function pointer formation to 80048AFC
-	T3 = 0x80048AFC; //RA + 0x190;
 
 	// 80048970
-	Function80048A58(A0, T3, T6, T7, T8, T9);
+	signed short adjusters[8];
+	for (int x = 0; x < 8; x++)
+		adjusters[x] = 0x0000;
+	// T2 = (T2 / 4) + (T4 * (3 / 4)) and Smooth
+	// HACK (commented out is hack)
+	Function80048A58(0x80048AFC, adjusters);
 
 	//80048978
-	T1 = A1; // 800D2940
-	T0 = A2; // 800D2AD8
-	T3 = 0xC;
-	Function80048740(T0, T1, T3, T6, T7, T8, T9, A3, S0, S1, S2, S3, S4, S5, S6, S7);
+	Function80048740(currentIntermediateValueOffset, 0, 0xD, adjusters, A3, S0, S1, S2, S3, S4, S5, S6, S7, pcmSamples);
 
 	//80048990
-	T3 = 0x80048B14; //RA + 0x184;
-	
+
 	//80048994
-	Function80048A58(A0, T3, T6, T7, T8, T9);
+	// T2 / 2 + T4 / 2 and Smooth
+	Function80048A58(0x80048B14, adjusters);
 
 	//8004899C
-	T1 = A1 + 0x1A; // 800D2940
-	T0 = A2 + 0x1A; // 800D2AD8
-	T3 = 0xD;
-	Function80048740(T0, T1, T3, T6, T7, T8, T9, A3, S0, S1, S2, S3, S4, S5, S6, S7);
-
-	T3 = 0x80048B24; //RA + 0x170
+	Function80048740((currentIntermediateValueOffset + 0x1A), 0xD, 0xE, adjusters, A3, S0, S1, S2, S3, S4, S5, S6, S7, pcmSamples);
 
 	//800489B8
-	Function80048A58(A0, T3, T6, T7, T8, T9);
+	// T2 = (T2 * (3 / 4)) + (T4 / 4) and Smooth
+	Function80048A58(0x80048B24, adjusters);
 
 	//800489C0
-	T1 = A1 + 0x36; // 800D2940
-	T0 = A2 + 0x36; // 800D2AD8
-	T3 = 0xC;
-	Function80048740(T0, T1, T3, T6, T7, T8, T9, A3, S0, S1, S2, S3, S4, S5, S6, S7);
+	Function80048740((currentIntermediateValueOffset + 0x36), 0x1B, 0xD, adjusters, A3, S0, S1, S2, S3, S4, S5, S6, S7, pcmSamples);
 
-	T3 = 0x80048B3C; //RA + 0x160
 	//800489DC
-	Function80048A58(A0, T3, T6, T7, T8, T9);
+	// Smooth
+	Function80048A58(0x80048B3C, adjusters);
 
 	//800489E4
-	T1 = A1 + 0x50; // 800D2940
-	T0 = A2 + 0x50; // 800D2AD8
-	T3 = 0x77;
-	Function80048740(T0, T1, T3, T6, T7, T8, T9, A3, S0, S1, S2, S3, S4, S5, S6, S7);
+	Function80048740((currentIntermediateValueOffset + 0x50), 0x28, 0x78, adjusters, A3, S0, S1, S2, S3, S4, S5, S6, S7, pcmSamples);
 	
 	// set stuff back
 	/*FILE* a = fopen("C:\\temp\\c.bin", "w");
@@ -4289,18 +2766,18 @@ void CMORTDecoder::Function80048904(unsigned long A0Param, unsigned long A1Param
 	fclose(a);*/
 	
 	//800489F8
-	WriteLongToBuffer(buffer800D2940Predictor, (AT + 0 - buffer800D2940Subtraction), S0); //0(AT)
-	WriteLongToBuffer(buffer800D2940Predictor, (AT + 4 - buffer800D2940Subtraction), S1); //4(AT)
-	WriteLongToBuffer(buffer800D2940Predictor, (AT + 8 - buffer800D2940Subtraction), S2); //8(AT)
-	WriteLongToBuffer(buffer800D2940Predictor, (AT + 0xC - buffer800D2940Subtraction), S3); //C(AT)
-	WriteLongToBuffer(buffer800D2940Predictor, (AT + 0x10 - buffer800D2940Subtraction), S4); //10(AT)
-	WriteLongToBuffer(buffer800D2940Predictor, (AT + 0x14 - buffer800D2940Subtraction), S5); //14(AT)
-	WriteLongToBuffer(buffer800D2940Predictor, (AT + 0x18 - buffer800D2940Subtraction), S6); //18(AT)
-	WriteLongToBuffer(buffer800D2940Predictor, (AT + 0x1C - buffer800D2940Subtraction), S7); //1C(AT)
-	WriteShortToBuffer(buffer800D2940Predictor, (A0 + 0x164 - buffer800D2940Subtraction), (unsigned short)A3); //164(A0)
+	sampleBuffer[0] = S0; //0(AT)
+	sampleBuffer[1] = S1; //4(AT)
+	sampleBuffer[2] = S2; //8(AT)
+	sampleBuffer[3] = S3; //C(AT)
+	sampleBuffer[4] = S4; //10(AT)
+	sampleBuffer[5] = S5; //14(AT)
+	sampleBuffer[6] = S6; //18(AT)
+	sampleBuffer[7] = S7; //1C(AT)
+	lastSampleValue = (signed short)A3; //164(A0)
 }
 
-void CMORTDecoder::CallT380048XXXFunction(unsigned long& T2, unsigned long T3, unsigned long& T4)
+void CMORTDecoder::CallT380048XXXFunction(unsigned long& T2, unsigned long T3, unsigned long T4)
 {
 	if (T3 == 0x80048AFC)
 		Function80048AFC(T2, T4); // JALR RA,T3
@@ -4309,10 +2786,10 @@ void CMORTDecoder::CallT380048XXXFunction(unsigned long& T2, unsigned long T3, u
 	else if (T3 == 0x80048B24)
 		Function80048B24(T2, T4); // JALR RA,T3
 	else if (T3 == 0x80048B3C)
-		Function80048B3C(T2, T4); // JALR RA,T3
+		Function80048B3C(T2); // JALR RA,T3
 }
 
-void CMORTDecoder::Function80048AFC(unsigned long& T2, unsigned long& T4)
+void CMORTDecoder::Function80048AFC(unsigned long& T2, unsigned long T4)
 {
 	unsigned long AT = 0;
 	unsigned long A0 = 0;
@@ -4339,46 +2816,33 @@ void CMORTDecoder::Function80048AFC(unsigned long& T2, unsigned long& T4)
 	unsigned long T8 = 0;
 	unsigned long T9 = 0;
 
-	T2 = (int)T2 >> 2;
-	T4 = (int)T4 >> 1;
-
-	T2 = T2 + T4;
-	T4 = (int)T4 >> 1;
-
-	//80048B0C
-	T2 = T2 + T4;
-
+	// T2 = (T2 / 4) + (T4 * (3 / 4))
+	T2 = (((int)T2 >> 2) + ((int)T4 >> 1)) + ((int)T4 >> 2);
+	
 	// Branch always to 80048B3C
-	Function80048B3C(T2, T4);
+	Function80048B3C(T2);
 }
 
-void CMORTDecoder::Function80048B14(unsigned long& T2, unsigned long& T4)
+void CMORTDecoder::Function80048B14(unsigned long& T2, unsigned long T4)
 {
 	//80048B14
-	T2 = (int)T2 >> 1;
-	T4 = (int)T4 >> 1;
-
-	T2 = T2 + T4;
+	// T2 / 2 + T4 / 2
+	T2 = ((int)T2 >> 1) + ((int)T4 >> 1);
 
 	// Branch always to 80048B3C
-	Function80048B3C(T2, T4);
+	Function80048B3C(T2);
 }
 
-void CMORTDecoder::Function80048B24(unsigned long& T2, unsigned long& T4)
+void CMORTDecoder::Function80048B24(unsigned long& T2, unsigned long T4)
 {
-	T2 = (int)T2 >> 1;
-	T4 = (int)T4 >> 2;
-
-	T4 = T4 + T2;
-	T2 = (int)T2 >> 1;
-
-	T2 = T2 + T4;
+	// T2 = (T2 * (3 / 4)) + (T4 / 4)
+	T2 = (((int)T2 >> 1) + ((int)T4 >> 2)) + ((int)T2 >> 2);
 
 	// Branch always to 80048B3C
-	Function80048B3C(T2, T4);
+	Function80048B3C(T2);
 }
 
-void CMORTDecoder::Function80048B3C(unsigned long& T2, unsigned long& T4)
+void CMORTDecoder::Function80048B3C(unsigned long& T2)
 {
 	unsigned long AT = 0;
 	unsigned long A0 = 0;
@@ -4406,51 +2870,36 @@ void CMORTDecoder::Function80048B3C(unsigned long& T2, unsigned long& T4)
 	unsigned long T9 = 0;
 
 	//80048B3C
-	T4 = 0;
+	bool isNegative = false;
 	if ((int)T2 < 0)
 	{
-		T2 = 0 - T2;
-		T4 = 1;
+		T2 = -(int)T2;
+		isNegative = true;
 	}
-	//80048B4C
-	AT = T2 - 0x2B33;
 
-	//80048B50
-	if ((int)AT >= 0)
+	if (T2 < 0x2B33)
 	{
-		AT = T2 - 0x4E66;
-
-		//80048B5C
-		if ((int)AT >= 0)
-		{
-			AT = (int)T2 >> 2;
-
-			AT = AT + 0x6600;
-		}
-		else
-		{
-			AT = T2 + 0x2B33;
-		}
+		T2 = T2 * 2;
+	}
+	else if (T2 < 0x4E66)
+	{
+		T2 = T2 + 0x2B33;
 	}
 	else
 	{
-		AT = T2 << 1;
+		T2 = (int)T2 >> 2;
+
+		T2 = T2 + 0x6600;
 	}
 
 	//80048B6C
-	T2 = AT - 0x7FFF;
-
-	if ((int)T2 <= 0)
-	{
-		T2 = AT;
-	}
-	else
+	if (T2 > 0x7FFF)
 	{
 		T2 = 0x7FFF;
 	}
 
 	//80048B7C
-	if (T4 != 0)
+	if (isNegative)
 	{
 		T2 = -(signed)T2;
 	}
@@ -4458,7 +2907,7 @@ void CMORTDecoder::Function80048B3C(unsigned long& T2, unsigned long& T4)
 	T2 = T2 & 0xFFFF;
 }
 
-void CMORTDecoder::Function80048740(unsigned long T0Param, unsigned long T1Param, unsigned long T3Param, unsigned long T6Param, unsigned long T7Param, unsigned long T8Param, unsigned long T9Param, unsigned long& A3, unsigned long& S0, unsigned long& S1, unsigned long& S2, unsigned long& S3, unsigned long& S4, unsigned long& S5, unsigned long& S6, unsigned long& S7)
+void CMORTDecoder::Function80048740(unsigned long intermediateValueOffset, unsigned long predictorBufferOffset, int countValues, signed short adjusters[8], unsigned long& A3, unsigned long& S0, unsigned long& S1, unsigned long& S2, unsigned long& S3, unsigned long& S4, unsigned long& S5, unsigned long& S6, unsigned long& S7, std::vector<unsigned short>& pcmSamples)
 {
 	unsigned long AT = 0;
 	unsigned long A0 = 0;
@@ -4467,144 +2916,74 @@ void CMORTDecoder::Function80048740(unsigned long T0Param, unsigned long T1Param
 	unsigned long V0 = 0;
 	unsigned long V1 = 0;
 	unsigned long S8 = 0;
-	unsigned long T0 = T0Param;
-	unsigned long T1 = T1Param;
 	unsigned long T2 = 0;
-	unsigned long T3 = T3Param;
 	unsigned long T4 = 0;
 	unsigned long T5 = 0;
-	unsigned long T6 = T6Param;
-	unsigned long T7 = T7Param;
-	unsigned long T8 = T8Param;
-	unsigned long T9 = T9Param;
 
 	//80048740
-	do
+	for (int x = 0; x < countValues; x++)
 	{
-		T2 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T1 - buffer800D2940Subtraction]); //0(T1)
-		if (outDebug != NULL)
-			fprintf(outDebug, "80048740: PREDICTOR VALUE READ %04X from %08X\n", (unsigned short)(T2 & 0xFFFF), T1);
-
-		T1 = T1 + 2;
-		T5 = T9 << 0x10;
-		T5 = (int)T5 >> 0x10;
-
-		AT = S7 * T5;
-		
 		//80048758
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		T2 = T2 - AT;
-		T5 = (int)T9 >> 0x10;
-		AT = S6 * T5;
+
+		T2 = (signed short)buffer800D2940Predictor[predictorBufferOffset + x]; //0(T1)
+		if (outDebug != NULL)
+			fprintf(outDebug, "80048740: PREDICTOR VALUE READ %04X from %04X\n", (unsigned short)(T2 & 0xFFFF), predictorBufferOffset + x);
 
 		//80048770
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		T2 = T2 - AT;
-		AT = T5 * T2;
+		T2 = (T2 - ((int)((S7 * (int)(adjusters[7])) + 0x4000) >> 0xF));
+		
+		T2 = (T2 - ((int)((S6 * (int)(adjusters[6])) + 0x4000) >> 0xF));
 
 		//80048784
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		S7 = AT + S6;
-		T5 = T8 << 0x10;
-		T5 = (int)T5 >> 0x10;
-		AT = S5 * T5;
+		S7 = (((int)((int)(adjusters[6]) * T2 + 0x4000)) >> 0xF) + S6;
 
 		//800487A0
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		T2 = T2 - AT;
-		AT = T5 * T2;
+		T2 = T2 - (((int)((S5 * (int)(adjusters[5])) + 0x4000)) >> 0xF);
 
 		//800487B4
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		S6 = AT + S5;
-		T5 = (int)T8 >> 0x10;
-		AT = S4 * T5;
+		S6 = ((((int)((int)(adjusters[5]) * T2) + 0x4000) >> 0xF) + S5);
 
 		//800487CC
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		T2 = T2 - AT;
-		AT = T5 * T2;
+		T2 = T2 - ((int)((S4 * (int)(adjusters[4])) + 0x4000) >> 0xF);
 
 		//800487E0
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		S5 = AT + S4;
-		T5 = T7 << 0x10;
-		T5 = (int)T5 >> 0x10;
-		AT = S3 * T5;
+		S5 = ((int)(((int)(adjusters[4]) * T2) + 0x4000) >> 0xF) + S4;
 
 		//800487FC
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		T2 = T2 - AT;
-		AT = T5 * T2;
+		T2 = T2 - ((int)((S3 * (int)(adjusters[3])) + 0x4000) >> 0xF);
 
 		//80048810
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		S4 = AT + S3;
-		T5 = (int)T7 >> 0x10;
-		AT = S2 * T5;
+		S4 = (((int)((int)(adjusters[3]) * T2) + 0x4000) >> 0xF) + S3;
 
 		//80048828
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		T2 = T2 - AT;
-		AT = T5 * T2;
-
+		T2 = (T2 - ((int)((S2 * ((int)(adjusters[2]))) + 0x4000) >> 0xF));
+		
 		//8004883C
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		S3 = AT + S2;
-		T5 = T6 << 0x10;
-		T5 = (int)T5 >> 0x10;
-		AT = S1 * T5;
+		S3 = ((int)(((int)(adjusters[2]) * T2) + 0x4000) >> 0xF) + S2;
 
 		//80048858
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		T2 = T2 - AT;
-		AT = T5 * T2;
+		T2 = T2 - ((int)((S1 * ((int)(adjusters[1]))) + 0x4000) >> 0xF);
 
 		//8004886C
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		S2 = AT + S1;
-		T5 = (int)T6 >> 0x10;
-		AT = S0 * T5;
+		S2 = ((int)(((int)(adjusters[1]) * T2) + 0x4000) >> 0xF) + S1;
 
 		//80048884
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		T2 = T2 - AT;
-		AT = T5 * T2;
+		T2 = T2 - ((int)((S0 * ((int)(adjusters[0]))) + 0x4000) >> 0xF);
 
 		//80048898
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		S1 = AT + S0;
+		S1 = ((int)(((int)(adjusters[0]) * T2) + 0x4000) >> 0xF) + S0;
+
 		S0 = T2;
 
-		AT = 0x6E14;
-		AT = AT * A3;
-
 		//800488B4
-		AT = AT + 0x4000;
-		AT = (int)AT >> 0xF;
-		T2 = T2 + AT;
+		T2 = T2 + ((int)((0x6E14 * A3) + 0x4000) >> 0xF);
+
 		//800488C0
 		A3 = T2;
-		T2 = T2 << 1;
-		AT = (int)T2 >> 0xF;
-		AT = AT + 1;
-		AT = (int)AT >> 1;
 
+		T2 = T2 << 1;
+
+		AT = ((int)(((int)T2 >> 0xF) + 1) >> 1);
 		//800488D4
 		if (AT != 0)
 		{
@@ -4622,22 +3001,19 @@ void CMORTDecoder::Function80048740(unsigned long T0Param, unsigned long T1Param
 
 		//800488E8
 		T2 = T2 & 0xFFF8;
+
 		//800488EC
-		WriteShortToBuffer(buffer800D2AD8IntermediateValue, T0 + 0 - buffer800D2AD8Subtraction, (unsigned short)T2);
+		WriteShortToBuffer(buffer800D2AD8IntermediateValue, intermediateValueOffset + (x * 2), (unsigned short)T2);
 		if (outDebug != NULL)
-			fprintf(outDebug, "800488EC: INTERMEDIATE VALUE WRITE %04X to %08X\n", (unsigned short)(T2 & 0xFFFF), T0);
-
-		T0 = T0 + 2;
-
-		T3 = T3 - 1;
+			fprintf(outDebug, "800488EC: INTERMEDIATE VALUE WRITE %04X to %04X\n", (unsigned short)(T2 & 0xFFFF), (intermediateValueOffset + (x * 2)));
+		pcmSamples.push_back((unsigned short)T2);
 	}
-	while ((int)T3 >= 0);
 }
 
-void CMORTDecoder::Function80048A58(unsigned long A0Param, unsigned long T3Param, unsigned long& T6, unsigned long& T7, unsigned long& T8, unsigned long& T9)
+void CMORTDecoder::Function80048A58(unsigned long algorithm, signed short adjusters[8])
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
+	unsigned long A0 = 0;
 	unsigned long A1 = 0;
 	unsigned long A2 = 0;
 	unsigned long A3 = 0;
@@ -4655,80 +3031,40 @@ void CMORTDecoder::Function80048A58(unsigned long A0Param, unsigned long T3Param
 	unsigned long T0 = 0;
 	unsigned long T1 = 0;
 	unsigned long T2 = 0;
-	unsigned long T3 = T3Param;
+	unsigned long T3 = algorithm;
 	unsigned long T4 = 0;
 	unsigned long T5 = 0;
 
-	AT = (signed short)CharArrayToShort(&buffer800D2940Predictor[A0 + 0x188 - buffer800D2940Subtraction]); //0x188(A0);
-
-	T0 = A0 + 0x168;
-	T1 = T0 + 0x10;
-
-	//80048A60
-	if (AT != 0)
+	signed short* smootherPredictor1;
+	signed short* smootherPredictor2;
+	if (!currentSmootherPredictor)
 	{
-		T0 = T1;
-		T1 = A0 + 0x168;
+		smootherPredictor1 = smootherPredictorA;
+		smootherPredictor2 = smootherPredictorB;
+	}
+	else
+	{
+		smootherPredictor1 = smootherPredictorB;
+		smootherPredictor2 = smootherPredictorA;
 	}
 
 	//80048A70
 	//T5 = RA;
 
 	//80048A74
-	T2 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T0 - buffer800D2940Subtraction]); //0(T0);
-	T4 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T1 - buffer800D2940Subtraction]); //0(T1)	
-	CallT380048XXXFunction(T2, T3, T4); // JALR RA,T3 to 80048AFC
-	T6 = T2 << 0x10;
-
-	//80048A84
-	T2 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T0 + 2 - buffer800D2940Subtraction]); //2(T0);
-	T4 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T1 + 2 - buffer800D2940Subtraction]); //2(T1);
-	CallT380048XXXFunction(T2, T3, T4); // JALR RA,T3 to 80048AFC
-	T6 = T6 | T2;
-
-	//80048A94
-	T2 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T0 + 4 - buffer800D2940Subtraction]); //4(T0);
-	T4 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T1 + 4 - buffer800D2940Subtraction]); //4(T1)	
-	CallT380048XXXFunction(T2, T3, T4); // JALR RA,T3 to 80048AFC
-	T7 = T2 << 0x10;
-
-	//80048AA4
-	T2 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T0 + 6 - buffer800D2940Subtraction]); //6(T0);
-	T4 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T1 + 6 - buffer800D2940Subtraction]); //6(T1);
-	CallT380048XXXFunction(T2, T3, T4); // JALR RA,T3 to 80048AFC
-	T7 = T7 | T2;
-
-	//80048AB4
-	T2 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T0 + 8 - buffer800D2940Subtraction]); //8(T0);
-	T4 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T1 + 8 - buffer800D2940Subtraction]); //8(T1)	
-	CallT380048XXXFunction(T2, T3, T4); // JALR RA,T3 to 80048AFC
-	T8 = T2 << 0x10;
-
-	//80048AC4
-	T2 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T0 + 0xA - buffer800D2940Subtraction]); //A(T0);
-	T4 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T1 + 0xA - buffer800D2940Subtraction]); //A(T1);
-	CallT380048XXXFunction(T2, T3, T4); // JALR RA,T3 to 80048AFC
-	T8 = T8 | T2;
-
-	//80048AD4
-	T2 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T0 + 0xC - buffer800D2940Subtraction]); //C(T0);
-	T4 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T1 + 0xC - buffer800D2940Subtraction]); //C(T1)	
-	CallT380048XXXFunction(T2, T3, T4); // JALR RA,T3 to 80048AFC
-	T9 = T2 << 0x10;
-
-	//80048AE4
-	T2 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T0 + 0xE - buffer800D2940Subtraction]); //E(T0);
-	T4 = (signed short)CharArrayToShort(&buffer800D2940Predictor[T1 + 0xE - buffer800D2940Subtraction]); //E(T1);
-	CallT380048XXXFunction(T2, T3, T4); // JALR RA,T3 to 80048AFC
-	T9 = T9 | T2;
-
+	for (int x = 0; x < 8; x++)
+	{
+		T2 = (signed short)smootherPredictor1[x]; //0(T0);
+		T4 = (signed short)smootherPredictor2[x]; //0(T1)	
+		CallT380048XXXFunction(T2, T3, T4); // JALR RA,T3 to 80048AFC
+		adjusters[x] = (T2 & 0xFFFF);
+	}
 	//RA back to T5 original
 }
 
-void CMORTDecoder::Function80045A48(unsigned long A0Param)
+void CMORTDecoder::Function80045A48()
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
 	unsigned long A1 = 0;
 	unsigned long A2 = 0;
 	unsigned long A3 = 0;
@@ -4764,10 +3100,9 @@ void CMORTDecoder::Function80045A48(unsigned long A0Param)
 	}
 }
 
-void CMORTDecoder::Function80045A68(unsigned long A0Param)
+void CMORTDecoder::Function80045A68()
 {
 	unsigned long AT = 0;
-	unsigned long A0 = A0Param;
 	unsigned long A1 = 0;
 	unsigned long A2 = 0;
 	unsigned long A3 = 0;
@@ -4796,4 +3131,1493 @@ void CMORTDecoder::Function80045A68(unsigned long A0Param)
 	T6 = 4;
 
 	variable800D4F11Status2 = (unsigned char)T6;
+}
+
+void CMORTDecoder::WriteBitsTo80045FF0Buffer(unsigned char* buffer, int& bufferOffset, int& bufferBitOffset, int numBits, unsigned char value)
+{
+	int numBitsLeft = (0x20 - bufferBitOffset);
+	if (numBits > numBitsLeft)
+	{
+		// Partial
+		unsigned long valueBuffer = CharArrayToLong(&buffer[bufferOffset]);
+		valueBuffer |= (value << bufferBitOffset);
+		WriteLongToBuffer(buffer, bufferOffset, valueBuffer);
+
+		numBits -= numBitsLeft;
+		value = value >> numBitsLeft;
+		numBitsLeft = 0x20;
+		bufferBitOffset = 0;
+		bufferOffset += 4;
+	}
+
+	unsigned long valueBuffer = CharArrayToLong(&buffer[bufferOffset]);
+	valueBuffer |= (value << bufferBitOffset);
+	WriteLongToBuffer(buffer, bufferOffset, valueBuffer);
+
+	numBitsLeft -= numBits;
+	bufferBitOffset += numBits;
+
+	if (bufferBitOffset == 0x20)
+	{
+		bufferOffset += 4;
+		bufferBitOffset = 0;
+	}
+}
+
+bool CMORTDecoder::ReadWavData(CString rawWavFileName, unsigned char*& rawData, int& rawLength, unsigned long& samplingRate, bool& hasLoopData, unsigned char& keyBase, unsigned long& loopStart, unsigned long& loopEnd, unsigned long& loopCount)
+{
+	FILE* inWavFile = fopen(rawWavFileName, "rb");
+	if (inWavFile == NULL)
+	{
+		MessageBox(NULL, "Error cannot read wav file", "Error", NULL);
+		return false;
+	}
+
+	fseek(inWavFile, 0, SEEK_END);
+	int fileSize = ftell(inWavFile);
+	rewind(inWavFile);
+
+	unsigned char* wavData = new unsigned char[fileSize];
+	fread(wavData, 1, fileSize, inWavFile);
+	fclose(inWavFile);
+
+	if (((((((wavData[0] << 8) | wavData[1]) << 8) | wavData[2]) << 8) | wavData[3]) != 0x52494646)
+	{
+		delete [] wavData;
+		MessageBox(NULL, "Error not RIFF wav", "Error", NULL);
+		return false;
+	}
+
+	if (((((((wavData[0x8] << 8) | wavData[0x9]) << 8) | wavData[0xA]) << 8) | wavData[0xB]) != 0x57415645)
+	{
+		delete [] wavData;
+		MessageBox(NULL, "Error not WAVE wav", "Error", NULL);
+		return false;
+	}
+
+	bool endFlag = false;
+
+	unsigned long currentOffset = 0xC;
+
+	unsigned short channels = 0;
+	samplingRate = 0;
+	unsigned short bitRate = 0;
+
+	bool returnFlag = false;
+
+	while (!endFlag)
+	{
+		if ((int)currentOffset >= (fileSize - 8))
+			break;
+
+		unsigned long sectionType = ((((((wavData[currentOffset] << 8) | wavData[currentOffset + 1]) << 8) | wavData[currentOffset + 2]) << 8) | wavData[currentOffset + 3]);
+
+		if (sectionType == 0x666D7420) // fmt
+		{
+			unsigned long chunkSize = ((((((wavData[currentOffset + 0x7] << 8) | wavData[currentOffset + 0x6]) << 8) | wavData[currentOffset + 0x5]) << 8) | wavData[currentOffset + 0x4]);
+
+			channels = ((wavData[currentOffset + 0xB] << 8) | wavData[currentOffset + 0xA]);
+
+			if (channels != 0x0001)
+			{
+				MessageBox(NULL, "Warning: Only mono wav supported", "Error", NULL);
+				endFlag = true;
+				returnFlag = false;
+			}
+
+			samplingRate = ((((((wavData[currentOffset + 0xF] << 8) | wavData[currentOffset + 0xE]) << 8) | wavData[currentOffset + 0xD]) << 8) | wavData[currentOffset + 0xC]);
+			
+			bitRate = ((wavData[currentOffset + 0x17] << 8) | wavData[currentOffset + 0x16]);
+
+			currentOffset += chunkSize + 8;
+		}
+		else if (sectionType == 0x64617461) // data
+		{
+			rawLength = ((((((wavData[currentOffset + 0x7] << 8) | wavData[currentOffset + 0x6]) << 8) | wavData[currentOffset + 0x5]) << 8) | wavData[currentOffset + 0x4]);
+
+			if ((channels == 0) || (samplingRate == 0) || (bitRate == 0))
+			{
+				MessageBox(NULL, "Incorrect section type (missing fmt)", "Error unknown wav format", NULL);
+				endFlag = true;
+				returnFlag = false;
+			}
+
+			if (bitRate == 0x0010)
+			{
+				rawData = new unsigned char[rawLength];
+				for (int x = 0; x < rawLength; x++)
+				{
+					rawData[x] = wavData[currentOffset + 0x8 + x];
+				}
+			
+				returnFlag = true;
+			}
+			else
+			{
+				MessageBox(NULL, "Error only 16-bit PCM wav supported", "Error", NULL);
+				endFlag = true;
+				returnFlag = false;
+			}
+
+			currentOffset += rawLength + 8;
+		}
+		else if (sectionType == 0x736D706C) // smpl
+		{
+			unsigned long chunkSize = ((((((wavData[currentOffset + 0x7] << 8) | wavData[currentOffset + 0x6]) << 8) | wavData[currentOffset + 0x5]) << 8) | wavData[currentOffset + 0x4]);
+
+			unsigned long numSampleBlocks = Flip32Bit(CharArrayToLong(&wavData[currentOffset+0x24]));
+			if (numSampleBlocks > 0)
+			{
+				hasLoopData = true;
+
+				keyBase = Flip32Bit(CharArrayToLong(&wavData[currentOffset+0x14])) & 0xFF;
+				loopStart = Flip32Bit(CharArrayToLong(&wavData[currentOffset+0x34]));
+				loopEnd = Flip32Bit(CharArrayToLong(&wavData[currentOffset+0x38]));
+				loopCount = Flip32Bit(CharArrayToLong(&wavData[currentOffset+0x40]));
+				if (loopCount == 0)
+					loopCount = 0xFFFFFFFF;
+			}
+
+			currentOffset += 8 + chunkSize;
+		}
+		else
+		{
+			unsigned long chunkSize = ((((((wavData[currentOffset + 0x7] << 8) | wavData[currentOffset + 0x6]) << 8) | wavData[currentOffset + 0x5]) << 8) | wavData[currentOffset + 0x4]);
+
+			currentOffset += 8 + chunkSize;
+		}
+	}
+
+	delete [] wavData;
+	return returnFlag;
+}
+
+void CMORTDecoder::CalculateBestPredictors(std::vector<unsigned short> actualValues, int actualValueOffset, unsigned short buffer800D2940PredictorTemp[0xA0], unsigned short shortsSP60[4][0xD], unsigned short shortsSPC8[0x4], unsigned short shortsSPD0[0x4], unsigned short stackBuffer2Offsets[0x4], unsigned short shortsSPE0[0x4], unsigned long& S0, unsigned long& S1, unsigned long& S2, unsigned long& S3, unsigned long& S4, unsigned long& S5, unsigned long& S6, unsigned long& S7, signed long& A3, signed short smoothersChosen[8], signed short adjustersPrevious[8])
+{
+	signed char table8004867CValue1[0x8];
+	table8004867CValue1[0x00] = (signed char)0xFC;
+	table8004867CValue1[0x01] = (signed char)0xFD;
+	table8004867CValue1[0x02] = (signed char)0xFE;
+	table8004867CValue1[0x03] = (signed char)0xFE;
+	table8004867CValue1[0x04] = (signed char)0xFF;
+	table8004867CValue1[0x05] = (signed char)0xFF;
+	table8004867CValue1[0x06] = (signed char)0xFF;
+	table8004867CValue1[0x07] = (signed char)0xFF;
+	unsigned char table8004867CValue2[0x8];
+	table8004867CValue2[0x00] = 0x7;
+	table8004867CValue2[0x01] = 0x7;
+	table8004867CValue2[0x02] = 0x3;
+	table8004867CValue2[0x03] = 0x7;
+	table8004867CValue2[0x04] = 0x1;
+	table8004867CValue2[0x05] = 0x3;
+	table8004867CValue2[0x06] = 0x5;
+	table8004867CValue2[0x07] = 0x7;
+
+
+	unsigned short table80048738[0x6];
+	table80048738[0x00] = 0x0CCD;
+	table80048738[0x01] = 0x2CCD;
+	table80048738[0x02] = 0x5333;
+	table80048738[0x03] = 0x7FFF;
+	table80048738[0x04] = 0x852A;
+	table80048738[0x05] = 0x0000;
+
+	for (int slot = 0; slot < 4; slot++)
+	{
+		unsigned short shortsSPC8Value = shortsSPC8[slot];
+		unsigned short shortsSP60Values[0xD];
+		for (int d = 0; d < 0xD; d++)
+			shortsSP60Values[d] = shortsSP60[slot][d];
+		unsigned short shortsSPE0Value = shortsSPE0[slot];
+		unsigned short shortsSPD0Value = shortsSPD0[slot];
+		unsigned short stackBuffer2OffsetValue = stackBuffer2Offsets[slot];
+
+		unsigned long T0;
+		unsigned long T1;
+		if (shortsSPC8Value < 8)
+		{
+			T0 = (signed long)table8004867CValue1[shortsSPC8Value];
+			T1 = table8004867CValue2[shortsSPC8Value];
+		}
+		else
+		{
+			T0 = (shortsSPC8Value - 8) >> 3;
+			T1 = shortsSPC8Value & 7;
+		}
+
+		T0 = 6 - T0;
+
+		//800485D8
+		unsigned long T4 = (T1 * 0x800) + 0x47FF;
+
+		//800485E4
+
+		unsigned short stackBuffer2[0x28];
+		for (int x = 0; x < 0x28; x++)
+		{
+			stackBuffer2[x] = 0; //0 to 0(T9);
+		}
+
+		for (int x = 0; x < 0xD; x++)
+		{
+			unsigned long T5 = ((int)(((((signed short)shortsSP60Values[x] * 0x2000) - 0x7000) * T4) + 0x4000) >> 0xF);
+			T5 = (int)(T5 + (1 << (T0 - 1))) >> T0; // Sort of round up when shifting?
+
+			stackBuffer2[stackBuffer2OffsetValue + (x * 3)] = (signed short)(unsigned short)T5; // AT to 0(T9);
+		}
+
+		for (int x = 0; x < 0x78; x++)
+		{
+			T4 = buffer800D2940PredictorTemp[x + 0x28]; // T4 = 0x50(T5)
+
+			buffer800D2940PredictorTemp[x] = (unsigned short)T4; // T4 to 0(T5);
+		}
+
+		for (int x = 0; x < 0x28; x++)
+		{
+			T1 = (signed short)buffer800D2940PredictorTemp[(0x78 - (signed long)shortsSPE0Value + x)]; //F0(T5);
+			T1 = ((int)((T1 * (unsigned short)table80048738[shortsSPD0Value]) + 0x4000) >> 0xF);
+			buffer800D2940PredictorTemp[0x78 + x] = (unsigned short)(T1 + (signed short)stackBuffer2[x]); //T1 to 0xF0(T6);
+		}
+	}
+
+	signed short adjusters[8];
+
+	unsigned long bestDelta = 0xFFFFFFFF;
+	int bestDeltaSmooth = 0;
+
+	for (int testSmootherValue = 0x0; testSmootherValue < 0x40; testSmootherValue++)
+	{
+		signed long S0Temp = S0;
+		signed long S1Temp = S1;
+		signed long S2Temp = S2;
+		signed long S3Temp = S3;
+		signed long S4Temp = S4;
+		signed long S5Temp = S5;
+		signed long S6Temp = S6;
+		signed long S7Temp = S7;
+		signed long A3Temp = A3;
+
+		unsigned long totalDelta = 0;
+		for (int x = 0; x < 0xA0; x++)
+		{
+			unsigned long algorithm;
+			if (x < 0xD)
+				algorithm = 0x80048AFC;
+			else if (x < 0x1B)
+				algorithm = 0x80048B14;
+			else if (x < 0x28)
+				algorithm = 0x80048B24;
+			else
+				algorithm = 0x80048B3C;
+
+			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
+
+			unsigned long temp = (int)(((((signed short)testSmootherValue - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[0] = (signed short)temp;
+
+			temp = (signed short)adjusters[0];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+			adjusters[0] = (signed short)temp;
+
+
+			T2 = (T2 - ((int)((S0Temp * (int)(adjusters[0])) + 0x4000) >> 0xF));
+
+			S0Temp = T2;
+	
+			T2 = T2 + ((int)((0x6E14 * A3Temp) + 0x4000) >> 0xF);
+
+			A3Temp = T2;
+			T2 = T2 << 1;
+			T2 = T2 & 0xFFF8;
+
+			// Compare to real value and add to total delta
+			unsigned long delta = abs((signed short)actualValues[actualValueOffset + x] - (signed short)T2);
+			totalDelta += delta;
+		}
+
+		// See if was closer overall
+		if (totalDelta < bestDelta)
+		{
+			bestDelta = totalDelta;
+			bestDeltaSmooth = testSmootherValue;
+		}
+	}
+	smoothersChosen[0] = bestDeltaSmooth;
+
+	bestDelta = 0xFFFFFFFF;
+	bestDeltaSmooth = 0;
+
+	for (int testSmootherValue = 0x0; testSmootherValue < 0x40; testSmootherValue++)
+	{
+		signed long S0Temp = S0;
+		signed long S1Temp = S1;
+		signed long S2Temp = S2;
+		signed long S3Temp = S3;
+		signed long S4Temp = S4;
+		signed long S5Temp = S5;
+		signed long S6Temp = S6;
+		signed long S7Temp = S7;
+		signed long A3Temp = A3;
+
+		unsigned long totalDelta = 0;
+		for (int x = 0; x < 0xA0; x++)
+		{
+			unsigned long algorithm;
+			if (x < 0xD)
+				algorithm = 0x80048AFC;
+			else if (x < 0x1B)
+				algorithm = 0x80048B14;
+			else if (x < 0x28)
+				algorithm = 0x80048B24;
+			else
+				algorithm = 0x80048B3C;
+
+			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
+
+			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[0] = (signed short)temp;
+			temp = (signed short)adjusters[0];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+			adjusters[0] = (signed short)temp;
+
+			temp = (int)(((((signed short)testSmootherValue - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[1] = (signed short)temp;
+			temp = (signed short)adjusters[1];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+			adjusters[1] = (signed short)temp;
+
+
+			T2 = T2 - ((int)((S1Temp * ((int)(adjusters[1]))) + 0x4000) >> 0xF);
+
+			T2 = (T2 - ((int)((S0Temp * (int)(adjusters[0])) + 0x4000) >> 0xF));
+
+			S1Temp = ((int)(((int)(adjusters[0]) * T2) + 0x4000) >> 0xF) + S0Temp;
+
+			S0Temp = T2;
+	
+			T2 = T2 + ((int)((0x6E14 * A3Temp) + 0x4000) >> 0xF);
+
+			A3Temp = T2;
+			T2 = T2 << 1;
+			T2 = T2 & 0xFFF8;
+
+			// Compare to real value and add to total delta
+			unsigned long delta = abs((signed short)actualValues[actualValueOffset + x] - (signed short)T2);
+			totalDelta += delta;
+		}
+
+		// See if was closer overall
+		if (totalDelta < bestDelta)
+		{
+			bestDelta = totalDelta;
+			bestDeltaSmooth = testSmootherValue;
+		}
+	}
+	smoothersChosen[1] = bestDeltaSmooth;
+
+	bestDelta = 0xFFFFFFFF;
+	bestDeltaSmooth = 0;
+
+	for (int testSmootherValue = 0x0; testSmootherValue < 0x20; testSmootherValue++)
+	{
+		signed long S0Temp = S0;
+		signed long S1Temp = S1;
+		signed long S2Temp = S2;
+		signed long S3Temp = S3;
+		signed long S4Temp = S4;
+		signed long S5Temp = S5;
+		signed long S6Temp = S6;
+		signed long S7Temp = S7;
+		signed long A3Temp = A3;
+
+		unsigned long totalDelta = 0;
+		for (int x = 0; x < 0xA0; x++)
+		{
+			unsigned long algorithm;
+			if (x < 0xD)
+				algorithm = 0x80048AFC;
+			else if (x < 0x1B)
+				algorithm = 0x80048B14;
+			else if (x < 0x28)
+				algorithm = 0x80048B24;
+			else
+				algorithm = 0x80048B3C;
+
+			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
+
+			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[0] = (signed short)temp;
+			temp = (signed short)adjusters[0];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+			adjusters[0] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[1] = (signed short)temp;
+			temp = (signed short)adjusters[1];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+			adjusters[1] = (signed short)temp;
+
+			temp = (int)(((((signed short)testSmootherValue - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+			adjusters[2] = (signed short)temp;
+			temp = (signed short)adjusters[2];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+			adjusters[2] = (signed short)temp;
+
+			T2 = (T2 - ((int)((S2Temp * ((int)(adjusters[2]))) + 0x4000) >> 0xF));
+
+			T2 = T2 - ((int)((S1Temp * ((int)(adjusters[1]))) + 0x4000) >> 0xF);
+			
+			S2Temp = ((int)(((int)(adjusters[1]) * T2) + 0x4000) >> 0xF) + S1Temp;
+
+			T2 = (T2 - ((int)((S0Temp * (int)(adjusters[0])) + 0x4000) >> 0xF));
+
+			S1Temp = ((int)(((int)(adjusters[0]) * T2) + 0x4000) >> 0xF) + S0Temp;
+
+			S0Temp = T2;
+	
+			T2 = T2 + ((int)((0x6E14 * A3Temp) + 0x4000) >> 0xF);
+
+			A3Temp = T2;
+			T2 = T2 << 1;
+			T2 = T2 & 0xFFF8;
+
+			// Compare to real value and add to total delta
+			unsigned long delta = abs((signed short)actualValues[actualValueOffset + x] - (signed short)T2);
+			totalDelta += delta;
+		}
+
+		// See if was closer overall
+		if (totalDelta < bestDelta)
+		{
+			bestDelta = totalDelta;
+			bestDeltaSmooth = testSmootherValue;
+		}
+	}
+	smoothersChosen[2] = bestDeltaSmooth;
+
+	bestDelta = 0xFFFFFFFF;
+	bestDeltaSmooth = 0;
+
+	for (int testSmootherValue = 0x0; testSmootherValue < 0x20; testSmootherValue++)
+	{
+		signed long S0Temp = S0;
+		signed long S1Temp = S1;
+		signed long S2Temp = S2;
+		signed long S3Temp = S3;
+		signed long S4Temp = S4;
+		signed long S5Temp = S5;
+		signed long S6Temp = S6;
+		signed long S7Temp = S7;
+		signed long A3Temp = A3;
+
+		unsigned long totalDelta = 0;
+		for (int x = 0; x < 0xA0; x++)
+		{
+			unsigned long algorithm;
+			if (x < 0xD)
+				algorithm = 0x80048AFC;
+			else if (x < 0x1B)
+				algorithm = 0x80048B14;
+			else if (x < 0x28)
+				algorithm = 0x80048B24;
+			else
+				algorithm = 0x80048B3C;
+
+			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
+
+			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[0] = (signed short)temp;
+			temp = (signed short)adjusters[0];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+			adjusters[0] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[1] = (signed short)temp;
+			temp = (signed short)adjusters[1];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+			adjusters[1] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+			adjusters[2] = (signed short)temp;
+			temp = (signed short)adjusters[2];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+			adjusters[2] = (signed short)temp;
+
+			temp = (int)(((((signed short)testSmootherValue - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+			adjusters[3] = (signed short)temp;
+			temp = (signed short)adjusters[3];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
+			adjusters[3] = (signed short)temp;
+
+			T2 = T2 - ((int)((S3Temp * (int)(adjusters[3])) + 0x4000) >> 0xF);
+
+			T2 = (T2 - ((int)((S2Temp * ((int)(adjusters[2]))) + 0x4000) >> 0xF));
+
+			S3Temp = ((int)(((int)(adjusters[2]) * T2) + 0x4000) >> 0xF) + S2Temp;
+
+			T2 = T2 - ((int)((S1Temp * ((int)(adjusters[1]))) + 0x4000) >> 0xF);
+			
+			S2Temp = ((int)(((int)(adjusters[1]) * T2) + 0x4000) >> 0xF) + S1Temp;
+
+			T2 = (T2 - ((int)((S0Temp * (int)(adjusters[0])) + 0x4000) >> 0xF));
+
+			S1Temp = ((int)(((int)(adjusters[0]) * T2) + 0x4000) >> 0xF) + S0Temp;
+
+			S0Temp = T2;
+	
+			T2 = T2 + ((int)((0x6E14 * A3Temp) + 0x4000) >> 0xF);
+
+			A3Temp = T2;
+			T2 = T2 << 1;
+			T2 = T2 & 0xFFF8;
+
+			// Compare to real value and add to total delta
+			unsigned long delta = abs((signed short)actualValues[actualValueOffset + x] - (signed short)T2);
+			totalDelta += delta;
+		}
+
+		// See if was closer overall
+		if (totalDelta < bestDelta)
+		{
+			bestDelta = totalDelta;
+			bestDeltaSmooth = testSmootherValue;
+		}
+	}
+	smoothersChosen[3] = bestDeltaSmooth;
+
+	bestDelta = 0xFFFFFFFF;
+	bestDeltaSmooth = 0;
+
+	for (int testSmootherValue = 0x0; testSmootherValue < 0x10; testSmootherValue++)
+	{
+		signed long S0Temp = S0;
+		signed long S1Temp = S1;
+		signed long S2Temp = S2;
+		signed long S3Temp = S3;
+		signed long S4Temp = S4;
+		signed long S5Temp = S5;
+		signed long S6Temp = S6;
+		signed long S7Temp = S7;
+		signed long A3Temp = A3;
+
+		unsigned long totalDelta = 0;
+		for (int x = 0; x < 0xA0; x++)
+		{
+			unsigned long algorithm;
+			if (x < 0xD)
+				algorithm = 0x80048AFC;
+			else if (x < 0x1B)
+				algorithm = 0x80048B14;
+			else if (x < 0x28)
+				algorithm = 0x80048B24;
+			else
+				algorithm = 0x80048B3C;
+
+			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
+
+			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[0] = (signed short)temp;
+			temp = (signed short)adjusters[0];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+			adjusters[0] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[1] = (signed short)temp;
+			temp = (signed short)adjusters[1];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+			adjusters[1] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+			adjusters[2] = (signed short)temp;
+			temp = (signed short)adjusters[2];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+			adjusters[2] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+			adjusters[3] = (signed short)temp;
+			temp = (signed short)adjusters[3];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
+			adjusters[3] = (signed short)temp;
+
+			temp = (int)(((((signed short)testSmootherValue - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
+			adjusters[4] = (signed short)temp;
+			temp = (signed short)adjusters[4];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
+			adjusters[4] = (signed short)temp;
+
+			T2 = T2 - ((int)((S4Temp * (int)(adjusters[4])) + 0x4000) >> 0xF);
+
+			T2 = T2 - ((int)((S3Temp * (int)(adjusters[3])) + 0x4000) >> 0xF);
+
+			S4Temp = (((int)((int)(adjusters[3]) * T2) + 0x4000) >> 0xF) + S3Temp;
+
+			T2 = (T2 - ((int)((S2Temp * ((int)(adjusters[2]))) + 0x4000) >> 0xF));
+
+			S3Temp = ((int)(((int)(adjusters[2]) * T2) + 0x4000) >> 0xF) + S2Temp;
+
+			T2 = T2 - ((int)((S1Temp * ((int)(adjusters[1]))) + 0x4000) >> 0xF);
+			
+			S2Temp = ((int)(((int)(adjusters[1]) * T2) + 0x4000) >> 0xF) + S1Temp;
+
+			T2 = (T2 - ((int)((S0Temp * (int)(adjusters[0])) + 0x4000) >> 0xF));
+
+			S1Temp = ((int)(((int)(adjusters[0]) * T2) + 0x4000) >> 0xF) + S0Temp;
+
+			S0Temp = T2;
+	
+			T2 = T2 + ((int)((0x6E14 * A3Temp) + 0x4000) >> 0xF);
+
+			A3Temp = T2;
+			T2 = T2 << 1;
+			T2 = T2 & 0xFFF8;
+
+			// Compare to real value and add to total delta
+			unsigned long delta = abs((signed short)actualValues[actualValueOffset + x] - (signed short)T2);
+			totalDelta += delta;
+		}
+
+		// See if was closer overall
+		if (totalDelta < bestDelta)
+		{
+			bestDelta = totalDelta;
+			bestDeltaSmooth = testSmootherValue;
+		}
+	}
+	smoothersChosen[4] = bestDeltaSmooth;
+
+	bestDelta = 0xFFFFFFFF;
+	bestDeltaSmooth = 0;
+
+	for (int testSmootherValue = 0x0; testSmootherValue < 0x10; testSmootherValue++)
+	{
+		signed long S0Temp = S0;
+		signed long S1Temp = S1;
+		signed long S2Temp = S2;
+		signed long S3Temp = S3;
+		signed long S4Temp = S4;
+		signed long S5Temp = S5;
+		signed long S6Temp = S6;
+		signed long S7Temp = S7;
+		signed long A3Temp = A3;
+
+		unsigned long totalDelta = 0;
+		for (int x = 0; x < 0xA0; x++)
+		{
+			unsigned long algorithm;
+			if (x < 0xD)
+				algorithm = 0x80048AFC;
+			else if (x < 0x1B)
+				algorithm = 0x80048B14;
+			else if (x < 0x28)
+				algorithm = 0x80048B24;
+			else
+				algorithm = 0x80048B3C;
+
+			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
+
+			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[0] = (signed short)temp;
+			temp = (signed short)adjusters[0];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+			adjusters[0] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[1] = (signed short)temp;
+			temp = (signed short)adjusters[1];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+			adjusters[1] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+			adjusters[2] = (signed short)temp;
+			temp = (signed short)adjusters[2];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+			adjusters[2] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+			adjusters[3] = (signed short)temp;
+			temp = (signed short)adjusters[3];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
+			adjusters[3] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
+			adjusters[4] = (signed short)temp;
+			temp = (signed short)adjusters[4];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
+			adjusters[4] = (signed short)temp;
+
+			temp = (int)(((((signed short)testSmootherValue - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
+			adjusters[5] = (signed short)temp;
+			temp = (signed short)adjusters[5];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[5]); // JALR RA,T3 to 80048AFC
+			adjusters[5] = (signed short)temp;
+		
+			T2 = T2 - (((int)((S5Temp * (int)(adjusters[5])) + 0x4000)) >> 0xF);
+
+			T2 = T2 - ((int)((S4Temp * (int)(adjusters[4])) + 0x4000) >> 0xF);
+		
+			S5Temp = ((int)(((int)(adjusters[4]) * T2) + 0x4000) >> 0xF) + S4Temp;
+
+			T2 = T2 - ((int)((S3Temp * (int)(adjusters[3])) + 0x4000) >> 0xF);
+
+			S4Temp = (((int)((int)(adjusters[3]) * T2) + 0x4000) >> 0xF) + S3Temp;
+
+			T2 = (T2 - ((int)((S2Temp * ((int)(adjusters[2]))) + 0x4000) >> 0xF));
+
+			S3Temp = ((int)(((int)(adjusters[2]) * T2) + 0x4000) >> 0xF) + S2Temp;
+
+			T2 = T2 - ((int)((S1Temp * ((int)(adjusters[1]))) + 0x4000) >> 0xF);
+			
+			S2Temp = ((int)(((int)(adjusters[1]) * T2) + 0x4000) >> 0xF) + S1Temp;
+
+			T2 = (T2 - ((int)((S0Temp * (int)(adjusters[0])) + 0x4000) >> 0xF));
+
+			S1Temp = ((int)(((int)(adjusters[0]) * T2) + 0x4000) >> 0xF) + S0Temp;
+
+			S0Temp = T2;
+	
+			T2 = T2 + ((int)((0x6E14 * A3Temp) + 0x4000) >> 0xF);
+
+			A3Temp = T2;
+			T2 = T2 << 1;
+			T2 = T2 & 0xFFF8;
+
+			// Compare to real value and add to total delta
+			unsigned long delta = abs((signed short)actualValues[actualValueOffset + x] - (signed short)T2);
+			totalDelta += delta;
+		}
+
+		// See if was closer overall
+		if (totalDelta < bestDelta)
+		{
+			bestDelta = totalDelta;
+			bestDeltaSmooth = testSmootherValue;
+		}
+	}
+	smoothersChosen[5] = bestDeltaSmooth;
+
+	bestDelta = 0xFFFFFFFF;
+	bestDeltaSmooth = 0;
+
+	for (int testSmootherValue = 0x0; testSmootherValue < 8; testSmootherValue++)
+	{
+		signed long S0Temp = S0;
+		signed long S1Temp = S1;
+		signed long S2Temp = S2;
+		signed long S3Temp = S3;
+		signed long S4Temp = S4;
+		signed long S5Temp = S5;
+		signed long S6Temp = S6;
+		signed long S7Temp = S7;
+		signed long A3Temp = A3;
+
+		unsigned long totalDelta = 0;
+		for (int x = 0; x < 0xA0; x++)
+		{
+			unsigned long algorithm;
+			if (x < 0xD)
+				algorithm = 0x80048AFC;
+			else if (x < 0x1B)
+				algorithm = 0x80048B14;
+			else if (x < 0x28)
+				algorithm = 0x80048B24;
+			else
+				algorithm = 0x80048B3C;
+
+			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
+
+			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[0] = (signed short)temp;
+			temp = (signed short)adjusters[0];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+			adjusters[0] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[1] = (signed short)temp;
+			temp = (signed short)adjusters[1];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+			adjusters[1] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+			adjusters[2] = (signed short)temp;
+			temp = (signed short)adjusters[2];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+			adjusters[2] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+			adjusters[3] = (signed short)temp;
+			temp = (signed short)adjusters[3];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
+			adjusters[3] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
+			adjusters[4] = (signed short)temp;
+			temp = (signed short)adjusters[4];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
+			adjusters[4] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[5] - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
+			adjusters[5] = (signed short)temp;
+			temp = (signed short)adjusters[5];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[5]); // JALR RA,T3 to 80048AFC
+			adjusters[5] = (signed short)temp;
+
+			temp = (int)(((((signed short)testSmootherValue - 4) * (unsigned long)0x400) * (unsigned long)0x7ADE) + 0x147936C) >> 0xF << 1;
+			adjusters[6] = (signed short)temp;
+			temp = (signed short)adjusters[6];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[6]); // JALR RA,T3 to 80048AFC
+			adjusters[6] = (signed short)temp;
+
+			T2 = (T2 - ((int)((S6Temp * (int)(adjusters[6])) + 0x4000) >> 0xF));
+		
+			T2 = T2 - (((int)((S5Temp * (int)(adjusters[5])) + 0x4000)) >> 0xF);
+
+			S6Temp = ((((int)((int)(adjusters[5]) * T2) + 0x4000) >> 0xF) + S5Temp);
+
+			T2 = T2 - ((int)((S4Temp * (int)(adjusters[4])) + 0x4000) >> 0xF);
+		
+			S5Temp = ((int)(((int)(adjusters[4]) * T2) + 0x4000) >> 0xF) + S4Temp;
+
+			T2 = T2 - ((int)((S3Temp * (int)(adjusters[3])) + 0x4000) >> 0xF);
+
+			S4Temp = (((int)((int)(adjusters[3]) * T2) + 0x4000) >> 0xF) + S3Temp;
+
+			T2 = (T2 - ((int)((S2Temp * ((int)(adjusters[2]))) + 0x4000) >> 0xF));
+
+			S3Temp = ((int)(((int)(adjusters[2]) * T2) + 0x4000) >> 0xF) + S2Temp;
+
+			T2 = T2 - ((int)((S1Temp * ((int)(adjusters[1]))) + 0x4000) >> 0xF);
+			
+			S2Temp = ((int)(((int)(adjusters[1]) * T2) + 0x4000) >> 0xF) + S1Temp;
+
+			T2 = (T2 - ((int)((S0Temp * (int)(adjusters[0])) + 0x4000) >> 0xF));
+
+			S1Temp = ((int)(((int)(adjusters[0]) * T2) + 0x4000) >> 0xF) + S0Temp;
+
+			S0Temp = T2;
+	
+			T2 = T2 + ((int)((0x6E14 * A3Temp) + 0x4000) >> 0xF);
+
+			A3Temp = T2;
+			T2 = T2 << 1;
+			T2 = T2 & 0xFFF8;
+
+			// Compare to real value and add to total delta
+			unsigned long delta = abs((signed short)actualValues[actualValueOffset + x] - (signed short)T2);
+			totalDelta += delta;
+		}
+
+		// See if was closer overall
+		if (totalDelta < bestDelta)
+		{
+			bestDelta = totalDelta;
+			bestDeltaSmooth = testSmootherValue;
+		}
+	}
+	smoothersChosen[6] = bestDeltaSmooth;
+
+	bestDelta = 0xFFFFFFFF;
+	bestDeltaSmooth = 0;
+
+	for (int testSmootherValue = 0x0; testSmootherValue < 8; testSmootherValue++)
+	{
+		signed long S0Temp = S0;
+		signed long S1Temp = S1;
+		signed long S2Temp = S2;
+		signed long S3Temp = S3;
+		signed long S4Temp = S4;
+		signed long S5Temp = S5;
+		signed long S6Temp = S6;
+		signed long S7Temp = S7;
+		signed long A3Temp = A3;
+
+		unsigned long totalDelta = 0;
+		for (int x = 0; x < 0xA0; x++)
+		{
+			unsigned long algorithm;
+			if (x < 0xD)
+				algorithm = 0x80048AFC;
+			else if (x < 0x1B)
+				algorithm = 0x80048B14;
+			else if (x < 0x28)
+				algorithm = 0x80048B24;
+			else
+				algorithm = 0x80048B3C;
+
+			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
+
+			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[0] = (signed short)temp;
+			temp = (signed short)adjusters[0];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+			adjusters[0] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+			adjusters[1] = (signed short)temp;
+			temp = (signed short)adjusters[1];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+			adjusters[1] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+			adjusters[2] = (signed short)temp;
+			temp = (signed short)adjusters[2];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+			adjusters[2] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+			adjusters[3] = (signed short)temp;
+			temp = (signed short)adjusters[3];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
+			adjusters[3] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
+			adjusters[4] = (signed short)temp;
+			temp = (signed short)adjusters[4];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
+			adjusters[4] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[5] - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
+			adjusters[5] = (signed short)temp;
+			temp = (signed short)adjusters[5];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[5]); // JALR RA,T3 to 80048AFC
+			adjusters[5] = (signed short)temp;
+
+			temp = (int)(((((signed short)smoothersChosen[6] - 4) * (unsigned long)0x400) * (unsigned long)0x7ADE) + 0x147936C) >> 0xF << 1;
+			adjusters[6] = (signed short)temp;
+			temp = (signed short)adjusters[6];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[6]); // JALR RA,T3 to 80048AFC
+			adjusters[6] = (signed short)temp;
+
+			temp = (int)((((((signed short)testSmootherValue - 4) * (unsigned long)0x400) * (unsigned long)0x740C) + 0x40D6B40)) >> 0xF << 1;
+			adjusters[7] = (signed short)temp;
+			temp = (signed short)adjusters[7];
+			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[7]); // JALR RA,T3 to 80048AFC
+			adjusters[7] = (signed short)temp;
+
+			T2 = (T2 - ((int)((S7Temp * (int)(adjusters[7])) + 0x4000) >> 0xF));
+
+			T2 = (T2 - ((int)((S6Temp * (int)(adjusters[6])) + 0x4000) >> 0xF));
+
+			S7Temp = (((int)((int)(adjusters[6]) * T2 + 0x4000)) >> 0xF) + S6Temp;
+		
+			T2 = T2 - (((int)((S5Temp * (int)(adjusters[5])) + 0x4000)) >> 0xF);
+
+			S6Temp = ((((int)((int)(adjusters[5]) * T2) + 0x4000) >> 0xF) + S5Temp);
+
+			T2 = T2 - ((int)((S4Temp * (int)(adjusters[4])) + 0x4000) >> 0xF);
+		
+			S5Temp = ((int)(((int)(adjusters[4]) * T2) + 0x4000) >> 0xF) + S4Temp;
+
+			T2 = T2 - ((int)((S3Temp * (int)(adjusters[3])) + 0x4000) >> 0xF);
+
+			S4Temp = (((int)((int)(adjusters[3]) * T2) + 0x4000) >> 0xF) + S3Temp;
+
+			T2 = (T2 - ((int)((S2Temp * ((int)(adjusters[2]))) + 0x4000) >> 0xF));
+
+			S3Temp = ((int)(((int)(adjusters[2]) * T2) + 0x4000) >> 0xF) + S2Temp;
+
+			T2 = T2 - ((int)((S1Temp * ((int)(adjusters[1]))) + 0x4000) >> 0xF);
+			
+			S2Temp = ((int)(((int)(adjusters[1]) * T2) + 0x4000) >> 0xF) + S1Temp;
+
+			T2 = (T2 - ((int)((S0Temp * (int)(adjusters[0])) + 0x4000) >> 0xF));
+
+			S1Temp = ((int)(((int)(adjusters[0]) * T2) + 0x4000) >> 0xF) + S0Temp;
+
+			S0Temp = T2;
+	
+			T2 = T2 + ((int)((0x6E14 * A3Temp) + 0x4000) >> 0xF);
+
+			A3Temp = T2;
+			T2 = T2 << 1;
+			T2 = T2 & 0xFFF8;
+
+			// Compare to real value and add to total delta
+			unsigned long delta = abs((signed short)actualValues[actualValueOffset + x] - (signed short)T2);
+			totalDelta += delta;
+		}
+
+		// See if was closer overall
+		if (totalDelta < bestDelta)
+		{
+			bestDelta = totalDelta;
+			bestDeltaSmooth = testSmootherValue;
+		}
+	}
+	smoothersChosen[7] = bestDeltaSmooth;
+
+	for (int x = 0; x < 0xA0; x++)
+	{
+		unsigned long algorithm;
+		if (x < 0xD)
+			algorithm = 0x80048AFC;
+		else if (x < 0x1B)
+			algorithm = 0x80048B14;
+		else if (x < 0x28)
+			algorithm = 0x80048B24;
+		else
+			algorithm = 0x80048B3C;
+
+		unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
+
+		unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+		adjusters[0] = (signed short)temp;
+		temp = (signed short)adjusters[0];
+		CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+		adjusters[0] = (signed short)temp;
+
+		temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+		adjusters[1] = (signed short)temp;
+		temp = (signed short)adjusters[1];
+		CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+		adjusters[1] = (signed short)temp;
+
+		temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+		adjusters[2] = (signed short)temp;
+		temp = (signed short)adjusters[2];
+		CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+		adjusters[2] = (signed short)temp;
+
+		temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+		adjusters[3] = (signed short)temp;
+		temp = (signed short)adjusters[3];
+		CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
+		adjusters[3] = (signed short)temp;
+
+		temp = (int)(((((signed short)smoothersChosen[4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
+		adjusters[4] = (signed short)temp;
+		temp = (signed short)adjusters[4];
+		CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
+		adjusters[4] = (signed short)temp;
+
+		temp = (int)(((((signed short)smoothersChosen[5] - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
+		adjusters[5] = (signed short)temp;
+		temp = (signed short)adjusters[5];
+		CallT380048XXXFunction(temp, algorithm, adjustersPrevious[5]); // JALR RA,T3 to 80048AFC
+		adjusters[5] = (signed short)temp;
+
+		temp = (int)(((((signed short)smoothersChosen[6] - 4) * (unsigned long)0x400) * (unsigned long)0x7ADE) + 0x147936C) >> 0xF << 1;
+		adjusters[6] = (signed short)temp;
+		temp = (signed short)adjusters[6];
+		CallT380048XXXFunction(temp, algorithm, adjustersPrevious[6]); // JALR RA,T3 to 80048AFC
+		adjusters[6] = (signed short)temp;
+
+		temp = (int)((((((signed short)smoothersChosen[7] - 4) * (unsigned long)0x400) * (unsigned long)0x740C) + 0x40D6B40)) >> 0xF << 1;
+		adjusters[7] = (signed short)temp;
+		temp = (signed short)adjusters[7];
+		CallT380048XXXFunction(temp, algorithm, adjustersPrevious[7]); // JALR RA,T3 to 80048AFC
+		adjusters[7] = (signed short)temp;
+
+		T2 = (T2 - ((int)((S7 * (int)(adjusters[7])) + 0x4000) >> 0xF));
+
+		T2 = (T2 - ((int)((S6 * (int)(adjusters[6])) + 0x4000) >> 0xF));
+
+		S7 = (((int)((int)(adjusters[6]) * T2 + 0x4000)) >> 0xF) + S6;
+	
+		T2 = T2 - (((int)((S5 * (int)(adjusters[5])) + 0x4000)) >> 0xF);
+
+		S6 = ((((int)((int)(adjusters[5]) * T2) + 0x4000) >> 0xF) + S5);
+
+		T2 = T2 - ((int)((S4 * (int)(adjusters[4])) + 0x4000) >> 0xF);
+	
+		S5 = ((int)(((int)(adjusters[4]) * T2) + 0x4000) >> 0xF) + S4;
+
+		T2 = T2 - ((int)((S3 * (int)(adjusters[3])) + 0x4000) >> 0xF);
+
+		S4 = (((int)((int)(adjusters[3]) * T2) + 0x4000) >> 0xF) + S3;
+
+		T2 = (T2 - ((int)((S2 * ((int)(adjusters[2]))) + 0x4000) >> 0xF));
+
+		S3 = ((int)(((int)(adjusters[2]) * T2) + 0x4000) >> 0xF) + S2;
+
+		T2 = T2 - ((int)((S1 * ((int)(adjusters[1]))) + 0x4000) >> 0xF);
+		
+		S2 = ((int)(((int)(adjusters[1]) * T2) + 0x4000) >> 0xF) + S1;
+
+		T2 = (T2 - ((int)((S0 * (int)(adjusters[0])) + 0x4000) >> 0xF));
+
+		S1 = ((int)(((int)(adjusters[0]) * T2) + 0x4000) >> 0xF) + S0;
+
+		S0 = T2;
+
+		T2 = T2 + ((int)((0x6E14 * A3) + 0x4000) >> 0xF);
+
+		A3 = T2;
+		T2 = T2 << 1;
+		T2 = T2 & 0xFFF8;
+	}
+
+	unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+	adjustersPrevious[0] = (signed short)temp;
+
+	temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+	adjustersPrevious[1] = (signed short)temp;
+
+	temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+	adjustersPrevious[2] = (signed short)temp;
+
+	temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+	adjustersPrevious[3] = (signed short)temp;
+
+	temp = (int)(((((signed short)smoothersChosen[4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
+	adjustersPrevious[4] = (signed short)temp;
+
+	temp = (int)(((((signed short)smoothersChosen[5] - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
+	adjustersPrevious[5] = (signed short)temp;
+
+	temp = (int)(((((signed short)smoothersChosen[6] - 4) * (unsigned long)0x400) * (unsigned long)0x7ADE) + 0x147936C) >> 0xF << 1;
+	adjustersPrevious[6] = (signed short)temp;
+
+	temp = (int)((((((signed short)smoothersChosen[7] - 4) * (unsigned long)0x400) * (unsigned long)0x740C) + 0x40D6B40)) >> 0xF << 1;
+	adjustersPrevious[7] = (signed short)temp;
+}
+
+void CMORTDecoder::Encode(unsigned char* data, int dataSize, unsigned char* outputBuffer, int& outputBufferSize)
+{
+	// TODO move to global
+	signed char table8004867CValue1[0x8];
+	table8004867CValue1[0x00] = (signed char)0xFC;
+	table8004867CValue1[0x01] = (signed char)0xFD;
+	table8004867CValue1[0x02] = (signed char)0xFE;
+	table8004867CValue1[0x03] = (signed char)0xFE;
+	table8004867CValue1[0x04] = (signed char)0xFF;
+	table8004867CValue1[0x05] = (signed char)0xFF;
+	table8004867CValue1[0x06] = (signed char)0xFF;
+	table8004867CValue1[0x07] = (signed char)0xFF;
+	unsigned char table8004867CValue2[0x8];
+	table8004867CValue2[0x00] = 0x7;
+	table8004867CValue2[0x01] = 0x7;
+	table8004867CValue2[0x02] = 0x3;
+	table8004867CValue2[0x03] = 0x7;
+	table8004867CValue2[0x04] = 0x1;
+	table8004867CValue2[0x05] = 0x3;
+	table8004867CValue2[0x06] = 0x5;
+	table8004867CValue2[0x07] = 0x7;
+
+	unsigned short table80048738[0x6];
+	table80048738[0x00] = 0x0CCD;
+	table80048738[0x01] = 0x2CCD;
+	table80048738[0x02] = 0x5333;
+	table80048738[0x03] = 0x7FFF;
+	table80048738[0x04] = 0x852A;
+	table80048738[0x05] = 0x0000;
+
+	outputBufferSize = 0;
+
+	std::vector<unsigned short> intermediateValues;
+	for (int x = 0; x < dataSize; x+=2)
+	{
+		intermediateValues.push_back(CharArrayToShort(&data[x]));
+	}
+
+	while ((intermediateValues.size() % 0xA0) != 0)
+		intermediateValues.push_back(0x0000);
+
+	std::vector<signed short> predictorValues;
+	unsigned long prevValueNotDoubled = 0;
+	
+
+	std::vector<int> allZeroSpots;
+	for (size_t x = 0; x < intermediateValues.size(); x += 0xA0)
+	{
+		bool isAllZeros = true;
+		for (int y = 0; y < 0xA0; y++)
+		{
+			if (intermediateValues[x + y] != 0x0000)
+			{
+				isAllZeros = false;
+				break;
+			}
+		}
+
+		if (!isAllZeros)
+		{
+			for (int y = 0; y < 0xA0; y++)
+			{
+				unsigned long startValue = prevValueNotDoubled;
+				unsigned long currentValue = (signed short)intermediateValues[x + y] >> 1;
+				prevValueNotDoubled = currentValue;
+				unsigned long deltaValue = currentValue - startValue;
+				predictorValues.push_back((unsigned short)deltaValue);
+			}
+		}
+		else
+		{
+			allZeroSpots.push_back(x);
+			for (int y = 0; y < 0xA0; y++)
+			{
+				predictorValues.push_back((unsigned short)0x0000);
+			}
+		}
+	}
+
+	WriteLongToBuffer(outputBuffer, 0, 0x4D4F5254); // MORT
+	outputBufferSize = 0xC;
+
+	int outputBufferBitOffset = 0;
+
+	bool isSkipResetPredictor = false;
+	int numberSkipResetPredictors = 0;
+	int numberResetPredictors = 0;
+
+	std::vector<unsigned short> previousPredictorValues;
+	for (int x = 0; x < 0x78; x++)
+		previousPredictorValues.push_back(0x0000);
+
+	signed short adjustersPrevious[8];
+	for (int x = 0; x < 8; x++)
+		adjustersPrevious[x] = 0;
+	unsigned short buffer800D2940PredictorTemp[0xA0];
+	for (int x = 0; x < 0xA0; x++)
+		buffer800D2940PredictorTemp[x] = 0x0;
+	unsigned long S0 = 0;
+	unsigned long S1 = 0;
+	unsigned long S2 = 0;
+	unsigned long S3 = 0;
+	unsigned long S4 = 0;
+	unsigned long S5 = 0;
+	unsigned long S6 = 0;
+	unsigned long S7 = 0;
+	signed long A3 = 0;
+
+	for (size_t x = 0; x < predictorValues.size(); x += 0xA0)
+	{
+		bool isAllZero = false;
+		if (numberResetPredictors == 0)
+		{
+			if (std::find(allZeroSpots.begin(), allZeroSpots.end(), x) != allZeroSpots.end())
+			{
+				isAllZero = true;
+				numberSkipResetPredictors++;
+			}
+		}
+
+		bool writeNumberResetPredictors = false;
+		if (!isAllZero && (numberResetPredictors == 0))
+		{
+			numberResetPredictors++;
+			writeNumberResetPredictors = true;
+			for (size_t xx = x + 0xA0; xx < predictorValues.size(); xx += 0xA0)
+			{
+				if (
+					(std::find(allZeroSpots.begin(), allZeroSpots.end(), xx) != allZeroSpots.end())
+					|| (numberResetPredictors == 0x80)
+				)
+				{
+					break;
+				}
+				numberResetPredictors++;
+			}
+		}
+
+		if ((!isAllZero && (numberSkipResetPredictors != 0)) || (isAllZero && (x == (predictorValues.size() - 0xA0))))
+		{
+			// Write out
+			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 1, (int)true);
+			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 4, (numberSkipResetPredictors - 1));
+
+			numberSkipResetPredictors = 0;
+		}
+
+		if (isAllZero)
+		{
+			continue;
+		}
+		else if (!isAllZero && writeNumberResetPredictors)
+		{
+			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 1, false);
+			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 7, (numberResetPredictors - 1));
+		}
+
+		numberResetPredictors--;
+
+		unsigned short shortsSP60[4][0xD];
+
+		unsigned short shortsSPC8[0x4];
+		unsigned short shortsSPD0[0x4];
+		unsigned short stackBuffer2Offsets[0x4];
+		unsigned short shortsSPE0[0x4];
+
+		for (int y = 0; y < 4; y++)
+		{
+			unsigned short stackBuffer2[0x28];
+			for (int xx = 0; xx < 0x28; xx++)
+			{
+				stackBuffer2[xx] = 0x00;
+			}
+
+			unsigned long bestDelta = 0xFFFFFFFF;
+			signed short bestPredictors[0x28];
+
+			//for (size_t testShortsSPE0BackPredictor = 0x28; testShortsSPE0BackPredictor < 0x78; testShortsSPE0BackPredictor++)
+			int testShortsSPE0BackPredictor = 0x28;
+			{
+				for (int testSPD0Table = 0; testSPD0Table < 6; testSPD0Table++)
+				{
+					for (int testStartStackBuffer2 = 0; testStartStackBuffer2 < 4; testStartStackBuffer2++)
+					{
+						for (int testSPC8Table = 0; testSPC8Table < 64; testSPC8Table++)
+						{
+							signed short bestSP60ValuesTemp[0xD];
+							signed short bestPredictorsTemp[0x28];
+							unsigned short stackBuffer2test[0x28];
+							for (int xx = 0; xx < 0x28; xx++)
+							{
+								stackBuffer2test[xx] = stackBuffer2[xx];
+							}
+
+							unsigned long T0;
+							unsigned long T1;
+							if (testSPC8Table < 8)
+							{
+								T0 = (signed long)table8004867CValue1[testSPC8Table];
+								T1 = table8004867CValue2[testSPC8Table];
+							}
+							else
+							{
+								T0 = (testSPC8Table - 8) >> 3;
+								T1 = testSPC8Table & 7;
+							}
+
+							T0 = 6 - T0;
+
+							unsigned long T4 = (T1 * 0x800) + 0x47FF;
+
+							for (int yy = 0; yy < 0xD; yy++)
+							{
+								unsigned long valueCompare = (signed short)predictorValues[testStartStackBuffer2 + x + (y * 0x28) + (yy * 3)];
+
+								int bestIndex60 = 0;
+								int absDelta = 0x7FFFFFFF;
+								unsigned long bestT5 = 0;
+
+								for (int d = 0; d < 8; d++)
+								{
+									unsigned long T5 = ((int)(((((signed short)d * 0x2000) - 0x7000) * T4) + 0x4000) >> 0xF);
+									T5 = (int)(T5 + (1 << (T0 - 1))) >> T0; // Sort of round up when shifting?
+
+									if (abs((signed long)T5 - (signed long)valueCompare) < absDelta)
+									{
+										bestIndex60 = d;
+										absDelta = abs((int)T5 - (int)valueCompare);
+										bestT5 = T5;
+									}
+								}
+
+								//8004862C
+								bestSP60ValuesTemp[yy] = bestIndex60;
+								stackBuffer2test[testStartStackBuffer2 + (yy * 3)] = (unsigned short)bestT5; // AT to 0(T9);
+							}
+
+							unsigned long totalDeltaOffset = 0;
+							for (int yy = 0; yy < 0x28; yy++)
+							{
+								unsigned long T1 = (signed short)previousPredictorValues[0x78 - testShortsSPE0BackPredictor + yy];
+								T1 = ((int)((T1 * (unsigned short)table80048738[testSPD0Table]) + 0x4000) >> 0xF);
+								bestPredictorsTemp[yy] = (unsigned short)(T1 + (signed short)stackBuffer2test[yy]);
+
+								signed long delta = (signed short)predictorValues[x + (y * 0x28) + yy] - (signed short)bestPredictorsTemp[yy];
+								unsigned long deltaAbs = abs(delta);
+								totalDeltaOffset += deltaAbs;
+							}
+
+							if (totalDeltaOffset < bestDelta)
+							{
+								bestDelta = totalDeltaOffset;
+								shortsSPE0[y] = testShortsSPE0BackPredictor;
+								shortsSPD0[y] = testSPD0Table;
+								stackBuffer2Offsets[y] = testStartStackBuffer2;
+								shortsSPC8[y] = testSPC8Table;
+
+								for (int bb = 0; bb < 0xD; bb++)
+									shortsSP60[y][bb] = bestSP60ValuesTemp[bb];
+
+								for (int bb = 0; bb < 0x28; bb++)
+									bestPredictors[bb] = bestPredictorsTemp[bb];
+							}
+						}
+					}
+				}
+			}
+
+			for (int xx = 0; xx < 0x28; xx++)
+			{
+				previousPredictorValues.erase(previousPredictorValues.begin());
+			}
+
+			for (int xx = 0; xx < 0x28; xx++)
+			{
+				previousPredictorValues.push_back(bestPredictors[xx]);
+			}
+		}
+
+		signed short shortsSPE8[8];
+
+		CalculateBestPredictors(intermediateValues, x, buffer800D2940PredictorTemp, shortsSP60, shortsSPC8, shortsSPD0, stackBuffer2Offsets, shortsSPE0, S0, S1, S2, S3, S4, S5, S6, S7, A3, shortsSPE8, adjustersPrevious);
+
+		// Mostly zeroed out
+		/*shortsSPE8[0x00] = 0x0020;
+		shortsSPE8[0x01] = 0x0020;
+		shortsSPE8[0x02] = 0x0014;
+		shortsSPE8[0x03] = 0x000B;
+		shortsSPE8[0x04] = 0x0008;
+		shortsSPE8[0x05] = 0x0008;
+		shortsSPE8[0x06] = 0x0004;
+		shortsSPE8[0x07] = 0x0004;*/
+
+		WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 6, (unsigned char)shortsSPE8[0x00]);
+		WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 6, (unsigned char)shortsSPE8[0x01]);
+		WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 5, (unsigned char)shortsSPE8[0x02]);
+		WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 5, (unsigned char)shortsSPE8[0x03]);
+		WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 4, (unsigned char)shortsSPE8[0x04]);
+		WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 4, (unsigned char)shortsSPE8[0x05]);
+		WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 3, (unsigned char)shortsSPE8[0x06]);
+		WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 3, (unsigned char)shortsSPE8[0x07]);
+
+		for (int xx = 0; xx < 4; xx++)
+		{
+			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 7, (unsigned char)shortsSPE0[xx]);
+			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 2, (unsigned char)shortsSPD0[xx]);
+			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 2, (unsigned char)stackBuffer2Offsets[xx]);
+			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 6, (unsigned char)shortsSPC8[xx]);
+
+			for (int yy = 0; yy < 0xD; yy++)
+			{
+				WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 3, (unsigned char)shortsSP60[xx][yy]);
+			}
+		}
+	}
+
+	if (outputBufferBitOffset != 0)
+		outputBufferSize += 4;
+
+	unsigned short number140s = dataSize / 0x140;
+	
+	WriteLongToBuffer(outputBuffer, 4, (number140s << 16) | 0x00003E80); // Header 1 TODO
+	WriteLongToBuffer(outputBuffer, 8, outputBufferSize / 4); // Header 2 TODO
+}
+
+void CMORTDecoder::Encode(unsigned char* data, int dataSize, CString outputFile)
+{
+	int outputBufferSize = 0;
+	unsigned char* outputBuffer = new unsigned char[0x100000];
+	for (int x = 0; x < 0x100000; x++)
+		outputBuffer[x] = 0x00;
+
+	Encode(data, dataSize, outputBuffer, outputBufferSize);
+	
+	FILE* outFile = fopen(outputFile, "wb");
+	if (!outFile)
+	{
+		delete [] outputBuffer;
+		MessageBox(NULL, "Error opening file", "error", NULL);
+		return;
+	}
+
+	fwrite(outputBuffer, 1, outputBufferSize, outFile);
+
+	fflush(outFile);
+	fclose(outFile);
+
+	delete [] outputBuffer;
 }

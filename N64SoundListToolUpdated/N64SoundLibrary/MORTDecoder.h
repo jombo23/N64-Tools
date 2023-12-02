@@ -21,17 +21,27 @@ public:
 	static void WriteLongToFile(FILE* Buffer, unsigned long data);
 	static void WriteShortToFile(FILE* Buffer, unsigned short data);
 
+	bool ReadWavData(CString rawWavFileName, unsigned char*& rawData, int& rawLength, unsigned long& samplingRate, bool& hasLoopData, unsigned char& keyBase, unsigned long& loopStart, unsigned long& loopEnd, unsigned long& loopCount);
+	void Encode(unsigned char* data, int dataSize, CString outputFile);
+	void Encode(unsigned char* data, int dataSize, unsigned char* outputBuffer, int& outputBufferSize);
+	void CalculateBestPredictors(std::vector<unsigned short> actualValues, int actualValueOffset, unsigned short buffer800D2940PredictorTemp[0xA0], unsigned short shortsSP60[4][0xD], unsigned short shortsSPC8[0x4], unsigned short shortsSPD0[0x4], unsigned short stackBuffer2Offsets[0x4], unsigned short shortsSPE0[0x4], unsigned long& S0, unsigned long& S1, unsigned long& S2, unsigned long& S3, unsigned long& S4, unsigned long& S5, unsigned long& S6, unsigned long& S7, signed long& A3, signed short smoothersChosen[8], signed short adjustersPrevious[8]);
 private:
-	unsigned char* buffer800D2940Predictor;
+	unsigned short buffer800D2940Predictor[0xA0];
+	unsigned short lastPredictorUpdateBase; // 2-bytes buffer800D2940Predictor[0x189]
+	bool currentSmootherPredictor; // 2-bytes buffer800D2940Predictor[0x166]
+	signed short smootherPredictorA[8]; // 2-bytes buffer800D2940Predictor[0x168-0x178]
+	signed short smootherPredictorB[8]; // 2-bytes buffer800D2940Predictor[0x178-0x188]
+	int numberSkipResetPredictorCheck; // 2-bytes buffer800D2940Predictor[0x18A]
+	int numberResetPredictor; // 2-bytes buffer800D2940Predictor[0x18C]
+	unsigned long lastSampleValue; // 2-bytes buffer800D2940Predictor[0x164]
+	signed long sampleBuffer[8]; // 4-bytes buffer800D2940Predictor[0x140-0x15C]
 	unsigned long buffer800D2940Subtraction;
 	//800D2AD0 Pointer to function 800455DC (pull data?)
 	// Need evaluate if these are part of buffer or not and the rest around there
-	unsigned long variable800D2AD0PullDataPointer;
 	unsigned long variable800D2AD4ROMAddressMORTData;
-	unsigned char* buffer800D2AD8IntermediateValue;
+	unsigned char buffer800D2AD8IntermediateValue[0x1400];
 	unsigned long buffer800D2AD8Subtraction;
-	unsigned char* buffer800D3ED8MORTRawInputDataBuffer; // TWINE 800E1C60
-	unsigned long buffer800D3ED8Subtraction;
+	unsigned char buffer800D3ED8MORTRawInputDataBuffer[0x1000]; // TWINE 800E1C60
 	unsigned short variable800D4ED8Amountofsoundleft1_FirstWord; // TWINE 800E2C60
 	unsigned short variable800D4EDA_3E80FirstWord;
 	unsigned long variable800D4EDCAmountofCompressedWordsLeft_SecondWord;
@@ -41,7 +51,7 @@ private:
 	unsigned long variable800D4EEC;
 	unsigned long variable800D4EF0;
 	unsigned long variable800D4EF4;
-	unsigned long variable800D4EFC;
+	unsigned long variable800D4EFCInputChunkCurrentReadBitPosition;
 	unsigned long variable800D4F00InputChunkUsed; // TWINE 800E2C8C
 	unsigned long variable800D4F04InputChunkAmountLeft; // TWINE 800E2C90
 	unsigned long variable800D4F08;
@@ -54,7 +64,6 @@ private:
 
 	unsigned long variable800FCED0;
 	unsigned long variable800FCEDCPredictorPointer800D2940;
-	unsigned long variable800FCEE4IntermediateValuePointer800D2AD8;
 	unsigned long variable800FCEE8;
 	unsigned long variable800FCEECCounter;
 	unsigned char variable800FCEF0MORTStatus1; //Status of sound, 00 = Loading, 02 = none, 04 = Playing
@@ -70,33 +79,37 @@ private:
 	unsigned long variable800FCF38CounterIncrementVariable1;
 	unsigned long variable800FCF3CCounterIncrementVariable2;
 
-	void Function800456D0(unsigned long A0Param);
-	void Function80045780(unsigned char* ROM, unsigned long A0Param, bool& started);
-	void Function800459E0(unsigned long A0Param, unsigned long A1Param, unsigned long& V0);
+	void Function800456D0();
+	void Function80045780(unsigned char* ROM, bool& started, std::vector<unsigned short>& pcmSamples);
+	void Function800459E0(unsigned long A1Param, unsigned long& V0);
 	void Function8005E3A0(unsigned long A1Param, unsigned long A2Param);
-	void Function80057FD0(unsigned long A0Param, unsigned long A1Param);
+	void ClearBuffer_Function80057FD0(unsigned long A0Param, unsigned long A1Param);
 	void Function80059120(unsigned long A0Param, unsigned long A1Param);
 	void Function800455DC(unsigned char* ROM, unsigned long A0Param, unsigned long A1Param, unsigned long A2Param);
 	void Function8005E2F0(unsigned long A0Param, unsigned long A1Param);
 	void Function8005E0F0();
-	void Function80056AD0(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long& V0);
+	void Function80056AD0(unsigned long& V0);
 	void Function80062A90(unsigned long& V0);
-	void Function80045FF0(unsigned long A0Param, unsigned long A1Param);
-	void Function80045C78(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long A3Param, unsigned long T8Param, unsigned char stackBuffer[0x100]);
-	void Function80048590(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long T8Param, unsigned char stackBuffer[0x100], unsigned char stackBuffer2[0x50]);
-	void Function80048684(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long A3Param, unsigned char stackBuffer2[0x50]);
-	void Function80045A80(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long A3Param, unsigned char stackBuffer[0x100]);
-	void Function80048904(unsigned long A0Param, unsigned long A1Param, unsigned long A2Param, unsigned long A3Param);
-	void CallT380048XXXFunction(unsigned long& T2, unsigned long T3, unsigned long& T4);
-	void Function80048AFC(unsigned long& T2, unsigned long& T4);
-	void Function80048B14(unsigned long& T2, unsigned long& T4);
-	void Function80048B24(unsigned long& T2, unsigned long& T4);
-	void Function80048B3C(unsigned long& T2, unsigned long& T4);
-	void Function80048740(unsigned long T0Param, unsigned long T1Param, unsigned long T3Param, unsigned long T6Param, unsigned long T7Param, unsigned long T8Param, unsigned long T9Param, unsigned long& A3, unsigned long& S0, unsigned long& S1, unsigned long& S2, unsigned long& S3, unsigned long& S4, unsigned long& S5, unsigned long& S6, unsigned long& S7);
-	void Function80048A58(unsigned long A0Param, unsigned long T3Param, unsigned long& T6, unsigned long& T7, unsigned long& T8, unsigned long& T9);
-	void Function80045A48(unsigned long A0Param);
-	void Function80045A68(unsigned long A0Param);
+	void Function80045FF0(unsigned long currentIntermediateValueOffset, std::vector<unsigned short>& pcmSamples);
+	void Function80045C78(int currentIntermediateValueOffset, unsigned short shortsSP60[4][0xD], unsigned short shortsSPC8[0x4], unsigned short shortsSPD0[0x4], unsigned short stackBuffer2Offsets[0x4], unsigned short shortsSPE0[0x4], unsigned short shortsSPE8[8], std::vector<unsigned short>& pcmSamples);
+	void Function80048590(unsigned short shortsSPC8Value, unsigned short stackBuffer2Offset, unsigned short stackBuffer2[0x28], unsigned short shortsSP60[0xD]);
+	void Function80048684(unsigned short shortsSPE0Value, unsigned short shortsSPD0Value, unsigned short stackBuffer2[0x28]);
+	void Function80045A80(unsigned long currentIntermediateValueOffset, unsigned short shortsSPE8[8], std::vector<unsigned short>& pcmSamples);
+	void Function80048904(unsigned long currentIntermediateValueOffset, std::vector<unsigned short>& pcmSamples);
+	void CallT380048XXXFunction(unsigned long& T2, unsigned long T3, unsigned long T4);
+	void Function80048AFC(unsigned long& T2, unsigned long T4);
+	void Function80048B14(unsigned long& T2, unsigned long T4);
+	void Function80048B24(unsigned long& T2, unsigned long T4);
+	void Function80048B3C(unsigned long& T2);
+	void Function80048740(unsigned long intermediateValueOffset, unsigned long predictorBufferOffset, int countValues, signed short adjusters[8], unsigned long& A3, unsigned long& S0, unsigned long& S1, unsigned long& S2, unsigned long& S3, unsigned long& S4, unsigned long& S5, unsigned long& S6, unsigned long& S7, std::vector<unsigned short>& pcmSamples);
+	void Function80048A58(unsigned long T3Param, signed short adjuster[8]);
+	void Function80045A48();
+	void Function80045A68();
+
+	unsigned long ReadBitsFrom80045FF0Buffer(int numberBits, unsigned char* buffer800D3ED8MORTRawInputDataBuffer, unsigned long& currentInputData, unsigned long& bitsleft, unsigned long& currentOverallBitPosition);
 
 	FILE* outDebug;
 	bool setInputChunk;
+
+	void WriteBitsTo80045FF0Buffer(unsigned char* buffer, int& bufferOffset, int& bufferBitOffset, int numBits, unsigned char value);
 };
