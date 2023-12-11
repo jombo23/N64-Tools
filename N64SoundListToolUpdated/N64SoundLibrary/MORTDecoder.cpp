@@ -3401,24 +3401,28 @@ void CMORTDecoder::CalculateBestPredictors(std::vector<unsigned short> actualVal
 		unsigned long totalDelta = 0;
 		for (int x = 0; x < 0xA0; x++)
 		{
-			unsigned long algorithm;
-			if (x < 0xD)
-				algorithm = 0x80048AFC;
-			else if (x < 0x1B)
-				algorithm = 0x80048B14;
-			else if (x < 0x28)
-				algorithm = 0x80048B24;
-			else
-				algorithm = 0x80048B3C;
+			if ((x == 0) || (x == 0xD) || (x == 0x1B) || (x == 0x28))
+			{
+				unsigned long algorithm;
+				if (x < 0xD)
+					algorithm = 0x80048AFC;
+				else if (x < 0x1B)
+					algorithm = 0x80048B14;
+				else if (x < 0x28)
+					algorithm = 0x80048B24;
+				else
+					algorithm = 0x80048B3C;
+
+				unsigned long temp = (int)(((((signed short)testSmootherValue - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[0] = (signed short)temp;
+
+				temp = (signed short)adjusters[0];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+				adjusters[0] = (signed short)temp;
+			}
 
 			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
 
-			unsigned long temp = (int)(((((signed short)testSmootherValue - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[0] = (signed short)temp;
-
-			temp = (signed short)adjusters[0];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
-			adjusters[0] = (signed short)temp;
 
 
 			T2 = (T2 - ((int)((S0Temp * (int)(adjusters[0])) + 0x4000) >> 0xF));
@@ -3463,30 +3467,32 @@ void CMORTDecoder::CalculateBestPredictors(std::vector<unsigned short> actualVal
 		unsigned long totalDelta = 0;
 		for (int x = 0; x < 0xA0; x++)
 		{
-			unsigned long algorithm;
-			if (x < 0xD)
-				algorithm = 0x80048AFC;
-			else if (x < 0x1B)
-				algorithm = 0x80048B14;
-			else if (x < 0x28)
-				algorithm = 0x80048B24;
-			else
-				algorithm = 0x80048B3C;
+			if ((x == 0) || (x == 0xD) || (x == 0x1B) || (x == 0x28))
+			{
+				unsigned long algorithm;
+				if (x < 0xD)
+					algorithm = 0x80048AFC;
+				else if (x < 0x1B)
+					algorithm = 0x80048B14;
+				else if (x < 0x28)
+					algorithm = 0x80048B24;
+				else
+					algorithm = 0x80048B3C;
+
+				unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[0] = (signed short)temp;
+				temp = (signed short)adjusters[0];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+				adjusters[0] = (signed short)temp;
+
+				temp = (int)(((((signed short)testSmootherValue - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[1] = (signed short)temp;
+				temp = (signed short)adjusters[1];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+				adjusters[1] = (signed short)temp;
+			}
 
 			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
-
-			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[0] = (signed short)temp;
-			temp = (signed short)adjusters[0];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
-			adjusters[0] = (signed short)temp;
-
-			temp = (int)(((((signed short)testSmootherValue - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[1] = (signed short)temp;
-			temp = (signed short)adjusters[1];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
-			adjusters[1] = (signed short)temp;
-
 
 			T2 = T2 - ((int)((S1Temp * ((int)(adjusters[1]))) + 0x4000) >> 0xF);
 
@@ -3534,35 +3540,38 @@ void CMORTDecoder::CalculateBestPredictors(std::vector<unsigned short> actualVal
 		unsigned long totalDelta = 0;
 		for (int x = 0; x < 0xA0; x++)
 		{
-			unsigned long algorithm;
-			if (x < 0xD)
-				algorithm = 0x80048AFC;
-			else if (x < 0x1B)
-				algorithm = 0x80048B14;
-			else if (x < 0x28)
-				algorithm = 0x80048B24;
-			else
-				algorithm = 0x80048B3C;
+			if ((x == 0) || (x == 0xD) || (x == 0x1B) || (x == 0x28))
+			{
+				unsigned long algorithm;
+				if (x < 0xD)
+					algorithm = 0x80048AFC;
+				else if (x < 0x1B)
+					algorithm = 0x80048B14;
+				else if (x < 0x28)
+					algorithm = 0x80048B24;
+				else
+					algorithm = 0x80048B3C;
+
+				unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[0] = (signed short)temp;
+				temp = (signed short)adjusters[0];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+				adjusters[0] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[1] = (signed short)temp;
+				temp = (signed short)adjusters[1];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+				adjusters[1] = (signed short)temp;
+
+				temp = (int)(((((signed short)testSmootherValue - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+				adjusters[2] = (signed short)temp;
+				temp = (signed short)adjusters[2];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+				adjusters[2] = (signed short)temp;
+			}
 
 			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
-
-			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[0] = (signed short)temp;
-			temp = (signed short)adjusters[0];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
-			adjusters[0] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[1] = (signed short)temp;
-			temp = (signed short)adjusters[1];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
-			adjusters[1] = (signed short)temp;
-
-			temp = (int)(((((signed short)testSmootherValue - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
-			adjusters[2] = (signed short)temp;
-			temp = (signed short)adjusters[2];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
-			adjusters[2] = (signed short)temp;
 
 			T2 = (T2 - ((int)((S2Temp * ((int)(adjusters[2]))) + 0x4000) >> 0xF));
 
@@ -3614,41 +3623,44 @@ void CMORTDecoder::CalculateBestPredictors(std::vector<unsigned short> actualVal
 		unsigned long totalDelta = 0;
 		for (int x = 0; x < 0xA0; x++)
 		{
-			unsigned long algorithm;
-			if (x < 0xD)
-				algorithm = 0x80048AFC;
-			else if (x < 0x1B)
-				algorithm = 0x80048B14;
-			else if (x < 0x28)
-				algorithm = 0x80048B24;
-			else
-				algorithm = 0x80048B3C;
+			if ((x == 0) || (x == 0xD) || (x == 0x1B) || (x == 0x28))
+			{
+				unsigned long algorithm;
+				if (x < 0xD)
+					algorithm = 0x80048AFC;
+				else if (x < 0x1B)
+					algorithm = 0x80048B14;
+				else if (x < 0x28)
+					algorithm = 0x80048B24;
+				else
+					algorithm = 0x80048B3C;
+
+				unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[0] = (signed short)temp;
+				temp = (signed short)adjusters[0];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+				adjusters[0] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[1] = (signed short)temp;
+				temp = (signed short)adjusters[1];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+				adjusters[1] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+				adjusters[2] = (signed short)temp;
+				temp = (signed short)adjusters[2];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+				adjusters[2] = (signed short)temp;
+
+				temp = (int)(((((signed short)testSmootherValue - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+				adjusters[3] = (signed short)temp;
+				temp = (signed short)adjusters[3];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
+				adjusters[3] = (signed short)temp;
+			}
 
 			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
-
-			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[0] = (signed short)temp;
-			temp = (signed short)adjusters[0];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
-			adjusters[0] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[1] = (signed short)temp;
-			temp = (signed short)adjusters[1];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
-			adjusters[1] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
-			adjusters[2] = (signed short)temp;
-			temp = (signed short)adjusters[2];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
-			adjusters[2] = (signed short)temp;
-
-			temp = (int)(((((signed short)testSmootherValue - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
-			adjusters[3] = (signed short)temp;
-			temp = (signed short)adjusters[3];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
-			adjusters[3] = (signed short)temp;
 
 			T2 = T2 - ((int)((S3Temp * (int)(adjusters[3])) + 0x4000) >> 0xF);
 
@@ -3704,47 +3716,50 @@ void CMORTDecoder::CalculateBestPredictors(std::vector<unsigned short> actualVal
 		unsigned long totalDelta = 0;
 		for (int x = 0; x < 0xA0; x++)
 		{
-			unsigned long algorithm;
-			if (x < 0xD)
-				algorithm = 0x80048AFC;
-			else if (x < 0x1B)
-				algorithm = 0x80048B14;
-			else if (x < 0x28)
-				algorithm = 0x80048B24;
-			else
-				algorithm = 0x80048B3C;
+			if ((x == 0) || (x == 0xD) || (x == 0x1B) || (x == 0x28))
+			{
+				unsigned long algorithm;
+				if (x < 0xD)
+					algorithm = 0x80048AFC;
+				else if (x < 0x1B)
+					algorithm = 0x80048B14;
+				else if (x < 0x28)
+					algorithm = 0x80048B24;
+				else
+					algorithm = 0x80048B3C;
+
+				unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[0] = (signed short)temp;
+				temp = (signed short)adjusters[0];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+				adjusters[0] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[1] = (signed short)temp;
+				temp = (signed short)adjusters[1];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+				adjusters[1] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+				adjusters[2] = (signed short)temp;
+				temp = (signed short)adjusters[2];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+				adjusters[2] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+				adjusters[3] = (signed short)temp;
+				temp = (signed short)adjusters[3];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
+				adjusters[3] = (signed short)temp;
+
+				temp = (int)(((((signed short)testSmootherValue - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
+				adjusters[4] = (signed short)temp;
+				temp = (signed short)adjusters[4];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
+				adjusters[4] = (signed short)temp;
+			}
 
 			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
-
-			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[0] = (signed short)temp;
-			temp = (signed short)adjusters[0];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
-			adjusters[0] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[1] = (signed short)temp;
-			temp = (signed short)adjusters[1];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
-			adjusters[1] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
-			adjusters[2] = (signed short)temp;
-			temp = (signed short)adjusters[2];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
-			adjusters[2] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
-			adjusters[3] = (signed short)temp;
-			temp = (signed short)adjusters[3];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
-			adjusters[3] = (signed short)temp;
-
-			temp = (int)(((((signed short)testSmootherValue - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
-			adjusters[4] = (signed short)temp;
-			temp = (signed short)adjusters[4];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
-			adjusters[4] = (signed short)temp;
 
 			T2 = T2 - ((int)((S4Temp * (int)(adjusters[4])) + 0x4000) >> 0xF);
 
@@ -3804,53 +3819,56 @@ void CMORTDecoder::CalculateBestPredictors(std::vector<unsigned short> actualVal
 		unsigned long totalDelta = 0;
 		for (int x = 0; x < 0xA0; x++)
 		{
-			unsigned long algorithm;
-			if (x < 0xD)
-				algorithm = 0x80048AFC;
-			else if (x < 0x1B)
-				algorithm = 0x80048B14;
-			else if (x < 0x28)
-				algorithm = 0x80048B24;
-			else
-				algorithm = 0x80048B3C;
+			if ((x == 0) || (x == 0xD) || (x == 0x1B) || (x == 0x28))
+			{
+				unsigned long algorithm;
+				if (x < 0xD)
+					algorithm = 0x80048AFC;
+				else if (x < 0x1B)
+					algorithm = 0x80048B14;
+				else if (x < 0x28)
+					algorithm = 0x80048B24;
+				else
+					algorithm = 0x80048B3C;
+
+				unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[0] = (signed short)temp;
+				temp = (signed short)adjusters[0];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+				adjusters[0] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[1] = (signed short)temp;
+				temp = (signed short)adjusters[1];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+				adjusters[1] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+				adjusters[2] = (signed short)temp;
+				temp = (signed short)adjusters[2];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+				adjusters[2] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+				adjusters[3] = (signed short)temp;
+				temp = (signed short)adjusters[3];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
+				adjusters[3] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
+				adjusters[4] = (signed short)temp;
+				temp = (signed short)adjusters[4];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
+				adjusters[4] = (signed short)temp;
+
+				temp = (int)(((((signed short)testSmootherValue - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
+				adjusters[5] = (signed short)temp;
+				temp = (signed short)adjusters[5];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[5]); // JALR RA,T3 to 80048AFC
+				adjusters[5] = (signed short)temp;
+			}
 
 			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
-
-			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[0] = (signed short)temp;
-			temp = (signed short)adjusters[0];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
-			adjusters[0] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[1] = (signed short)temp;
-			temp = (signed short)adjusters[1];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
-			adjusters[1] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
-			adjusters[2] = (signed short)temp;
-			temp = (signed short)adjusters[2];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
-			adjusters[2] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
-			adjusters[3] = (signed short)temp;
-			temp = (signed short)adjusters[3];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
-			adjusters[3] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
-			adjusters[4] = (signed short)temp;
-			temp = (signed short)adjusters[4];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
-			adjusters[4] = (signed short)temp;
-
-			temp = (int)(((((signed short)testSmootherValue - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
-			adjusters[5] = (signed short)temp;
-			temp = (signed short)adjusters[5];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[5]); // JALR RA,T3 to 80048AFC
-			adjusters[5] = (signed short)temp;
 		
 			T2 = T2 - (((int)((S5Temp * (int)(adjusters[5])) + 0x4000)) >> 0xF);
 
@@ -3914,59 +3932,62 @@ void CMORTDecoder::CalculateBestPredictors(std::vector<unsigned short> actualVal
 		unsigned long totalDelta = 0;
 		for (int x = 0; x < 0xA0; x++)
 		{
-			unsigned long algorithm;
-			if (x < 0xD)
-				algorithm = 0x80048AFC;
-			else if (x < 0x1B)
-				algorithm = 0x80048B14;
-			else if (x < 0x28)
-				algorithm = 0x80048B24;
-			else
-				algorithm = 0x80048B3C;
+			if ((x == 0) || (x == 0xD) || (x == 0x1B) || (x == 0x28))
+			{
+				unsigned long algorithm;
+				if (x < 0xD)
+					algorithm = 0x80048AFC;
+				else if (x < 0x1B)
+					algorithm = 0x80048B14;
+				else if (x < 0x28)
+					algorithm = 0x80048B24;
+				else
+					algorithm = 0x80048B3C;
+
+				unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[0] = (signed short)temp;
+				temp = (signed short)adjusters[0];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+				adjusters[0] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[1] = (signed short)temp;
+				temp = (signed short)adjusters[1];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+				adjusters[1] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+				adjusters[2] = (signed short)temp;
+				temp = (signed short)adjusters[2];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+				adjusters[2] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+				adjusters[3] = (signed short)temp;
+				temp = (signed short)adjusters[3];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
+				adjusters[3] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
+				adjusters[4] = (signed short)temp;
+				temp = (signed short)adjusters[4];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
+				adjusters[4] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[5] - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
+				adjusters[5] = (signed short)temp;
+				temp = (signed short)adjusters[5];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[5]); // JALR RA,T3 to 80048AFC
+				adjusters[5] = (signed short)temp;
+
+				temp = (int)(((((signed short)testSmootherValue - 4) * (unsigned long)0x400) * (unsigned long)0x7ADE) + 0x147936C) >> 0xF << 1;
+				adjusters[6] = (signed short)temp;
+				temp = (signed short)adjusters[6];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[6]); // JALR RA,T3 to 80048AFC
+				adjusters[6] = (signed short)temp;
+			}
 
 			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
-
-			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[0] = (signed short)temp;
-			temp = (signed short)adjusters[0];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
-			adjusters[0] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[1] = (signed short)temp;
-			temp = (signed short)adjusters[1];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
-			adjusters[1] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
-			adjusters[2] = (signed short)temp;
-			temp = (signed short)adjusters[2];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
-			adjusters[2] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
-			adjusters[3] = (signed short)temp;
-			temp = (signed short)adjusters[3];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
-			adjusters[3] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
-			adjusters[4] = (signed short)temp;
-			temp = (signed short)adjusters[4];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
-			adjusters[4] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[5] - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
-			adjusters[5] = (signed short)temp;
-			temp = (signed short)adjusters[5];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[5]); // JALR RA,T3 to 80048AFC
-			adjusters[5] = (signed short)temp;
-
-			temp = (int)(((((signed short)testSmootherValue - 4) * (unsigned long)0x400) * (unsigned long)0x7ADE) + 0x147936C) >> 0xF << 1;
-			adjusters[6] = (signed short)temp;
-			temp = (signed short)adjusters[6];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[6]); // JALR RA,T3 to 80048AFC
-			adjusters[6] = (signed short)temp;
 
 			T2 = (T2 - ((int)((S6Temp * (int)(adjusters[6])) + 0x4000) >> 0xF));
 		
@@ -4034,65 +4055,68 @@ void CMORTDecoder::CalculateBestPredictors(std::vector<unsigned short> actualVal
 		unsigned long totalDelta = 0;
 		for (int x = 0; x < 0xA0; x++)
 		{
-			unsigned long algorithm;
-			if (x < 0xD)
-				algorithm = 0x80048AFC;
-			else if (x < 0x1B)
-				algorithm = 0x80048B14;
-			else if (x < 0x28)
-				algorithm = 0x80048B24;
-			else
-				algorithm = 0x80048B3C;
+			if ((x == 0) || (x == 0xD) || (x == 0x1B) || (x == 0x28))
+			{
+				unsigned long algorithm;
+				if (x < 0xD)
+					algorithm = 0x80048AFC;
+				else if (x < 0x1B)
+					algorithm = 0x80048B14;
+				else if (x < 0x28)
+					algorithm = 0x80048B24;
+				else
+					algorithm = 0x80048B3C;
+
+				unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[0] = (signed short)temp;
+				temp = (signed short)adjusters[0];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
+				adjusters[0] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
+				adjusters[1] = (signed short)temp;
+				temp = (signed short)adjusters[1];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
+				adjusters[1] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
+				adjusters[2] = (signed short)temp;
+				temp = (signed short)adjusters[2];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
+				adjusters[2] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
+				adjusters[3] = (signed short)temp;
+				temp = (signed short)adjusters[3];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
+				adjusters[3] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
+				adjusters[4] = (signed short)temp;
+				temp = (signed short)adjusters[4];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
+				adjusters[4] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[5] - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
+				adjusters[5] = (signed short)temp;
+				temp = (signed short)adjusters[5];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[5]); // JALR RA,T3 to 80048AFC
+				adjusters[5] = (signed short)temp;
+
+				temp = (int)(((((signed short)smoothersChosen[6] - 4) * (unsigned long)0x400) * (unsigned long)0x7ADE) + 0x147936C) >> 0xF << 1;
+				adjusters[6] = (signed short)temp;
+				temp = (signed short)adjusters[6];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[6]); // JALR RA,T3 to 80048AFC
+				adjusters[6] = (signed short)temp;
+
+				temp = (int)((((((signed short)testSmootherValue - 4) * (unsigned long)0x400) * (unsigned long)0x740C) + 0x40D6B40)) >> 0xF << 1;
+				adjusters[7] = (signed short)temp;
+				temp = (signed short)adjusters[7];
+				CallT380048XXXFunction(temp, algorithm, adjustersPrevious[7]); // JALR RA,T3 to 80048AFC
+				adjusters[7] = (signed short)temp;
+			}
 
 			unsigned long T2 = (signed short)buffer800D2940PredictorTemp[x];
-
-			unsigned long temp = (int)(((((signed short)smoothersChosen[0] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[0] = (signed short)temp;
-			temp = (signed short)adjusters[0];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[0]); // JALR RA,T3 to 80048AFC
-			adjusters[0] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[1] - 0x20) * (unsigned long)0x400) * (unsigned long)0x3333) + (unsigned long)0x4000) >> 0xF << 1;
-			adjusters[1] = (signed short)temp;
-			temp = (signed short)adjusters[1];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[1]); // JALR RA,T3 to 80048AFC
-			adjusters[1] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[2] - 0x10) * (unsigned long)0x400) * (unsigned long)0x3333) + -0x332F000) >> 0xF << 0x1;
-			adjusters[2] = (signed short)temp;
-			temp = (signed short)adjusters[2];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[2]); // JALR RA,T3 to 80048AFC
-			adjusters[2] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[3] - 0x10) * 0x400) * (unsigned long)0x3333) + 0x04003C00) >> 0xF << 1;
-			adjusters[3] = (signed short)temp;
-			temp = (signed short)adjusters[3];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[3]); // JALR RA,T3 to 80048AFC
-			adjusters[3] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[4] - 8) * (unsigned long)0x400) * (unsigned long)0x4B17) + 0xFFC91B1C) >> 0xF << 1;
-			adjusters[4] = (signed short)temp;
-			temp = (signed short)adjusters[4];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[4]); // JALR RA,T3 to 80048AFC
-			adjusters[4] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[5] - 8) * (unsigned long)0x400) * (unsigned long)0x4444) + 0x03BBF800) >> 0xF << 1;
-			adjusters[5] = (signed short)temp;
-			temp = (signed short)adjusters[5];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[5]); // JALR RA,T3 to 80048AFC
-			adjusters[5] = (signed short)temp;
-
-			temp = (int)(((((signed short)smoothersChosen[6] - 4) * (unsigned long)0x400) * (unsigned long)0x7ADE) + 0x147936C) >> 0xF << 1;
-			adjusters[6] = (signed short)temp;
-			temp = (signed short)adjusters[6];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[6]); // JALR RA,T3 to 80048AFC
-			adjusters[6] = (signed short)temp;
-
-			temp = (int)((((((signed short)testSmootherValue - 4) * (unsigned long)0x400) * (unsigned long)0x740C) + 0x40D6B40)) >> 0xF << 1;
-			adjusters[7] = (signed short)temp;
-			temp = (signed short)adjusters[7];
-			CallT380048XXXFunction(temp, algorithm, adjustersPrevious[7]); // JALR RA,T3 to 80048AFC
-			adjusters[7] = (signed short)temp;
 
 			T2 = (T2 - ((int)((S7Temp * (int)(adjusters[7])) + 0x4000) >> 0xF));
 
