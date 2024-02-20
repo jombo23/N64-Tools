@@ -20,6 +20,7 @@
 #include "..\N64SoundLibrary\AcclaimDEANAudioDecompression.h"
 #include "..\N64SoundLibrary\DecompressClayfighter.h"
 #include "..\N64SoundLibrary\StarFox64AudioDecompression.h"
+#include "shlwapi.h"
 
 float CN64AIFCAudio::keyTable[0x100];
 
@@ -7718,7 +7719,17 @@ void CN64AIFCAudio::UpdateAudioOffsets(std::vector<ALBank*> alBanks)
 		}
 		else if (alBank->soundBankFormat == N64PTRWAVETABLETABLEV2BLITZ)
 		{
-			WriteAudioN64PtrWavetableV2Blitz("", alBank, ctl, ctlCounter, tbl, tblCounter);
+			TCHAR buffer[MAX_PATH] = { 0 };
+			GetModuleFileName( NULL, buffer, MAX_PATH );
+			CString mainFolder;
+			mainFolder.Format("%s", buffer);
+			int pos = mainFolder.ReverseFind('\\');
+			if (pos != -1)
+			{
+				mainFolder = mainFolder.Left(pos + 1);
+			}
+
+			WriteAudioN64PtrWavetableV2Blitz(mainFolder, alBank, ctl, ctlCounter, tbl, tblCounter);
 		}
 		else if (alBank->soundBankFormat == N64PTRWAVETABLETABLEV1)
 		{
@@ -9056,7 +9067,17 @@ void CN64AIFCAudio::WriteAudioToFile(std::vector<ALBank*> alBanks, CString outFi
 		}
 		else if (alBank->soundBankFormat == N64PTRWAVETABLETABLEV2BLITZ)
 		{
-			WriteAudioN64PtrWavetableV2Blitz("", alBank, ctl, ctlSize, tbl, tblSize);
+			TCHAR buffer[MAX_PATH] = { 0 };
+			GetModuleFileName( NULL, buffer, MAX_PATH );
+			CString mainFolder;
+			mainFolder.Format("%s", buffer);
+			int pos = mainFolder.ReverseFind('\\');
+			if (pos != -1)
+			{
+				mainFolder = mainFolder.Left(pos + 1);
+			}
+
+			WriteAudioN64PtrWavetableV2Blitz(mainFolder, alBank, ctl, ctlSize, tbl, tblSize);
 		}
 		else if (alBank->soundBankFormat == N64PTRWAVETABLETABLEV1)
 		{
