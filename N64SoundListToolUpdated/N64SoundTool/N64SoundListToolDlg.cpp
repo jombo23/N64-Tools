@@ -11329,7 +11329,7 @@ void CN64SoundListToolDlg::OnBnClickedButtonrip3()
 				for (int z = 0; z < results[x].bank->inst[r]->soundCount; z++)
 				{
 					if (results[x].bank->inst[r]->samplerate != 0)
-						sampleRate = (alBankCurrent->inst[r]->samplerate);
+						sampleRate = (results[x].bank->inst[r]->samplerate);
 
 					CString tempExportNameStr;
 					if (alBankCurrent->soundBankFormat == MP3)
