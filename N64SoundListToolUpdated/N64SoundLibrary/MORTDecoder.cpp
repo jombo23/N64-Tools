@@ -2203,6 +2203,11 @@ void CMORTDecoder::Function80045FF0(unsigned long currentIntermediateValueOffset
 		//800461F4
 		ClearBuffer_Function80057FD0(0x800D2AD8 + A0, currentIntermediateValueOffset);
 
+		for (int x = 0; x < currentIntermediateValueOffset / 2; x++)
+		{
+			pcmSamples.push_back(0);
+		}
+
 		//800461FC
 		numberResetPredictor--;
 
