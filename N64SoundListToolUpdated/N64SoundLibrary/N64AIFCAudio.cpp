@@ -1786,7 +1786,7 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 						return false;
 					}
 
-					unsigned char* wavHeader = GenerateWavPCMHeader(2, 16, pcmSamples.size(), (unsigned int)alBank->inst[instrument]->samplerate, false);
+					unsigned char* wavHeader = GenerateWavPCMHeader(1, 16, pcmSamples.size(), (unsigned int)alBank->inst[instrument]->samplerate, false);
 					fwrite(wavHeader, 1, 0x2C, outFileTempRaw);
 					delete[] wavHeader;
 
@@ -2760,7 +2760,7 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 						return false;
 					}
 
-					unsigned char* wavHeader = GenerateWavPCMHeader(2, 16, pcmSamples.size(), alBank->inst[instrument]->samplerate, false);
+					unsigned char* wavHeader = GenerateWavPCMHeader(1, 16, pcmSamples.size(), alBank->inst[instrument]->samplerate, false);
 					fwrite(wavHeader, 1, 0x2C, outFileTempRaw);
 					delete [] wavHeader;
 
@@ -3839,7 +3839,7 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 						return false;
 					}
 
-					unsigned char* wavHeader = GenerateWavPCMHeader(2, 16, pcmSamples.size(), (unsigned int)alBank->inst[instrument]->samplerate, false);
+					unsigned char* wavHeader = GenerateWavPCMHeader(1, 16, pcmSamples.size(), (unsigned int)alBank->inst[instrument]->samplerate, false);
 					fwrite(wavHeader, 1, 0x2C, outFileTempRaw);
 					delete[] wavHeader;
 
