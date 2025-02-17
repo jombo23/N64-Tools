@@ -23934,9 +23934,12 @@ bool CN64AIFCAudio::WriteWavStereo(CString wavFilename, float samplingRate, std:
 unsigned char* CN64AIFCAudio::GenerateWavPCMHeader(const unsigned short numberChannels, const unsigned short bitsPerSample, const unsigned int sampleCount, const unsigned int sampleRate, const bool loop)
 {
 	const unsigned short bytesPerBlock = numberChannels * (bitsPerSample / 8);
-	const unsigned int dataSize = sampleCount * bytesPerBlock + (loop ? 0x18 : 0x0);
-	const unsigned int chunkSize = 0x24 + dataSize;
 	const unsigned int bytesPerSecond = sampleRate * bytesPerBlock;
+
+	const unsigned int fmt_SubchunkSize = 0x10;
+	const unsigned int dataSubchunkSize = sampleCount * bytesPerBlock;
+	const unsigned int smplSubchunkSize = loop ? 0x3C : 0x24;
+	const unsigned int riffChunkSize = 0x4 + (0x8 + fmt_SubchunkSize) + (0x8 + dataSubchunkSize) + (0x8 + smplSubchunkSize);
 
 	unsigned char* wavHeader = new unsigned char[0x2C];
 
@@ -23944,10 +23947,10 @@ unsigned char* CN64AIFCAudio::GenerateWavPCMHeader(const unsigned short numberCh
 	wavHeader[0x01] = 0x49; // 'I'
 	wavHeader[0x02] = 0x46; // 'F'
 	wavHeader[0x03] = 0x46; // 'F'
-	wavHeader[0x04] = (chunkSize >> 0) & 0xFF;
-	wavHeader[0x05] = (chunkSize >> 8) & 0xFF;
-	wavHeader[0x06] = (chunkSize >> 16) & 0xFF;
-	wavHeader[0x07] = (chunkSize >> 24) & 0xFF;
+	wavHeader[0x04] = (riffChunkSize >> 0) & 0xFF;
+	wavHeader[0x05] = (riffChunkSize >> 8) & 0xFF;
+	wavHeader[0x06] = (riffChunkSize >> 16) & 0xFF;
+	wavHeader[0x07] = (riffChunkSize >> 24) & 0xFF;
 	wavHeader[0x08] = 0x57; // 'W'
 	wavHeader[0x09] = 0x41; // 'A'
 	wavHeader[0x0A] = 0x56; // 'V'
@@ -23956,10 +23959,10 @@ unsigned char* CN64AIFCAudio::GenerateWavPCMHeader(const unsigned short numberCh
 	wavHeader[0x0D] = 0x6D; // 'm'
 	wavHeader[0x0E] = 0x74; // 't'
 	wavHeader[0x0F] = 0x20; // ' '
-	wavHeader[0x10] = 0x10; // Subchunk 1 size (16 in PCM)
-	wavHeader[0x11] = 0x00;
-	wavHeader[0x12] = 0x00;
-	wavHeader[0x13] = 0x00;
+	wavHeader[0x10] = (fmt_SubchunkSize >> 0) & 0xFF;
+	wavHeader[0x11] = (fmt_SubchunkSize >> 8) & 0xFF;
+	wavHeader[0x12] = (fmt_SubchunkSize >> 16) & 0xFF;
+	wavHeader[0x13] = (fmt_SubchunkSize >> 24) & 0xFF;
 	wavHeader[0x14] = 0x01; // 1 = PCM
 	wavHeader[0x15] = 0x00;
 	wavHeader[0x16] = (numberChannels >> 0) & 0xFF;
@@ -23980,10 +23983,10 @@ unsigned char* CN64AIFCAudio::GenerateWavPCMHeader(const unsigned short numberCh
 	wavHeader[0x25] = 0x61; // 'a'
 	wavHeader[0x26] = 0x74; // 't'
 	wavHeader[0x27] = 0x61; // 'a'
-	wavHeader[0x28] = (dataSize >> 0) & 0xFF;
-	wavHeader[0x29] = (dataSize >> 8) & 0xFF;
-	wavHeader[0x2A] = (dataSize >> 16) & 0xFF;
-	wavHeader[0x2B] = (dataSize >> 24) & 0xFF;
+	wavHeader[0x28] = (dataSubchunkSize >> 0) & 0xFF;
+	wavHeader[0x29] = (dataSubchunkSize >> 8) & 0xFF;
+	wavHeader[0x2A] = (dataSubchunkSize >> 16) & 0xFF;
+	wavHeader[0x2B] = (dataSubchunkSize >> 24) & 0xFF;
 
 	return wavHeader;
 }
