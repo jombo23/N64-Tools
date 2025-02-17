@@ -428,104 +428,20 @@ bool CN64AIFCAudio::ExtractEADPercussion(ALBank* alBank, int sound, CString outp
 
 			fwrite(&alBank->eadPercussion[sound].wav.wavData[1], 1, (alBank->eadPercussion[sound].wav.len - 2), outFileTempRaw);
 
-			if (loop)
-			{
-				unsigned char* wavHeader = new unsigned char[0x44];
-				for (int x = 0; x < 0x44; x++)
-					wavHeader[x] = 0x00;
-
-				wavHeader[0x0] = 0x73;
-				wavHeader[0x1] = 0x6D;
-				wavHeader[0x2] = 0x70;
-				wavHeader[0x3] = 0x6C;
-				wavHeader[0x4] = 0x3C;
-				wavHeader[0x5] = 0x00;
-				wavHeader[0x6] = 0x00;
-				wavHeader[0x7] = 0x00;
-				
-				if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-				{
-					float keybaseFloat = *reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase);
-					wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-				}
-				else
-					wavHeader[0x14] = 0x3C;
-				wavHeader[0x15] = 0x00;
-				wavHeader[0x16] = 0x00;
-				wavHeader[0x17] = 0x00;
-				
-				wavHeader[0x24] = 0x01;
-				wavHeader[0x25] = 0x00;
-				wavHeader[0x26] = 0x00;
-				wavHeader[0x27] = 0x00;
-
-				wavHeader[0x34] = ((alBank->eadPercussion[sound].wav.rawWave->loop->start >> 0) & 0xFF);
-				wavHeader[0x35] = ((alBank->eadPercussion[sound].wav.rawWave->loop->start >> 8) & 0xFF);
-				wavHeader[0x36] = ((alBank->eadPercussion[sound].wav.rawWave->loop->start >> 16) & 0xFF);
-				wavHeader[0x37] = ((alBank->eadPercussion[sound].wav.rawWave->loop->start >> 24) & 0xFF);
-				wavHeader[0x38] = (((alBank->eadPercussion[sound].wav.rawWave->loop->end) >> 0) & 0xFF);
-				wavHeader[0x39] = (((alBank->eadPercussion[sound].wav.rawWave->loop->end) >> 8) & 0xFF);
-				wavHeader[0x3A] = (((alBank->eadPercussion[sound].wav.rawWave->loop->end) >> 16) & 0xFF);
-				wavHeader[0x3B] = (((alBank->eadPercussion[sound].wav.rawWave->loop->end) >> 24) & 0xFF);
-
-				if (alBank->eadPercussion[sound].wav.rawWave->loop->count == 0xFFFFFFFF)
-				{
-					wavHeader[0x40] = 0x00;
-					wavHeader[0x41] = 0x00;
-					wavHeader[0x42] = 0x00;
-					wavHeader[0x43] = 0x00;
-				}
-				else
-				{
-					wavHeader[0x40] = (((alBank->eadPercussion[sound].wav.rawWave->loop->count) >> 0) & 0xFF);
-					wavHeader[0x41] = (((alBank->eadPercussion[sound].wav.rawWave->loop->count) >> 8) & 0xFF);
-					wavHeader[0x42] = (((alBank->eadPercussion[sound].wav.rawWave->loop->count) >> 16) & 0xFF);
-					wavHeader[0x43] = (((alBank->eadPercussion[sound].wav.rawWave->loop->count) >> 24) & 0xFF);
-				}
-
-				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-				delete [] wavHeader;
-			}
+			unsigned char keyBase;
+			if (alBank->soundBankFormat == SUPERMARIO64FORMAT || alBank->soundBankFormat == ZELDAFORMAT || alBank->soundBankFormat == STARFOX64FORMAT)
+				keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase));
 			else
-			{
-				unsigned char* wavHeader = new unsigned char[0x44];
-				for (int x = 0; x < 0x44; x++)
-					wavHeader[x] = 0x00;
+				keyBase = 0x3C;
 
-				wavHeader[0x0] = 0x73;
-				wavHeader[0x1] = 0x6D;
-				wavHeader[0x2] = 0x70;
-				wavHeader[0x3] = 0x6C;
-				wavHeader[0x4] = 0x24;
-				wavHeader[0x5] = 0x00;
-				wavHeader[0x6] = 0x00;
-				wavHeader[0x7] = 0x00;
-				
-				if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-				{
-					float keybaseFloat = *reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase);
-					wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-				}
-				else
-					wavHeader[0x14] = 0x3C;
-				wavHeader[0x15] = 0x00;
-				wavHeader[0x16] = 0x00;
-				wavHeader[0x17] = 0x00;
+			wavHeader = GenerateWavSmplHeader(keyBase, loop,
+				alBank->eadPercussion[sound].wav.rawWave->loop->count,
+				alBank->eadPercussion[sound].wav.rawWave->loop->start,
+				alBank->eadPercussion[sound].wav.rawWave->loop->end
+			);
 
-				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-				delete [] wavHeader;
-			}
-
+			fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+			delete[] wavHeader;
 
 			fclose(outFileTempRaw);
 
@@ -557,104 +473,20 @@ bool CN64AIFCAudio::ExtractEADPercussion(ALBank* alBank, int sound, CString outp
 				fwrite(&outRawData[x], 1,2, outFileTempRaw);
 			}
 
-			if (loop)
-			{
-				unsigned char* wavHeader = new unsigned char[0x44];
-				for (int x = 0; x < 0x44; x++)
-					wavHeader[x] = 0x00;
-
-				wavHeader[0x0] = 0x73;
-				wavHeader[0x1] = 0x6D;
-				wavHeader[0x2] = 0x70;
-				wavHeader[0x3] = 0x6C;
-				wavHeader[0x4] = 0x3C;
-				wavHeader[0x5] = 0x00;
-				wavHeader[0x6] = 0x00;
-				wavHeader[0x7] = 0x00;
-				
-				if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-				{
-					float keybaseFloat = *reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase);
-					wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-				}
-				else
-					wavHeader[0x14] = 0x3C;
-				wavHeader[0x15] = 0x00;
-				wavHeader[0x16] = 0x00;
-				wavHeader[0x17] = 0x00;
-				
-				wavHeader[0x24] = 0x01;
-				wavHeader[0x25] = 0x00;
-				wavHeader[0x26] = 0x00;
-				wavHeader[0x27] = 0x00;
-
-				wavHeader[0x34] = ((alBank->eadPercussion[sound].wav.adpcmWave->loop->start >> 0) & 0xFF);
-				wavHeader[0x35] = ((alBank->eadPercussion[sound].wav.adpcmWave->loop->start >> 8) & 0xFF);
-				wavHeader[0x36] = ((alBank->eadPercussion[sound].wav.adpcmWave->loop->start >> 16) & 0xFF);
-				wavHeader[0x37] = ((alBank->eadPercussion[sound].wav.adpcmWave->loop->start >> 24) & 0xFF);
-				wavHeader[0x38] = (((alBank->eadPercussion[sound].wav.adpcmWave->loop->end) >> 0) & 0xFF);
-				wavHeader[0x39] = (((alBank->eadPercussion[sound].wav.adpcmWave->loop->end) >> 8) & 0xFF);
-				wavHeader[0x3A] = (((alBank->eadPercussion[sound].wav.adpcmWave->loop->end) >> 16) & 0xFF);
-				wavHeader[0x3B] = (((alBank->eadPercussion[sound].wav.adpcmWave->loop->end) >> 24) & 0xFF);
-
-				if (alBank->eadPercussion[sound].wav.adpcmWave->loop->count == 0xFFFFFFFF)
-				{
-					wavHeader[0x40] = 0x00;
-					wavHeader[0x41] = 0x00;
-					wavHeader[0x42] = 0x00;
-					wavHeader[0x43] = 0x00;
-				}
-				else
-				{
-					wavHeader[0x40] = (((alBank->eadPercussion[sound].wav.adpcmWave->loop->count) >> 0) & 0xFF);
-					wavHeader[0x41] = (((alBank->eadPercussion[sound].wav.adpcmWave->loop->count) >> 8) & 0xFF);
-					wavHeader[0x42] = (((alBank->eadPercussion[sound].wav.adpcmWave->loop->count) >> 16) & 0xFF);
-					wavHeader[0x43] = (((alBank->eadPercussion[sound].wav.adpcmWave->loop->count) >> 24) & 0xFF);
-				}
-
-				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-				delete [] wavHeader;
-			}
+			unsigned char keyBase;
+			if (alBank->soundBankFormat == SUPERMARIO64FORMAT || alBank->soundBankFormat == ZELDAFORMAT || alBank->soundBankFormat == STARFOX64FORMAT)
+				keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase));
 			else
-			{
-				unsigned char* wavHeader = new unsigned char[0x44];
-				for (int x = 0; x < 0x44; x++)
-					wavHeader[x] = 0x00;
+				keyBase = 0x3C;
 
-				wavHeader[0x0] = 0x73;
-				wavHeader[0x1] = 0x6D;
-				wavHeader[0x2] = 0x70;
-				wavHeader[0x3] = 0x6C;
-				wavHeader[0x4] = 0x24;
-				wavHeader[0x5] = 0x00;
-				wavHeader[0x6] = 0x00;
-				wavHeader[0x7] = 0x00;
-				
-				if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-				{
-					float keybaseFloat = *reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase);
-					wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-				}
-				else
-					wavHeader[0x14] = 0x3C;
-				wavHeader[0x15] = 0x00;
-				wavHeader[0x16] = 0x00;
-				wavHeader[0x17] = 0x00;
+			wavHeader = GenerateWavSmplHeader(keyBase, loop,
+				alBank->eadPercussion[sound].wav.adpcmWave->loop->count,
+				alBank->eadPercussion[sound].wav.adpcmWave->loop->start,
+				alBank->eadPercussion[sound].wav.adpcmWave->loop->end
+			);
 
-				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-				delete [] wavHeader;
-			}
-
+			fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+			delete[] wavHeader;
 			fclose(outFileTempRaw);
 
 			delete [] outRawData;
@@ -714,108 +546,22 @@ bool CN64AIFCAudio::ExtractLoopEADPercussion(ALBank* alBank, int sound, CString 
 			fwrite(wavHeader, 1, 0x2C, outFileTempRaw);
 			delete[] wavHeader;
 
-			fwrite(&alWave->wavData[1+(alWave->rawWave->loop->start*2)], 1, (newNumberSamples*2), outFileTempRaw);
+			fwrite(&alWave->wavData[1 + (alWave->rawWave->loop->start * 2)], 1, (newNumberSamples * 2), outFileTempRaw);
 
-			if (loop)
-			{
-				unsigned char* wavHeader = new unsigned char[0x44];
-				for (int x = 0; x < 0x44; x++)
-					wavHeader[x] = 0x00;
-
-				wavHeader[0x0] = 0x73;
-				wavHeader[0x1] = 0x6D;
-				wavHeader[0x2] = 0x70;
-				wavHeader[0x3] = 0x6C;
-				wavHeader[0x4] = 0x3C;
-				wavHeader[0x5] = 0x00;
-				wavHeader[0x6] = 0x00;
-				wavHeader[0x7] = 0x00;
-				
-				if (
-					(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-					|| (alBank->soundBankFormat == ZELDAFORMAT)
-					|| (alBank->soundBankFormat == STARFOX64FORMAT)
-				)
-				{
-					float keybaseFloat = *reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase);
-					wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-				}
-				else
-					wavHeader[0x14] = 0x3C;
-
-				wavHeader[0x15] = 0x00;
-				wavHeader[0x16] = 0x00;
-				wavHeader[0x17] = 0x00;
-				
-				wavHeader[0x24] = 0x01;
-				wavHeader[0x25] = 0x00;
-				wavHeader[0x26] = 0x00;
-				wavHeader[0x27] = 0x00;
-
-				wavHeader[0x34] = ((0 >> 0) & 0xFF);
-				wavHeader[0x35] = ((0 >> 8) & 0xFF);
-				wavHeader[0x36] = ((0 >> 16) & 0xFF);
-				wavHeader[0x37] = ((0 >> 24) & 0xFF);
-				wavHeader[0x38] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 0) & 0xFF);
-				wavHeader[0x39] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 8) & 0xFF);
-				wavHeader[0x3A] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 16) & 0xFF);
-				wavHeader[0x3B] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 24) & 0xFF);
-
-				if (alWave->rawWave->loop->count == 0xFFFFFFFF)
-				{
-					wavHeader[0x40] = 0x00;
-					wavHeader[0x41] = 0x00;
-					wavHeader[0x42] = 0x00;
-					wavHeader[0x43] = 0x00;
-				}
-				else
-				{
-					wavHeader[0x40] = (((alWave->rawWave->loop->count) >> 0) & 0xFF);
-					wavHeader[0x41] = (((alWave->rawWave->loop->count) >> 8) & 0xFF);
-					wavHeader[0x42] = (((alWave->rawWave->loop->count) >> 16) & 0xFF);
-					wavHeader[0x43] = (((alWave->rawWave->loop->count) >> 24) & 0xFF);
-				}
-
-				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-				delete [] wavHeader;
-			}
+			unsigned char keyBase;
+			if (alBank->soundBankFormat == SUPERMARIO64FORMAT || alBank->soundBankFormat == ZELDAFORMAT || alBank->soundBankFormat == STARFOX64FORMAT)
+				keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase));
 			else
-			{
-				unsigned char* wavHeader = new unsigned char[0x44];
-				for (int x = 0; x < 0x44; x++)
-					wavHeader[x] = 0x00;
+				keyBase = 0x3C;
 
-				wavHeader[0x0] = 0x73;
-				wavHeader[0x1] = 0x6D;
-				wavHeader[0x2] = 0x70;
-				wavHeader[0x3] = 0x6C;
-				wavHeader[0x4] = 0x24;
-				wavHeader[0x5] = 0x00;
-				wavHeader[0x6] = 0x00;
-				wavHeader[0x7] = 0x00;
-				
-				if (
-					(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-					|| (alBank->soundBankFormat == ZELDAFORMAT)
-					|| (alBank->soundBankFormat == STARFOX64FORMAT)
-				)
-				{
-					float keybaseFloat = *reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase);
-					wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-				}
-				else
-					wavHeader[0x14] = 0x3C;
-				wavHeader[0x15] = 0x00;
-				wavHeader[0x16] = 0x00;
-				wavHeader[0x17] = 0x00;
+			wavHeader = GenerateWavSmplHeader(keyBase, loop,
+				alWave->rawWave->loop->count,
+				0,
+				alWave->rawWave->loop->end - alWave->rawWave->loop->start
+			);
 
-				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-				delete [] wavHeader;
-			}
-
-
+			fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+			delete[] wavHeader;
 			fclose(outFileTempRaw);
 		}
 		else
@@ -865,111 +611,26 @@ bool CN64AIFCAudio::ExtractLoopEADPercussion(ALBank* alBank, int sound, CString 
 
 			for (int x = 0; x < newNumberSamples; x++)
 			{
-				fwrite(&outRawData[alWave->adpcmWave->loop->start+x], 1,2, outFileTempRaw);
+				fwrite(&outRawData[alWave->adpcmWave->loop->start + x], 1, 2, outFileTempRaw);
 			}
 
-			if (loop)
-			{
-				unsigned char* wavHeader = new unsigned char[0x44];
-				for (int x = 0; x < 0x44; x++)
-					wavHeader[x] = 0x00;
-
-				wavHeader[0x0] = 0x73;
-				wavHeader[0x1] = 0x6D;
-				wavHeader[0x2] = 0x70;
-				wavHeader[0x3] = 0x6C;
-				wavHeader[0x4] = 0x3C;
-				wavHeader[0x5] = 0x00;
-				wavHeader[0x6] = 0x00;
-				wavHeader[0x7] = 0x00;
-				
-				if (
-					(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-					|| (alBank->soundBankFormat == ZELDAFORMAT)
-					|| (alBank->soundBankFormat == STARFOX64FORMAT)
-				)
-				{
-					float keybaseFloat = *reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase);
-					wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-				}
-				else
-					wavHeader[0x14] = 0x3C;
-				wavHeader[0x15] = 0x00;
-				wavHeader[0x16] = 0x00;
-				wavHeader[0x17] = 0x00;
-				
-				wavHeader[0x24] = 0x01;
-				wavHeader[0x25] = 0x00;
-				wavHeader[0x26] = 0x00;
-				wavHeader[0x27] = 0x00;
-
-				wavHeader[0x34] = ((0 >> 0) & 0xFF);
-				wavHeader[0x35] = ((0 >> 8) & 0xFF);
-				wavHeader[0x36] = ((0 >> 16) & 0xFF);
-				wavHeader[0x37] = ((0 >> 24) & 0xFF);
-				wavHeader[0x38] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 0) & 0xFF);
-				wavHeader[0x39] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 8) & 0xFF);
-				wavHeader[0x3A] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 16) & 0xFF);
-				wavHeader[0x3B] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 24) & 0xFF);
-
-				if (alWave->adpcmWave->loop->count == 0xFFFFFFFF)
-				{
-					wavHeader[0x40] = 0x00;
-					wavHeader[0x41] = 0x00;
-					wavHeader[0x42] = 0x00;
-					wavHeader[0x43] = 0x00;
-				}
-				else
-				{
-					wavHeader[0x40] = (((alWave->adpcmWave->loop->count) >> 0) & 0xFF);
-					wavHeader[0x41] = (((alWave->adpcmWave->loop->count) >> 8) & 0xFF);
-					wavHeader[0x42] = (((alWave->adpcmWave->loop->count) >> 16) & 0xFF);
-					wavHeader[0x43] = (((alWave->adpcmWave->loop->count) >> 24) & 0xFF);
-				}
-
-
-				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-				delete [] wavHeader;
-			}
+			unsigned char keyBase;
+			if (alBank->soundBankFormat == SUPERMARIO64FORMAT || alBank->soundBankFormat == ZELDAFORMAT || alBank->soundBankFormat == STARFOX64FORMAT)
+				keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase));
 			else
-			{
-				unsigned char* wavHeader = new unsigned char[0x44];
-				for (int x = 0; x < 0x44; x++)
-					wavHeader[x] = 0x00;
+				keyBase = 0x3C;
 
-				wavHeader[0x0] = 0x73;
-				wavHeader[0x1] = 0x6D;
-				wavHeader[0x2] = 0x70;
-				wavHeader[0x3] = 0x6C;
-				wavHeader[0x4] = 0x24;
-				wavHeader[0x5] = 0x00;
-				wavHeader[0x6] = 0x00;
-				wavHeader[0x7] = 0x00;
-				
-				if (
-					(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-					|| (alBank->soundBankFormat == ZELDAFORMAT)
-					|| (alBank->soundBankFormat == STARFOX64FORMAT)
-				)
-				{
-					float keybaseFloat = *reinterpret_cast<float*> (&alBank->eadPercussion[sound].keyBase);
-					wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-				}
-				else
-					wavHeader[0x14] = 0x3C;
-				wavHeader[0x15] = 0x00;
-				wavHeader[0x16] = 0x00;
-				wavHeader[0x17] = 0x00;
+			wavHeader = GenerateWavSmplHeader(keyBase, loop,
+				alWave->adpcmWave->loop->count,
+				0,
+				alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+			);
 
-				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-				delete [] wavHeader;
-			}
-
+			fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+			delete[] wavHeader;
 			fclose(outFileTempRaw);
 
-			delete [] outRawData;
+			delete[] outRawData;
 		}
 
 		return true;
@@ -1021,85 +682,15 @@ bool CN64AIFCAudio::ExtractSfx(ALBank* alBank, int sound, CString outputFile, un
 
 				fwrite(&alBank->alSfx[sound]->wavData[1], 1, (alBank->alSfx[sound]->len - 2), outFileTempRaw);
 
-				if (loop)
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+				unsigned char keyBase = 0x3C;
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alBank->alSfx[sound]->rawWave->loop->count,
+					alBank->alSfx[sound]->rawWave->loop->start,
+					alBank->alSfx[sound]->rawWave->loop->end
+				);
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((alBank->alSfx[sound]->rawWave->loop->start >> 0) & 0xFF);
-					wavHeader[0x35] = ((alBank->alSfx[sound]->rawWave->loop->start >> 8) & 0xFF);
-					wavHeader[0x36] = ((alBank->alSfx[sound]->rawWave->loop->start >> 16) & 0xFF);
-					wavHeader[0x37] = ((alBank->alSfx[sound]->rawWave->loop->start >> 24) & 0xFF);
-					wavHeader[0x38] = (((alBank->alSfx[sound]->rawWave->loop->end) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alBank->alSfx[sound]->rawWave->loop->end) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alBank->alSfx[sound]->rawWave->loop->end) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alBank->alSfx[sound]->rawWave->loop->end) >> 24) & 0xFF);
-
-					if (alBank->alSfx[sound]->rawWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alBank->alSfx[sound]->rawWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alBank->alSfx[sound]->rawWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alBank->alSfx[sound]->rawWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alBank->alSfx[sound]->rawWave->loop->count) >> 24) & 0xFF);
-					}
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
-				else
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
-
-
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 				fclose(outFileTempRaw);
 
 				return true;
@@ -1127,86 +718,18 @@ bool CN64AIFCAudio::ExtractSfx(ALBank* alBank, int sound, CString outputFile, un
 
 				for (int x = 0; x < nSamples; x++)
 				{
-					fwrite(&outRawData[x], 1,2, outFileTempRaw);
+					fwrite(&outRawData[x], 1, 2, outFileTempRaw);
 				}
 
-				if (loop)
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+				unsigned char keyBase = 0x3C;
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alBank->alSfx[sound]->adpcmWave->loop->count,
+					alBank->alSfx[sound]->adpcmWave->loop->start,
+					alBank->alSfx[sound]->adpcmWave->loop->end
+				);
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((alBank->alSfx[sound]->adpcmWave->loop->start >> 0) & 0xFF);
-					wavHeader[0x35] = ((alBank->alSfx[sound]->adpcmWave->loop->start >> 8) & 0xFF);
-					wavHeader[0x36] = ((alBank->alSfx[sound]->adpcmWave->loop->start >> 16) & 0xFF);
-					wavHeader[0x37] = ((alBank->alSfx[sound]->adpcmWave->loop->start >> 24) & 0xFF);
-					wavHeader[0x38] = (((alBank->alSfx[sound]->adpcmWave->loop->end) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alBank->alSfx[sound]->adpcmWave->loop->end) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alBank->alSfx[sound]->adpcmWave->loop->end) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alBank->alSfx[sound]->adpcmWave->loop->end) >> 24) & 0xFF);
-
-					if (alBank->alSfx[sound]->adpcmWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alBank->alSfx[sound]->adpcmWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alBank->alSfx[sound]->adpcmWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alBank->alSfx[sound]->adpcmWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alBank->alSfx[sound]->adpcmWave->loop->count) >> 24) & 0xFF);
-					}
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
-				else
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
-
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 				fclose(outFileTempRaw);
 
 				delete [] outRawData;
@@ -1288,89 +811,17 @@ bool CN64AIFCAudio::ExtractLoopSfx(ALBank* alBank, int sound, CString outputFile
 				fwrite(wavHeader, 1, 0x2C, outFileTempRaw);
 				delete[] wavHeader;
 
-				fwrite(&alWave->wavData[1+(alWave->rawWave->loop->start*2)], 1, (newNumberSamples*2), outFileTempRaw);
+				fwrite(&alWave->wavData[1 + (alWave->rawWave->loop->start * 2)], 1, (newNumberSamples * 2), outFileTempRaw);
 
-				if (loop)
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+				unsigned char keyBase = 0x3C;
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->rawWave->loop->count,
+					0,
+					alWave->rawWave->loop->end - alWave->rawWave->loop->start
+				);
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					wavHeader[0x14] = 0x3C;
-
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((0 >> 0) & 0xFF);
-					wavHeader[0x35] = ((0 >> 8) & 0xFF);
-					wavHeader[0x36] = ((0 >> 16) & 0xFF);
-					wavHeader[0x37] = ((0 >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 24) & 0xFF);
-
-					if (alWave->rawWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->rawWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->rawWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->rawWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->rawWave->loop->count) >> 24) & 0xFF);
-					}
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
-				else
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					wavHeader[0x14] = 0x3C;
-
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
-
-
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 				fclose(outFileTempRaw);
 			}
 			else
@@ -1420,97 +871,24 @@ bool CN64AIFCAudio::ExtractLoopSfx(ALBank* alBank, int sound, CString outputFile
 
 				for (int x = 0; x < newNumberSamples; x++)
 				{
-					fwrite(&outRawData[alWave->adpcmWave->loop->start+x], 1,2, outFileTempRaw);
+					fwrite(&outRawData[alWave->adpcmWave->loop->start + x], 1, 2, outFileTempRaw);
 				}
 
-				if (loop)
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+				unsigned char keyBase = 0x3C;
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->adpcmWave->loop->count,
+					0,
+					alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+				);
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					wavHeader[0x14] = 0x3C;
-
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((0 >> 0) & 0xFF);
-					wavHeader[0x35] = ((0 >> 8) & 0xFF);
-					wavHeader[0x36] = ((0 >> 16) & 0xFF);
-					wavHeader[0x37] = ((0 >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 24) & 0xFF);
-
-					if (alWave->adpcmWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->adpcmWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->adpcmWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->adpcmWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->adpcmWave->loop->count) >> 24) & 0xFF);
-					}
-
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
-				else
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					wavHeader[0x14] = 0x3C;
-
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
-
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 				fclose(outFileTempRaw);
 
 				delete [] outRawData;
 			}
 
 			return true;
-
 		}
 	}
 	return false;
@@ -1667,30 +1045,11 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 						fwrite(&(pcmSamples[x]), 1, 2, outFileTempRaw);
 					}
 
-					// SMPL
-					wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+					unsigned char keyBase = 0x3C;
+					wavHeader = GenerateWavSmplHeader(keyBase, false, 0, 0, 0);
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					wavHeader[0x14] = 0x3C;
-
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-
+					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+					delete[] wavHeader;
 					fclose(outFileTempRaw);
 				}
 				delete [] tempWav;
@@ -2222,142 +1581,39 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 				fwrite(wavHeader, 1, 0x2C, outFileTempRaw);
 				delete[] wavHeader;
 
-				for (int s = 0; s < alWave->len; s+=2)
+				for (int s = 0; s < alWave->len; s += 2)
 				{
-					fwrite(&alWave->wavData[s+1], 1, 1, outFileTempRaw);
+					fwrite(&alWave->wavData[s + 1], 1, 1, outFileTempRaw);
 					fwrite(&alWave->wavData[s], 1, 1, outFileTempRaw);
 				}
 
-				if (loop)
+				unsigned char keyBase;
+				if (alBank->soundBankFormat == SUPERMARIO64FORMAT || alBank->soundBankFormat == ZELDAFORMAT || alBank->soundBankFormat == STARFOX64FORMAT)
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
+					if (primSel == PREVIOUS)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev));
+					else if (primSel == SECONDARY)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec));
 					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((alWave->rawWave->loop->start >> 0) & 0xFF);
-					wavHeader[0x35] = ((alWave->rawWave->loop->start >> 8) & 0xFF);
-					wavHeader[0x36] = ((alWave->rawWave->loop->start >> 16) & 0xFF);
-					wavHeader[0x37] = ((alWave->rawWave->loop->start >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->rawWave->loop->end) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->rawWave->loop->end) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->rawWave->loop->end) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->rawWave->loop->end) >> 24) & 0xFF);
-
-					if (alWave->rawWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->rawWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->rawWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->rawWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->rawWave->loop->count) >> 24) & 0xFF);
-					}
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase));
+				}
+				else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
+				{
+					keyBase = alBank->inst[instrument]->sounds[sound]->key.keybase;
 				}
 				else
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+					keyBase = 0x3C;
 				}
 
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->rawWave->loop->count,
+					alWave->rawWave->loop->start,
+					alWave->rawWave->loop->end
+				);
+
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 				fclose(outFileTempRaw);
 			}
 			else if (alWave->type == AL_ADPCM_WAVE)
@@ -2382,143 +1638,39 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 
 				for (int x = 0; x < nSamples; x++)
 				{
-					fwrite(&outRawData[x], 1,2, outFileTempRaw);
+					fwrite(&outRawData[x], 1, 2, outFileTempRaw);
 				}
 
-				if (loop)
+				unsigned char keyBase;
+				if (alBank->soundBankFormat == SUPERMARIO64FORMAT || alBank->soundBankFormat == ZELDAFORMAT || alBank->soundBankFormat == STARFOX64FORMAT)
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
+					if (primSel == PREVIOUS)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev));
+					else if (primSel == SECONDARY)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec));
 					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((alWave->adpcmWave->loop->start >> 0) & 0xFF);
-					wavHeader[0x35] = ((alWave->adpcmWave->loop->start >> 8) & 0xFF);
-					wavHeader[0x36] = ((alWave->adpcmWave->loop->start >> 16) & 0xFF);
-					wavHeader[0x37] = ((alWave->adpcmWave->loop->start >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->adpcmWave->loop->end) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->adpcmWave->loop->end) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->adpcmWave->loop->end) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->adpcmWave->loop->end) >> 24) & 0xFF);
-
-					if (alWave->adpcmWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->adpcmWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->adpcmWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->adpcmWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->adpcmWave->loop->count) >> 24) & 0xFF);
-					}
-
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase));
+				}
+				else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
+				{
+					keyBase = alBank->inst[instrument]->sounds[sound]->key.keybase;
 				}
 				else
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+					keyBase = 0x3C;
 				}
 
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->adpcmWave->loop->count,
+					alWave->adpcmWave->loop->start,
+					alWave->adpcmWave->loop->end
+				);
+
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 				fclose(outFileTempRaw);
 
-				delete [] outRawData;
+				delete[] outRawData;
 			}
 			else if (alWave->type == AL_VOX_WAVE)
 			{
@@ -2577,29 +1729,11 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 						fwrite(&(pcmSamples[x]), 1, 2, outFileTempRaw);
 					}
 
-					// SMPL
-					wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+					unsigned char keyBase = 0x3C;
+					wavHeader = GenerateWavSmplHeader(keyBase, false, 0, 0, 0);
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					wavHeader[0x14] = 0x3C;
-
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+					delete[] wavHeader;
 
 					fclose(outFileTempRaw);
 				}
@@ -2925,140 +2059,36 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 
 				for (int x = 0; x < nSamples; x++)
 				{
-					fwrite(&outRawData[x], 1,2, outFileTempRaw);
+					fwrite(&outRawData[x], 1, 2, outFileTempRaw);
 				}
 
-				if (loop)
+				unsigned char keyBase;
+				if (alBank->soundBankFormat == SUPERMARIO64FORMAT || alBank->soundBankFormat == ZELDAFORMAT || alBank->soundBankFormat == STARFOX64FORMAT)
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
+					if (primSel == PREVIOUS)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev));
+					else if (primSel == SECONDARY)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec));
 					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((alWave->adpcmWave->loop->start >> 0) & 0xFF);
-					wavHeader[0x35] = ((alWave->adpcmWave->loop->start >> 8) & 0xFF);
-					wavHeader[0x36] = ((alWave->adpcmWave->loop->start >> 16) & 0xFF);
-					wavHeader[0x37] = ((alWave->adpcmWave->loop->start >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->adpcmWave->loop->end) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->adpcmWave->loop->end) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->adpcmWave->loop->end) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->adpcmWave->loop->end) >> 24) & 0xFF);
-
-					if (alWave->adpcmWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->adpcmWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->adpcmWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->adpcmWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->adpcmWave->loop->count) >> 24) & 0xFF);
-					}
-
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase));
+				}
+				else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
+				{
+					keyBase = alBank->inst[instrument]->sounds[sound]->key.keybase;
 				}
 				else
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+					keyBase = 0x3C;
 				}
 
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->adpcmWave->loop->count,
+					alWave->adpcmWave->loop->start,
+					alWave->adpcmWave->loop->end
+				);
+
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 				fclose(outFileTempRaw);
 
 				delete [] outRawData;
@@ -3278,140 +2308,35 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 				fwrite(wavHeader, 1, 0x2C, outFileTempRaw);
 				delete[] wavHeader;
 
-				fwrite(&alWave->wavData[1+(alWave->rawWave->loop->start*2)], 1, (newNumberSamples*2), outFileTempRaw);
+				fwrite(&alWave->wavData[1 + (alWave->rawWave->loop->start * 2)], 1, (newNumberSamples * 2), outFileTempRaw);
 
-				if (loop)
+				unsigned char keyBase;
+				if (alBank->soundBankFormat == SUPERMARIO64FORMAT || alBank->soundBankFormat == ZELDAFORMAT || alBank->soundBankFormat == STARFOX64FORMAT)
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
+					if (primSel == PREVIOUS)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev));
+					else if (primSel == SECONDARY)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec));
 					else
-						wavHeader[0x14] = 0x3C;
-
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((0 >> 0) & 0xFF);
-					wavHeader[0x35] = ((0 >> 8) & 0xFF);
-					wavHeader[0x36] = ((0 >> 16) & 0xFF);
-					wavHeader[0x37] = ((0 >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 24) & 0xFF);
-
-					if (alWave->rawWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->rawWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->rawWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->rawWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->rawWave->loop->count) >> 24) & 0xFF);
-					}
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase));
+				}
+				else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
+				{
+					keyBase = alBank->inst[instrument]->sounds[sound]->key.keybase;
 				}
 				else
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+					keyBase = 0x3C;
 				}
 
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->rawWave->loop->count,
+					0,
+					alWave->rawWave->loop->end - alWave->rawWave->loop->start
+				);
 
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 				fclose(outFileTempRaw);
 			}
 			else if (alWave->type == AL_ADPCM_WAVE)
@@ -3457,143 +2382,39 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 
 				for (int x = 0; x < newNumberSamples; x++)
 				{
-					fwrite(&outRawData[alWave->adpcmWave->loop->start+x], 1,2, outFileTempRaw);
+					fwrite(&outRawData[alWave->adpcmWave->loop->start + x], 1, 2, outFileTempRaw);
 				}
 
-				if (loop)
+				unsigned char keyBase;
+				if (alBank->soundBankFormat == SUPERMARIO64FORMAT || alBank->soundBankFormat == ZELDAFORMAT || alBank->soundBankFormat == STARFOX64FORMAT)
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
+					if (primSel == PREVIOUS)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev));
+					else if (primSel == SECONDARY)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec));
 					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((0 >> 0) & 0xFF);
-					wavHeader[0x35] = ((0 >> 8) & 0xFF);
-					wavHeader[0x36] = ((0 >> 16) & 0xFF);
-					wavHeader[0x37] = ((0 >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 24) & 0xFF);
-
-					if (alWave->adpcmWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->adpcmWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->adpcmWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->adpcmWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->adpcmWave->loop->count) >> 24) & 0xFF);
-					}
-
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase));
+				}
+				else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
+				{
+					keyBase = alBank->inst[instrument]->sounds[sound]->key.keybase;
 				}
 				else
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+					keyBase = 0x3C;
 				}
 
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->adpcmWave->loop->count,
+					0,
+					alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+				);
+
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 				fclose(outFileTempRaw);
 
-				delete [] outRawData;
+				delete[] outRawData;
 			}
 			else if (alWave->type == AL_VOX_WAVE)
 			{
@@ -3652,29 +2473,10 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 						fwrite(&(pcmSamples[x]), 1, 2, outFileTempRaw);
 					}
 
-					// SMPL
-					wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					wavHeader[0x14] = 0x3C;
-
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+					unsigned char keyBase = 0x3C;
+					wavHeader = GenerateWavSmplHeader(keyBase, false, 0, 0, 0);
+					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+					delete[] wavHeader;
 
 					fclose(outFileTempRaw);
 				}
@@ -3938,139 +2740,36 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 
 				for (int x = 0; x < newNumberSamples; x++)
 				{
-					fwrite(&outRawData[alWave->adpcmWave->loop->start+x], 1,2, outFileTempRaw);
+					fwrite(&outRawData[alWave->adpcmWave->loop->start + x], 1, 2, outFileTempRaw);
 				}
 
-				if (loop)
+				unsigned char keyBase;
+				if (alBank->soundBankFormat == SUPERMARIO64FORMAT || alBank->soundBankFormat == ZELDAFORMAT || alBank->soundBankFormat == STARFOX64FORMAT)
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
+					if (primSel == PREVIOUS)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev));
+					else if (primSel == SECONDARY)
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec));
 					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((0 >> 0) & 0xFF);
-					wavHeader[0x35] = ((0 >> 8) & 0xFF);
-					wavHeader[0x36] = ((0 >> 16) & 0xFF);
-					wavHeader[0x37] = ((0 >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 24) & 0xFF);
-
-					if (alWave->adpcmWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->adpcmWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->adpcmWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->adpcmWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->adpcmWave->loop->count) >> 24) & 0xFF);
-					}
-
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+						keyBase = ConvertEADGameValueToKeyBase(*reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase));
+				}
+				else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
+				{
+					keyBase = alBank->inst[instrument]->sounds[sound]->key.keybase;
 				}
 				else
 				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (
-						(alBank->soundBankFormat == SUPERMARIO64FORMAT)
-						|| (alBank->soundBankFormat == ZELDAFORMAT)
-						|| (alBank->soundBankFormat == STARFOX64FORMAT)
-					)
-					{
-						float keybaseFloat;
-
-						if (primSel == PRIMARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBase);
-						}
-						else if (primSel == PREVIOUS)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBasePrev);
-						}
-						else if (primSel == SECONDARY)
-						{
-							keybaseFloat = *reinterpret_cast<float*> (&alBank->inst[instrument]->sounds[sound]->floatKeyBaseSec);
-						}
-						
-						wavHeader[0x14] = ConvertEADGameValueToKeyBase(keybaseFloat);
-					}
-					else if (alBank->inst[instrument]->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->inst[instrument]->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
+					keyBase = 0x3C;
 				}
+
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->adpcmWave->loop->count,
+					0,
+					alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+				);
+
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 
 				fclose(outFileTempRaw);
 
@@ -4278,95 +2977,26 @@ bool CN64AIFCAudio::ExtractPercussion(CString mainFolder, ALBank* alBank, int so
 				fwrite(wavHeader, 1, 0x2C, outFileTempRaw);
 				delete[] wavHeader;
 
-				for (int s = 0; s < alWave->len; s+=2)
+				for (int s = 0; s < alWave->len; s += 2)
 				{
-					fwrite(&alWave->wavData[s+1], 1, 1, outFileTempRaw);
+					fwrite(&alWave->wavData[s + 1], 1, 1, outFileTempRaw);
 					fwrite(&alWave->wavData[s], 1, 1, outFileTempRaw);
 				}
 
-				if (loop)
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((alWave->rawWave->loop->start >> 0) & 0xFF);
-					wavHeader[0x35] = ((alWave->rawWave->loop->start >> 8) & 0xFF);
-					wavHeader[0x36] = ((alWave->rawWave->loop->start >> 16) & 0xFF);
-					wavHeader[0x37] = ((alWave->rawWave->loop->start >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->rawWave->loop->end) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->rawWave->loop->end) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->rawWave->loop->end) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->rawWave->loop->end) >> 24) & 0xFF);
-
-					if (alWave->rawWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->rawWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->rawWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->rawWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->rawWave->loop->count) >> 24) & 0xFF);
-					}
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
+				unsigned char keyBase;
+				if (alBank->percussion->sounds[sound]->key.keybase != 0)
+					keyBase = alBank->percussion->sounds[sound]->key.keybase;
 				else
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+					keyBase = 0x3C;
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->rawWave->loop->count,
+					alWave->rawWave->loop->start,
+					alWave->rawWave->loop->end
+				);
 
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 
 				fclose(outFileTempRaw);
 			}
@@ -4392,93 +3022,23 @@ bool CN64AIFCAudio::ExtractPercussion(CString mainFolder, ALBank* alBank, int so
 
 				for (int x = 0; x < nSamples; x++)
 				{
-					fwrite(&outRawData[x], 1,2, outFileTempRaw);
+					fwrite(&outRawData[x], 1, 2, outFileTempRaw);
 				}
 
-				if (loop)
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((alWave->adpcmWave->loop->start >> 0) & 0xFF);
-					wavHeader[0x35] = ((alWave->adpcmWave->loop->start >> 8) & 0xFF);
-					wavHeader[0x36] = ((alWave->adpcmWave->loop->start >> 16) & 0xFF);
-					wavHeader[0x37] = ((alWave->adpcmWave->loop->start >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->adpcmWave->loop->end) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->adpcmWave->loop->end) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->adpcmWave->loop->end) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->adpcmWave->loop->end) >> 24) & 0xFF);
-
-					if (alWave->adpcmWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->adpcmWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->adpcmWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->adpcmWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->adpcmWave->loop->count) >> 24) & 0xFF);
-					}
-
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
+				unsigned char keyBase;
+				if (alBank->percussion->sounds[sound]->key.keybase != 0)
+					keyBase = alBank->percussion->sounds[sound]->key.keybase;
 				else
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+					keyBase = 0x3C;
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->adpcmWave->loop->count,
+					alWave->adpcmWave->loop->start,
+					alWave->adpcmWave->loop->end
+				);
 
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 
 				fclose(outFileTempRaw);
 
@@ -4541,93 +3101,23 @@ bool CN64AIFCAudio::ExtractPercussion(CString mainFolder, ALBank* alBank, int so
 
 				for (int x = 0; x < nSamples; x++)
 				{
-					fwrite(&outRawData[x], 1,2, outFileTempRaw);
+					fwrite(&outRawData[x], 1, 2, outFileTempRaw);
 				}
 
-				if (loop)
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((alWave->adpcmWave->loop->start >> 0) & 0xFF);
-					wavHeader[0x35] = ((alWave->adpcmWave->loop->start >> 8) & 0xFF);
-					wavHeader[0x36] = ((alWave->adpcmWave->loop->start >> 16) & 0xFF);
-					wavHeader[0x37] = ((alWave->adpcmWave->loop->start >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->adpcmWave->loop->end) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->adpcmWave->loop->end) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->adpcmWave->loop->end) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->adpcmWave->loop->end) >> 24) & 0xFF);
-
-					if (alWave->adpcmWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->adpcmWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->adpcmWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->adpcmWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->adpcmWave->loop->count) >> 24) & 0xFF);
-					}
-
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
+				unsigned char keyBase;
+				if (alBank->percussion->sounds[sound]->key.keybase != 0)
+					keyBase = alBank->percussion->sounds[sound]->key.keybase;
 				else
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+					keyBase = 0x3C;
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->adpcmWave->loop->count,
+					alWave->adpcmWave->loop->start,
+					alWave->adpcmWave->loop->end
+				);
 
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 
 				fclose(outFileTempRaw);
 
@@ -4834,93 +3324,22 @@ bool CN64AIFCAudio::ExtractLoopPercussion(CString mainFolder, ALBank* alBank, in
 				fwrite(wavHeader, 1, 0x2C, outFileTempRaw);
 				delete[] wavHeader;
 
-				fwrite(&alWave->wavData[1+(alWave->rawWave->loop->start*2)], 1, (newNumberSamples*2), outFileTempRaw);
+				fwrite(&alWave->wavData[1 + (alWave->rawWave->loop->start * 2)], 1, (newNumberSamples * 2), outFileTempRaw);
 
-				if (loop)
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((0 >> 0) & 0xFF);
-					wavHeader[0x35] = ((0 >> 8) & 0xFF);
-					wavHeader[0x36] = ((0 >> 16) & 0xFF);
-					wavHeader[0x37] = ((0 >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->rawWave->loop->end - alWave->rawWave->loop->start) >> 24) & 0xFF);
-
-					if (alWave->rawWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->rawWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->rawWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->rawWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->rawWave->loop->count) >> 24) & 0xFF);
-					}
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
+				unsigned char keyBase;
+				if (alBank->percussion->sounds[sound]->key.keybase != 0)
+					keyBase = alBank->percussion->sounds[sound]->key.keybase;
 				else
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+					keyBase = 0x3C;
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->rawWave->loop->count,
+					0,
+					alWave->rawWave->loop->end - alWave->rawWave->loop->start
+				);
 
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
-
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 
 				fclose(outFileTempRaw);
 			}
@@ -4967,93 +3386,23 @@ bool CN64AIFCAudio::ExtractLoopPercussion(CString mainFolder, ALBank* alBank, in
 
 				for (int x = 0; x < newNumberSamples; x++)
 				{
-					fwrite(&outRawData[alWave->adpcmWave->loop->start+x], 1,2, outFileTempRaw);
+					fwrite(&outRawData[alWave->adpcmWave->loop->start + x], 1, 2, outFileTempRaw);
 				}
 
-				if (loop)
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((0 >> 0) & 0xFF);
-					wavHeader[0x35] = ((0 >> 8) & 0xFF);
-					wavHeader[0x36] = ((0 >> 16) & 0xFF);
-					wavHeader[0x37] = ((0 >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 24) & 0xFF);
-
-					if (alWave->adpcmWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->adpcmWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->adpcmWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->adpcmWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->adpcmWave->loop->count) >> 24) & 0xFF);
-					}
-
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
+				unsigned char keyBase;
+				if (alBank->percussion->sounds[sound]->key.keybase != 0)
+					keyBase = alBank->percussion->sounds[sound]->key.keybase;
 				else
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+					keyBase = 0x3C;
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->adpcmWave->loop->count,
+					0,
+					alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+				);
 
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 
 				fclose(outFileTempRaw);
 
@@ -5136,93 +3485,23 @@ bool CN64AIFCAudio::ExtractLoopPercussion(CString mainFolder, ALBank* alBank, in
 
 				for (int x = 0; x < newNumberSamples; x++)
 				{
-					fwrite(&outRawData[alWave->adpcmWave->loop->start+x], 1,2, outFileTempRaw);
+					fwrite(&outRawData[alWave->adpcmWave->loop->start + x], 1, 2, outFileTempRaw);
 				}
 
-				if (loop)
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
-
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x3C;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
-					
-					wavHeader[0x24] = 0x01;
-					wavHeader[0x25] = 0x00;
-					wavHeader[0x26] = 0x00;
-					wavHeader[0x27] = 0x00;
-
-					wavHeader[0x34] = ((0 >> 0) & 0xFF);
-					wavHeader[0x35] = ((0 >> 8) & 0xFF);
-					wavHeader[0x36] = ((0 >> 16) & 0xFF);
-					wavHeader[0x37] = ((0 >> 24) & 0xFF);
-					wavHeader[0x38] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 0) & 0xFF);
-					wavHeader[0x39] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 8) & 0xFF);
-					wavHeader[0x3A] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 16) & 0xFF);
-					wavHeader[0x3B] = (((alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start) >> 24) & 0xFF);
-
-					if (alWave->adpcmWave->loop->count == 0xFFFFFFFF)
-					{
-						wavHeader[0x40] = 0x00;
-						wavHeader[0x41] = 0x00;
-						wavHeader[0x42] = 0x00;
-						wavHeader[0x43] = 0x00;
-					}
-					else
-					{
-						wavHeader[0x40] = (((alWave->adpcmWave->loop->count) >> 0) & 0xFF);
-						wavHeader[0x41] = (((alWave->adpcmWave->loop->count) >> 8) & 0xFF);
-						wavHeader[0x42] = (((alWave->adpcmWave->loop->count) >> 16) & 0xFF);
-						wavHeader[0x43] = (((alWave->adpcmWave->loop->count) >> 24) & 0xFF);
-					}
-
-
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
+				unsigned char keyBase;
+				if (alBank->percussion->sounds[sound]->key.keybase != 0)
+					keyBase = alBank->percussion->sounds[sound]->key.keybase;
 				else
-				{
-					unsigned char* wavHeader = new unsigned char[0x44];
-					for (int x = 0; x < 0x44; x++)
-						wavHeader[x] = 0x00;
+					keyBase = 0x3C;
 
-					wavHeader[0x0] = 0x73;
-					wavHeader[0x1] = 0x6D;
-					wavHeader[0x2] = 0x70;
-					wavHeader[0x3] = 0x6C;
-					wavHeader[0x4] = 0x24;
-					wavHeader[0x5] = 0x00;
-					wavHeader[0x6] = 0x00;
-					wavHeader[0x7] = 0x00;
-					
-					if (alBank->percussion->sounds[sound]->key.keybase != 0)
-						wavHeader[0x14] = alBank->percussion->sounds[sound]->key.keybase;//0x3C;
-					else
-						wavHeader[0x14] = 0x3C;
-					wavHeader[0x15] = 0x00;
-					wavHeader[0x16] = 0x00;
-					wavHeader[0x17] = 0x00;
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->adpcmWave->loop->count,
+					0,
+					alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+				);
 
-					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw );
-
-					delete [] wavHeader;
-				}
+				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+				delete[] wavHeader;
 
 				fclose(outFileTempRaw);
 
@@ -23855,32 +22134,13 @@ bool CN64AIFCAudio::WriteWav(CString wavFilename, float samplingRate, std::vecto
 		fwrite(&(pcmSamples[x]), 1, 2, outFileTempRaw);
 	}
 
-	// SMPL
-	wavHeader = new unsigned char[0x44];
-	for (int x = 0; x < 0x44; x++)
-		wavHeader[x] = 0x00;
-
-	wavHeader[0x0] = 0x73;
-	wavHeader[0x1] = 0x6D;
-	wavHeader[0x2] = 0x70;
-	wavHeader[0x3] = 0x6C;
-	wavHeader[0x4] = 0x24;
-	wavHeader[0x5] = 0x00;
-	wavHeader[0x6] = 0x00;
-	wavHeader[0x7] = 0x00;
-	
-	wavHeader[0x14] = 0x3C;
-
-	wavHeader[0x15] = 0x00;
-	wavHeader[0x16] = 0x00;
-	wavHeader[0x17] = 0x00;
-
-	fwrite(wavHeader, 1, 0x24 + 8, outFileTempRaw );
-
-	delete [] wavHeader;
+	unsigned char keyBase = 0x3C;
+	wavHeader = GenerateWavSmplHeader(keyBase, false, 0, 0, 0);
+	fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+	delete[] wavHeader;
 
 	fclose(outFileTempRaw);
-	
+
 	return true;
 }
 
@@ -23902,32 +22162,13 @@ bool CN64AIFCAudio::WriteWavStereo(CString wavFilename, float samplingRate, std:
 		fwrite(&pcmSamples[x], 1, 2, outFileTempRaw);
 	}
 
-	// SMPL
-	wavHeader = new unsigned char[0x44];
-	for (int x = 0; x < 0x44; x++)
-		wavHeader[x] = 0x00;
-
-	wavHeader[0x0] = 0x73;
-	wavHeader[0x1] = 0x6D;
-	wavHeader[0x2] = 0x70;
-	wavHeader[0x3] = 0x6C;
-	wavHeader[0x4] = 0x24;
-	wavHeader[0x5] = 0x00;
-	wavHeader[0x6] = 0x00;
-	wavHeader[0x7] = 0x00;
-	
-	wavHeader[0x14] = 0x3C;
-
-	wavHeader[0x15] = 0x00;
-	wavHeader[0x16] = 0x00;
-	wavHeader[0x17] = 0x00;
-
-	fwrite(wavHeader, 1, 0x24 + 8, outFileTempRaw );
-
-	delete [] wavHeader;
+	unsigned char keyBase = 0x3C;
+	wavHeader = GenerateWavSmplHeader(keyBase, false, 0, 0, 0);
+	fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
+	delete[] wavHeader;
 
 	fclose(outFileTempRaw);
-	
+
 	return true;
 }
 
@@ -23987,6 +22228,55 @@ unsigned char* CN64AIFCAudio::GenerateWavPCMHeader(const unsigned short numberCh
 	wavHeader[0x29] = (dataSubchunkSize >> 8) & 0xFF;
 	wavHeader[0x2A] = (dataSubchunkSize >> 16) & 0xFF;
 	wavHeader[0x2B] = (dataSubchunkSize >> 24) & 0xFF;
+
+	return wavHeader;
+}
+
+unsigned char* CN64AIFCAudio::GenerateWavSmplHeader(unsigned int keyBase, const bool loop, const unsigned int loopCount, const unsigned int loopStart, const unsigned int loopEnd)
+{
+	const unsigned int smplSubchunkSize = loop ? 0x3C : 0x24;
+
+	unsigned char* wavHeader = new unsigned char[0x8 + smplSubchunkSize];
+	memset(wavHeader, 0, 0x8 + smplSubchunkSize);
+
+	wavHeader[0x00] = 0x73; // 's'
+	wavHeader[0x01] = 0x6D; // 'm'
+	wavHeader[0x02] = 0x70; // 'p'
+	wavHeader[0x03] = 0x6C; // 'l'
+	wavHeader[0x04] = (smplSubchunkSize >> 0) & 0xFF;
+	wavHeader[0x05] = (smplSubchunkSize >> 8) & 0xFF;
+	wavHeader[0x06] = (smplSubchunkSize >> 16) & 0xFF;
+	wavHeader[0x07] = (smplSubchunkSize >> 24) & 0xFF;
+
+	wavHeader[0x14] = (keyBase >> 0) & 0xFF;
+	wavHeader[0x15] = (keyBase >> 8) & 0xFF;
+	wavHeader[0x16] = (keyBase >> 16) & 0xFF;
+	wavHeader[0x17] = (keyBase >> 24) & 0xFF;
+
+	if (loop)
+	{
+		wavHeader[0x24] = 0x01; // Loop chunk count
+		wavHeader[0x25] = 0x00;
+		wavHeader[0x26] = 0x00;
+		wavHeader[0x27] = 0x00;
+
+		wavHeader[0x34] = (loopStart >> 0) & 0xFF;
+		wavHeader[0x35] = (loopStart >> 8) & 0xFF;
+		wavHeader[0x36] = (loopStart >> 16) & 0xFF;
+		wavHeader[0x37] = (loopStart >> 24) & 0xFF;
+		wavHeader[0x38] = (loopEnd >> 0) & 0xFF;
+		wavHeader[0x39] = (loopEnd >> 8) & 0xFF;
+		wavHeader[0x3A] = (loopEnd >> 16) & 0xFF;
+		wavHeader[0x3B] = (loopEnd >> 24) & 0xFF;
+
+		if (loopCount != 0xFFFFFFFF)
+		{
+			wavHeader[0x40] = (loopCount >> 0) & 0xFF;
+			wavHeader[0x41] = (loopCount >> 8) & 0xFF;
+			wavHeader[0x42] = (loopCount >> 16) & 0xFF;
+			wavHeader[0x43] = (loopCount >> 24) & 0xFF;
+		}
+	}
 
 	return wavHeader;
 }
