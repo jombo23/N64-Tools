@@ -650,5 +650,6 @@ private:
 
 	static bool WriteWav(CString wavFilename, float samplingRate, std::vector<unsigned short> pcmSamples);
 	static bool WriteWavStereo(CString wavFilename, float samplingRate, std::vector<unsigned short> pcmSamples);
+	static unsigned char* GenerateWavPCMHeader(const unsigned short numberChannels, const unsigned short bitsPerSample, const unsigned int sampleCount, const unsigned int sampleRate, const bool loop);
+	static unsigned char* GenerateWavSmplHeader(unsigned int keyBase, const bool loop, const unsigned int loopCount, const unsigned int loopStart, const unsigned int loopEnd);
 };
-
