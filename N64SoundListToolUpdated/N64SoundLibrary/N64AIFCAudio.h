@@ -114,21 +114,16 @@ struct ALADPCMBook {
         signed short*			predictors;
 };
 
-struct ALADPCMloop {
-        unsigned long             start;
-        unsigned long             end;
-        unsigned long             count;
-        short     state[16];
-
-		unsigned long unknown1;
+struct ALRawLoop {
+	unsigned long start;
+	unsigned long end;
+	unsigned long count;
 };
 
-struct ALRawLoop{
-        unsigned long             start;
-        unsigned long             end;
-        unsigned long             count;
+struct ALADPCMloop : public ALRawLoop {
+	short         state[16];
+	unsigned long unknown1;
 };
-
 
 struct ALADPCMWaveInfo
 {
@@ -651,5 +646,5 @@ private:
 	static bool WriteWav(CString wavFilename, float samplingRate, std::vector<unsigned short> pcmSamples);
 	static bool WriteWavStereo(CString wavFilename, float samplingRate, std::vector<unsigned short> pcmSamples);
 	static unsigned char* GenerateWavPCMHeader(const unsigned short numberChannels, const unsigned short bitsPerSample, const unsigned int sampleCount, const unsigned int sampleRate, const bool loop);
-	static unsigned char* GenerateWavSmplHeader(unsigned int keyBase, const bool loop, const unsigned int loopCount = 0, const unsigned int loopStart = 0, const unsigned int loopEnd = 0);
+	static unsigned char* GenerateWavSmplHeader(const unsigned int keyBase, const bool hasLoopData, const ALRawLoop* loopData = NULL, const bool loopEndIsEndMinusStart = false);
 };
