@@ -2025,6 +2025,12 @@ unsigned long CMORTDecoder::ReadBitsFrom80045FF0Buffer(int numberBits, unsigned 
 		unsigned long returnValue = (currentInputData & bitmask);
 		currentInputData = currentInputData >> numberBits;
 		bitsleft = bitsleft - numberBits;
+
+		//FILE* aa = fopen("C:\\temp\\decode.txt", "a");
+		//fprintf(aa, "Value: %08X\n", returnValue);
+		//fflush(aa);
+		//fclose(aa);
+
 		return (unsigned short)returnValue;
 	}
 	else
@@ -2064,6 +2070,10 @@ unsigned long CMORTDecoder::ReadBitsFrom80045FF0Buffer(int numberBits, unsigned 
 		currentInputData = currentInputData >> T9;
 		bitsleft = bitsleft + (0x20 - numberBits);
 
+		//FILE* aa = fopen("C:\\temp\\decode.txt", "a");
+		//fprintf(aa, "Value: %08X\n", returnValue);
+		//fflush(aa);
+		//fclose(aa);
 		return returnValue;
 	}
 }
@@ -2156,15 +2166,21 @@ void CMORTDecoder::Function80045FF0(unsigned long currentIntermediateValueOffset
 		if (numberResetPredictor == 0)
 		{
 			T3 = ReadBitsFrom80045FF0Buffer(1, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
-
+			//FILE* aa = fopen("C:\\temp\\decode.txt", "a");
+			//fprintf(aa, "T3: %08X\n", T3);
+			//fflush(aa);
+			//fclose(aa);
 			//800460B4
 			if (T3 != 0)
 			{
 				//800460BC
 				numberResetPredictor = ReadBitsFrom80045FF0Buffer(4, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
-
 				//8004613C
 				numberResetPredictor++;
+				//aa = fopen("C:\\temp\\decode.txt", "a");
+				//fprintf(aa, "numberResetPredictor: %08X\n", numberResetPredictor);
+				//fflush(aa);
+				//fclose(aa);
 
 				if (numberResetPredictor != 1 && outDebug != NULL)
 					fprintf(outDebug, "800461C8: NUMBER RESET PREDICTOR %04X\n", numberResetPredictor);
@@ -2173,9 +2189,12 @@ void CMORTDecoder::Function80045FF0(unsigned long currentIntermediateValueOffset
 			{
 				//8004614C
 				numberSkipResetPredictorCheck = ReadBitsFrom80045FF0Buffer(7, buffer800D3ED8MORTRawInputDataBuffer, currentInputData, bitsleft, currentOverallBitPosition);
-				
 				//800461C8
 				numberSkipResetPredictorCheck++;
+				//aa = fopen("C:\\temp\\decode.txt", "a");
+				//fprintf(aa, "numberSkipResetPredictorCheck: %08X\n", numberSkipResetPredictorCheck);
+				//fflush(aa);
+				//fclose(aa);
 
 				if (numberSkipResetPredictorCheck != 1 && outDebug != NULL)
 					fprintf(outDebug, "800461C8: NUMBER SKIP RESET PREDICTOR %04X\n", numberSkipResetPredictorCheck);
@@ -3140,6 +3159,11 @@ void CMORTDecoder::Function80045A68()
 
 void CMORTDecoder::WriteBitsTo80045FF0Buffer(unsigned char* buffer, int& bufferOffset, int& bufferBitOffset, int numBits, unsigned char value)
 {
+	//FILE* aa = fopen("C:\\temp\\encode.txt", "a");
+	//fprintf(aa, "Value: %08X\n", value);
+	//fflush(aa);
+	//fclose(aa);
+
 	int numBitsLeft = (0x20 - bufferBitOffset);
 	if (numBits > numBitsLeft)
 	{
@@ -4352,7 +4376,7 @@ void CMORTDecoder::Encode(unsigned char* data, int dataSize, unsigned char* outp
 		bool isAllZeros = true;
 		for (int y = 0; y < 0xA0; y++)
 		{
-			if (intermediateValues[x + y] != 0x0000)
+			if ((intermediateValues[x + y] > 0x0008) && (intermediateValues[x + y] < 0xFFF8))
 			{
 				isAllZeros = false;
 				break;
@@ -4386,8 +4410,8 @@ void CMORTDecoder::Encode(unsigned char* data, int dataSize, unsigned char* outp
 	int outputBufferBitOffset = 0;
 
 	bool isSkipResetPredictor = false;
-	int numberSkipResetPredictors = 0;
 	int numberResetPredictors = 0;
+	int numberSkipResetPredictorsCheck = 0;
 
 	std::vector<unsigned short> previousPredictorValues;
 	for (int x = 0; x < 0x78; x++)
@@ -4412,53 +4436,87 @@ void CMORTDecoder::Encode(unsigned char* data, int dataSize, unsigned char* outp
 	for (size_t x = 0; x < predictorValues.size(); x += 0xA0)
 	{
 		bool isAllZero = false;
-		if (numberResetPredictors == 0)
+		if (numberSkipResetPredictorsCheck == 0)
 		{
 			if (std::find(allZeroSpots.begin(), allZeroSpots.end(), x) != allZeroSpots.end())
 			{
 				isAllZero = true;
-				numberSkipResetPredictors++;
+				numberResetPredictors++;
+
+				if (numberResetPredictors == 0xF)
+				{
+					//FILE* aa = fopen("C:\\temp\\encode.txt", "a");
+					//fprintf(aa, "T3: %08X\n", 1);
+					//fflush(aa);
+					//fclose(aa);
+					WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 1, (int)true);
+					//aa = fopen("C:\\temp\\encode.txt", "a");
+					//fprintf(aa, "numberResetPredictors: %08X\n", numberResetPredictors);
+					//fflush(aa);
+					//fclose(aa);
+					WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 4, (numberResetPredictors - 1));
+
+					numberResetPredictors = 0;
+
+					continue;
+				}
 			}
 		}
 
-		bool writeNumberResetPredictors = false;
-		if (!isAllZero && (numberResetPredictors == 0))
+		bool writeNumberSkipResetPredictorsCheck = false;
+		if (!isAllZero && (numberSkipResetPredictorsCheck == 0))
 		{
-			numberResetPredictors++;
-			writeNumberResetPredictors = true;
+			numberSkipResetPredictorsCheck++;
+			writeNumberSkipResetPredictorsCheck = true;
 			for (size_t xx = x + 0xA0; xx < predictorValues.size(); xx += 0xA0)
 			{
 				if (
 					(std::find(allZeroSpots.begin(), allZeroSpots.end(), xx) != allZeroSpots.end())
-					|| (numberResetPredictors == 0x80)
+					|| (numberSkipResetPredictorsCheck == 0x80)
 				)
 				{
 					break;
 				}
-				numberResetPredictors++;
+				numberSkipResetPredictorsCheck++;
 			}
 		}
 
-		if ((!isAllZero && (numberSkipResetPredictors != 0)) || (isAllZero && (x == (predictorValues.size() - 0xA0))))
+		if ((!isAllZero && (numberResetPredictors != 0)) || (isAllZero && (x == (predictorValues.size() - 0xA0))))
 		{
 			// Write out
+			//FILE* aa = fopen("C:\\temp\\encode.txt", "a");
+			//fprintf(aa, "T3: %08X\n", 1);
+			//fflush(aa);
+			//fclose(aa);
 			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 1, (int)true);
-			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 4, (numberSkipResetPredictors - 1));
+			//aa = fopen("C:\\temp\\encode.txt", "a");
+			//fprintf(aa, "numberResetPredictors: %08X\n", numberResetPredictors);
+			//fflush(aa);
+			//fclose(aa);
+			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 4, (numberResetPredictors - 1));
 
-			numberSkipResetPredictors = 0;
+			numberResetPredictors = 0;
 		}
 
 		if (isAllZero)
 		{
 			continue;
 		}
-		else if (!isAllZero && writeNumberResetPredictors)
+		else if (!isAllZero && writeNumberSkipResetPredictorsCheck)
 		{
+			//FILE* aa = fopen("C:\\temp\\encode.txt", "a");
+			//fprintf(aa, "T3: %08X\n", 0);
+			//fflush(aa);
+			//fclose(aa);
 			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 1, false);
-			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 7, (numberResetPredictors - 1));
+			//aa = fopen("C:\\temp\\encode.txt", "a");
+			//fprintf(aa, "numberSkipResetPredictorsCheck: %08X\n", numberSkipResetPredictorsCheck);
+			//fflush(aa);
+			//fclose(aa);
+			WriteBitsTo80045FF0Buffer(outputBuffer, outputBufferSize, outputBufferBitOffset, 7, (numberSkipResetPredictorsCheck - 1));
 		}
 
-		numberResetPredictors--;
+		numberSkipResetPredictorsCheck--;
 
 		unsigned short shortsSP60[4][0xD];
 
