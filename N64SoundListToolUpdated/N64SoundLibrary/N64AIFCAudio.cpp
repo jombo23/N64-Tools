@@ -434,11 +434,14 @@ bool CN64AIFCAudio::ExtractEADPercussion(ALBank* alBank, int sound, CString outp
 			else
 				keyBase = 0x3C;
 
-			wavHeader = GenerateWavSmplHeader(keyBase, loop,
-				alBank->eadPercussion[sound].wav.rawWave->loop->count,
-				alBank->eadPercussion[sound].wav.rawWave->loop->start,
-				alBank->eadPercussion[sound].wav.rawWave->loop->end
-			);
+			if (loop)
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alBank->eadPercussion[sound].wav.rawWave->loop->count,
+					alBank->eadPercussion[sound].wav.rawWave->loop->start,
+					alBank->eadPercussion[sound].wav.rawWave->loop->end
+				);
+			else
+				wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 			fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 			delete[] wavHeader;
@@ -479,11 +482,14 @@ bool CN64AIFCAudio::ExtractEADPercussion(ALBank* alBank, int sound, CString outp
 			else
 				keyBase = 0x3C;
 
-			wavHeader = GenerateWavSmplHeader(keyBase, loop,
-				alBank->eadPercussion[sound].wav.adpcmWave->loop->count,
-				alBank->eadPercussion[sound].wav.adpcmWave->loop->start,
-				alBank->eadPercussion[sound].wav.adpcmWave->loop->end
-			);
+			if (loop)
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alBank->eadPercussion[sound].wav.adpcmWave->loop->count,
+					alBank->eadPercussion[sound].wav.adpcmWave->loop->start,
+					alBank->eadPercussion[sound].wav.adpcmWave->loop->end
+				);
+			else
+				wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 			fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 			delete[] wavHeader;
@@ -554,11 +560,14 @@ bool CN64AIFCAudio::ExtractLoopEADPercussion(ALBank* alBank, int sound, CString 
 			else
 				keyBase = 0x3C;
 
-			wavHeader = GenerateWavSmplHeader(keyBase, loop,
-				alWave->rawWave->loop->count,
-				0,
-				alWave->rawWave->loop->end - alWave->rawWave->loop->start
-			);
+			if (loop)
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->rawWave->loop->count,
+					0,
+					alWave->rawWave->loop->end - alWave->rawWave->loop->start
+				);
+			else
+				wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 			fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 			delete[] wavHeader;
@@ -620,11 +629,14 @@ bool CN64AIFCAudio::ExtractLoopEADPercussion(ALBank* alBank, int sound, CString 
 			else
 				keyBase = 0x3C;
 
-			wavHeader = GenerateWavSmplHeader(keyBase, loop,
-				alWave->adpcmWave->loop->count,
-				0,
-				alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
-			);
+			if (loop)
+				wavHeader = GenerateWavSmplHeader(keyBase, loop,
+					alWave->adpcmWave->loop->count,
+					0,
+					alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+				);
+			else
+				wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 			fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 			delete[] wavHeader;
@@ -683,11 +695,14 @@ bool CN64AIFCAudio::ExtractSfx(ALBank* alBank, int sound, CString outputFile, un
 				fwrite(&alBank->alSfx[sound]->wavData[1], 1, (alBank->alSfx[sound]->len - 2), outFileTempRaw);
 
 				unsigned char keyBase = 0x3C;
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alBank->alSfx[sound]->rawWave->loop->count,
-					alBank->alSfx[sound]->rawWave->loop->start,
-					alBank->alSfx[sound]->rawWave->loop->end
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alBank->alSfx[sound]->rawWave->loop->count,
+						alBank->alSfx[sound]->rawWave->loop->start,
+						alBank->alSfx[sound]->rawWave->loop->end
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -722,11 +737,14 @@ bool CN64AIFCAudio::ExtractSfx(ALBank* alBank, int sound, CString outputFile, un
 				}
 
 				unsigned char keyBase = 0x3C;
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alBank->alSfx[sound]->adpcmWave->loop->count,
-					alBank->alSfx[sound]->adpcmWave->loop->start,
-					alBank->alSfx[sound]->adpcmWave->loop->end
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alBank->alSfx[sound]->adpcmWave->loop->count,
+						alBank->alSfx[sound]->adpcmWave->loop->start,
+						alBank->alSfx[sound]->adpcmWave->loop->end
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -814,11 +832,14 @@ bool CN64AIFCAudio::ExtractLoopSfx(ALBank* alBank, int sound, CString outputFile
 				fwrite(&alWave->wavData[1 + (alWave->rawWave->loop->start * 2)], 1, (newNumberSamples * 2), outFileTempRaw);
 
 				unsigned char keyBase = 0x3C;
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->rawWave->loop->count,
-					0,
-					alWave->rawWave->loop->end - alWave->rawWave->loop->start
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->rawWave->loop->count,
+						0,
+						alWave->rawWave->loop->end - alWave->rawWave->loop->start
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -875,11 +896,14 @@ bool CN64AIFCAudio::ExtractLoopSfx(ALBank* alBank, int sound, CString outputFile
 				}
 
 				unsigned char keyBase = 0x3C;
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->adpcmWave->loop->count,
-					0,
-					alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->adpcmWave->loop->count,
+						0,
+						alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -1046,7 +1070,7 @@ bool CN64AIFCAudio::ExtractRawPCMData(CString mainFolder, ALBank* alBank, int in
 					}
 
 					unsigned char keyBase = 0x3C;
-					wavHeader = GenerateWavSmplHeader(keyBase, false, 0, 0, 0);
+					wavHeader = GenerateWavSmplHeader(keyBase, false);
 
 					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 					delete[] wavHeader;
@@ -1606,11 +1630,14 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 					keyBase = 0x3C;
 				}
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->rawWave->loop->count,
-					alWave->rawWave->loop->start,
-					alWave->rawWave->loop->end
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->rawWave->loop->count,
+						alWave->rawWave->loop->start,
+						alWave->rawWave->loop->end
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -1660,11 +1687,14 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 					keyBase = 0x3C;
 				}
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->adpcmWave->loop->count,
-					alWave->adpcmWave->loop->start,
-					alWave->adpcmWave->loop->end
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->adpcmWave->loop->count,
+						alWave->adpcmWave->loop->start,
+						alWave->adpcmWave->loop->end
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -1730,7 +1760,7 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 					}
 
 					unsigned char keyBase = 0x3C;
-					wavHeader = GenerateWavSmplHeader(keyBase, false, 0, 0, 0);
+					wavHeader = GenerateWavSmplHeader(keyBase, false);
 
 					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 					delete[] wavHeader;
@@ -2081,11 +2111,14 @@ bool CN64AIFCAudio::ExtractRawSound(CString mainFolder, ALBank* alBank, int inst
 					keyBase = 0x3C;
 				}
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->adpcmWave->loop->count,
-					alWave->adpcmWave->loop->start,
-					alWave->adpcmWave->loop->end
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->adpcmWave->loop->count,
+						alWave->adpcmWave->loop->start,
+						alWave->adpcmWave->loop->end
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -2329,11 +2362,14 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 					keyBase = 0x3C;
 				}
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->rawWave->loop->count,
-					0,
-					alWave->rawWave->loop->end - alWave->rawWave->loop->start
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->rawWave->loop->count,
+						0,
+						alWave->rawWave->loop->end - alWave->rawWave->loop->start
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -2404,11 +2440,14 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 					keyBase = 0x3C;
 				}
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->adpcmWave->loop->count,
-					0,
-					alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->adpcmWave->loop->count,
+						0,
+						alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -2474,7 +2513,7 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 					}
 
 					unsigned char keyBase = 0x3C;
-					wavHeader = GenerateWavSmplHeader(keyBase, false, 0, 0, 0);
+					wavHeader = GenerateWavSmplHeader(keyBase, false);
 					fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 					delete[] wavHeader;
 
@@ -2762,11 +2801,14 @@ bool CN64AIFCAudio::ExtractLoopSound(CString mainFolder, ALBank* alBank, int ins
 					keyBase = 0x3C;
 				}
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->adpcmWave->loop->count,
-					0,
-					alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->adpcmWave->loop->count,
+						0,
+						alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -2989,11 +3031,14 @@ bool CN64AIFCAudio::ExtractPercussion(CString mainFolder, ALBank* alBank, int so
 				else
 					keyBase = 0x3C;
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->rawWave->loop->count,
-					alWave->rawWave->loop->start,
-					alWave->rawWave->loop->end
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->rawWave->loop->count,
+						alWave->rawWave->loop->start,
+						alWave->rawWave->loop->end
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -3031,11 +3076,14 @@ bool CN64AIFCAudio::ExtractPercussion(CString mainFolder, ALBank* alBank, int so
 				else
 					keyBase = 0x3C;
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->adpcmWave->loop->count,
-					alWave->adpcmWave->loop->start,
-					alWave->adpcmWave->loop->end
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->adpcmWave->loop->count,
+						alWave->adpcmWave->loop->start,
+						alWave->adpcmWave->loop->end
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -3110,11 +3158,14 @@ bool CN64AIFCAudio::ExtractPercussion(CString mainFolder, ALBank* alBank, int so
 				else
 					keyBase = 0x3C;
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->adpcmWave->loop->count,
-					alWave->adpcmWave->loop->start,
-					alWave->adpcmWave->loop->end
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->adpcmWave->loop->count,
+						alWave->adpcmWave->loop->start,
+						alWave->adpcmWave->loop->end
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -3332,11 +3383,14 @@ bool CN64AIFCAudio::ExtractLoopPercussion(CString mainFolder, ALBank* alBank, in
 				else
 					keyBase = 0x3C;
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->rawWave->loop->count,
-					0,
-					alWave->rawWave->loop->end - alWave->rawWave->loop->start
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->rawWave->loop->count,
+						0,
+						alWave->rawWave->loop->end - alWave->rawWave->loop->start
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -3395,11 +3449,14 @@ bool CN64AIFCAudio::ExtractLoopPercussion(CString mainFolder, ALBank* alBank, in
 				else
 					keyBase = 0x3C;
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->adpcmWave->loop->count,
-					0,
-					alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->adpcmWave->loop->count,
+						0,
+						alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -3494,11 +3551,14 @@ bool CN64AIFCAudio::ExtractLoopPercussion(CString mainFolder, ALBank* alBank, in
 				else
 					keyBase = 0x3C;
 
-				wavHeader = GenerateWavSmplHeader(keyBase, loop,
-					alWave->adpcmWave->loop->count,
-					0,
-					alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
-				);
+				if (loop)
+					wavHeader = GenerateWavSmplHeader(keyBase, loop,
+						alWave->adpcmWave->loop->count,
+						0,
+						alWave->adpcmWave->loop->end - alWave->adpcmWave->loop->start
+					);
+				else
+					wavHeader = GenerateWavSmplHeader(keyBase, loop);
 
 				fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 				delete[] wavHeader;
@@ -22135,7 +22195,7 @@ bool CN64AIFCAudio::WriteWav(CString wavFilename, float samplingRate, std::vecto
 	}
 
 	unsigned char keyBase = 0x3C;
-	wavHeader = GenerateWavSmplHeader(keyBase, false, 0, 0, 0);
+	wavHeader = GenerateWavSmplHeader(keyBase, false);
 	fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 	delete[] wavHeader;
 
@@ -22163,7 +22223,7 @@ bool CN64AIFCAudio::WriteWavStereo(CString wavFilename, float samplingRate, std:
 	}
 
 	unsigned char keyBase = 0x3C;
-	wavHeader = GenerateWavSmplHeader(keyBase, false, 0, 0, 0);
+	wavHeader = GenerateWavSmplHeader(keyBase, false);
 	fwrite(wavHeader, 1, (wavHeader[4] + 8), outFileTempRaw);
 	delete[] wavHeader;
 
