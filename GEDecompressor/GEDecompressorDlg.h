@@ -81,7 +81,7 @@ public:
 	afx_msg void OnBnClickedCompressfilebutton();
 	afx_msg void OnBnClickedDecompressgame();
 	static UINT DecompressGameThread( LPVOID pParam );
-	static void ToUpdateProgressBar(CGEDecompressorDlg* dlg, int curSpot, int romSize);
+	static void ToUpdateProgressBar(CGEDecompressorDlg* dlg, int curSpot, int romSize, bool skipMultiplier = false);
 	static int GetZLibGameName(CString gameNameStr);
 	static bool ReadROM(CString gameNameStr, CString fileLocation, unsigned char*& GameBuffer, int& romSize, CString& folderPath);
 	static bool AllocateInput(int offset, unsigned char*& Buffer, unsigned char* GameBuffer, int& endSize, int romSize);
@@ -99,7 +99,7 @@ public:
 	static int DecompressVPK0Spot(CVPK0Decoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type);
 	static int DecompressERZSpot(ERZ* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type);
 	static int DecompressYAZ0Spot(YAZ0* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type);
-	static int DecompressEDLSpot(CEDLCompress* compressed, bool genText, int offset, FILE* in, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type);
+	static int DecompressEDLSpot(CEDLCompress* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type);
 	static int DecompressEAGamesSpot(EASportsDecoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type);
 	static int DecompressCustomRoboSpot(CCustomRoboCompress* compressed, bool genText, int offset, FILE* in, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type);
 	static int DecompressODTSpot(CODTCompress* compressed, bool genText, int offset, FILE* in, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type);

@@ -760,6 +760,21 @@ BOOL CGEDecompressorDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
+	/*FILE* inTemp = fopen("C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\sp10.rom [NTUE]-fixed.z64", "rb");
+	unsigned char* Buffer = new unsigned char[0x01000000];
+	fread(Buffer, 1, 0x01000000, inTemp);
+	fclose(inTemp);
+
+	unsigned char* outputDecompressed = new unsigned char[0x080000];
+
+	CSPRallyCompression spRallyCompression;
+	int uncompressedSize = spRallyCompression.decode(&Buffer[0x005EF7E0], -1, outputDecompressed);
+
+	FILE* a = fopen("C:\\temp\\sprally005EF7E0.bin", "wb");
+	fwrite(outputDecompressed, 1, uncompressedSize, a);
+	fflush(a);
+	fclose(a);*/
+
 	/*FILE* inTemp = fopen("C:\\GoldeneyeStuff\\N64Hack\\ROMs\\GoodSet\\South Park Rally (U) [!].z64", "rb");
 	unsigned char* Buffer = new unsigned char[0x01000000];
 	fread(Buffer, 1, 0x01000000, inTemp);
@@ -1311,6 +1326,7 @@ fclose(outComb);
 	m_gameselection.AddString("MajorasMask");
 	m_gameselection.AddString("OoT");
 	m_gameselection.AddString("1080Snow");
+	m_gameselection.AddString("Carnival");
 	m_gameselection.AddString("BakuBomberman2");
 	m_gameselection.AddString("Battlezone Black Dogs");
 	m_gameselection.AddString("Bomberman 64 Second Attack");
@@ -1680,7 +1696,7 @@ void CGEDecompressorDlg::OnBnClickedButton1()
 					int expectedSize = monaco.header(Buffer, compressedSize);
 					fileSize = monaco.dec(&Buffer[0x8], compressedSize, expectedSize, outputDecompressed);
 				}
-				else if ((gameNameStr == "1080Snow") || (gameNameStr == "BakuBomberman2")|| (gameNameStr == "Battlezone Black Dogs")|| (gameNameStr == "Bomberman 64 Second Attack")|| (gameNameStr == "Disney's Donald Duck - Goin' Quackers")|| (gameNameStr == "Doraemon 2")|| (gameNameStr == "Fushigi no Dungeon")|| (gameNameStr == "Kira to Kaiketsu")|| (gameNameStr == "Neon Genesis Evangelion")|| (gameNameStr == "Nushi Tsuri 64")|| (gameNameStr == "Paper Mario")|| (gameNameStr == "Parlor Pro 64")|| (gameNameStr == "Pokemon Stadium")|| (gameNameStr == "Pokemon Stadium 2")|| (gameNameStr == "Rayman 2")|| (gameNameStr == "Scooby-Doo")|| (gameNameStr == "Shadowgate 64")|| (gameNameStr == "Tonic Trouble")|| (gameNameStr == "Tsumi to Batsu")|| (gameNameStr == "Zool"))
+				else if ((gameNameStr == "Carnival") || (gameNameStr == "1080Snow") || (gameNameStr == "BakuBomberman2")|| (gameNameStr == "Battlezone Black Dogs")|| (gameNameStr == "Bomberman 64 Second Attack")|| (gameNameStr == "Disney's Donald Duck - Goin' Quackers")|| (gameNameStr == "Doraemon 2")|| (gameNameStr == "Fushigi no Dungeon")|| (gameNameStr == "Kira to Kaiketsu")|| (gameNameStr == "Neon Genesis Evangelion")|| (gameNameStr == "Nushi Tsuri 64")|| (gameNameStr == "Paper Mario")|| (gameNameStr == "Parlor Pro 64")|| (gameNameStr == "Pokemon Stadium")|| (gameNameStr == "Pokemon Stadium 2")|| (gameNameStr == "Rayman 2")|| (gameNameStr == "Scooby-Doo")|| (gameNameStr == "Shadowgate 64")|| (gameNameStr == "Tonic Trouble")|| (gameNameStr == "Tsumi to Batsu")|| (gameNameStr == "Zool"))
 				{
 					outputDecompressed = new unsigned char[0x100000];
 					int compressedSize = -1;
@@ -1732,10 +1748,10 @@ void CGEDecompressorDlg::OnBnClickedButton1()
 				else if ((gameNameStr == "40 Winks")|| (gameNameStr == "Cruis'n World")|| (gameNameStr == "Duke Nukem - ZER0 H0UR")|| (gameNameStr == "Hydro Thunder")|| (gameNameStr == "Mortal Kombat 4")|| (gameNameStr == "NBA Showtime")|| (gameNameStr == "Tarzan")|| (gameNameStr == "TWINE")|| (gameNameStr == "War Gods"))
 				{
 					// written directly
+					outputDecompressed = new unsigned char[0x100000];
 					int compressedSize = -1;
-					CString type = "";
 					CEDLCompress edlcompress;
-					edlcompress.decode(inFile, 0, m_svFile.GetPathName(), compressedSize, type);
+					fileSize = edlcompress.decode(Buffer, compressedSize, outputDecompressed);
 				}
 				else if ((gameNameStr == "Custom Robo") || (gameNameStr == "Custom Robo V2"))
 				{
@@ -2078,7 +2094,7 @@ void CGEDecompressorDlg::OnBnClickedCompressfilebutton()
 		MessageBox("Unsupported game, cannot compress");
 		return;
 	}
-	else if ((gameNameStr == "1080Snow") || (gameNameStr == "BakuBomberman2")|| (gameNameStr == "Battlezone Black Dogs")|| (gameNameStr == "Bomberman 64 Second Attack")|| (gameNameStr == "Disney's Donald Duck - Goin' Quackers")|| (gameNameStr == "Doraemon 2")|| (gameNameStr == "Fushigi no Dungeon")|| (gameNameStr == "Kira to Kaiketsu")|| (gameNameStr == "Neon Genesis Evangelion")|| (gameNameStr == "Nushi Tsuri 64")|| (gameNameStr == "Paper Mario")|| (gameNameStr == "Parlor Pro 64")|| (gameNameStr == "Pokemon Stadium")|| (gameNameStr == "Pokemon Stadium 2")|| (gameNameStr == "Rayman 2")|| (gameNameStr == "Scooby-Doo")|| (gameNameStr == "Shadowgate 64")|| (gameNameStr == "Tonic Trouble")|| (gameNameStr == "Tsumi to Batsu")|| (gameNameStr == "Zool"))
+	else if ((gameNameStr == "Carnival") || (gameNameStr == "1080Snow") || (gameNameStr == "BakuBomberman2")|| (gameNameStr == "Battlezone Black Dogs")|| (gameNameStr == "Bomberman 64 Second Attack")|| (gameNameStr == "Disney's Donald Duck - Goin' Quackers")|| (gameNameStr == "Doraemon 2")|| (gameNameStr == "Fushigi no Dungeon")|| (gameNameStr == "Kira to Kaiketsu")|| (gameNameStr == "Neon Genesis Evangelion")|| (gameNameStr == "Nushi Tsuri 64")|| (gameNameStr == "Paper Mario")|| (gameNameStr == "Parlor Pro 64")|| (gameNameStr == "Pokemon Stadium")|| (gameNameStr == "Pokemon Stadium 2")|| (gameNameStr == "Rayman 2")|| (gameNameStr == "Scooby-Doo")|| (gameNameStr == "Shadowgate 64")|| (gameNameStr == "Tonic Trouble")|| (gameNameStr == "Tsumi to Batsu")|| (gameNameStr == "Zool"))
 	{
 		// Yay
 		CNintendoEncoder ninEnc;
@@ -2268,8 +2284,38 @@ void CGEDecompressorDlg::OnBnClickedCompressfilebutton()
 		if (didRead == FALSE)
 			return;
 
+		FILE* tempInputFile = fopen(m_ldFile.GetPathName(), "rb");
+		fseek(tempInputFile, 0, SEEK_END);
+		unsigned long size = ftell(tempInputFile);
 
-		edlcompress.encode(m_ldFile.GetPathName(), m_svFile.GetPathName());
+		unsigned char* tempBuffer;
+		tempBuffer = new unsigned char[size];
+		
+		fseek(tempInputFile, 0, SEEK_SET);
+		fread(tempBuffer, 1, size, tempInputFile);
+		fclose(tempInputFile);
+		
+		unsigned char* outputBuffer = new unsigned char[0x200000];
+		int compressedSize = -1;
+		edlcompress.encode(tempBuffer, size, outputBuffer, compressedSize, -1, "big");
+
+		if (compressedSize > 0)
+		{
+			FILE* outputFileName = fopen(m_svFile.GetPathName(), "wb");
+			if (outputFileName == NULL)
+			{
+				MessageBox("Error opening output file", "Error");
+				return;
+			}
+
+			fwrite(outputBuffer, 1, (compressedSize), outputFileName);	
+
+			fflush(outputFileName);
+			fclose(outputFileName);
+		}
+
+		delete [] tempBuffer;
+		delete [] outputBuffer;
 	}
 	else if ((gameNameStr == "Custom Robo") || (gameNameStr == "Custom Robo V2"))
 	{
@@ -3278,22 +3324,55 @@ int CGEDecompressorDlg::DecompressEAGamesSpot(EASportsDecoder* compressed, bool 
 	return returnSize;
 }
 
-int CGEDecompressorDlg::DecompressEDLSpot(CEDLCompress* compressed, bool genText, int offset, FILE* in, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
+int CGEDecompressorDlg::DecompressEDLSpot(CEDLCompress* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
 {
 	fileSizeCompressed = -1;
 	int returnSize = 0;
+	unsigned char* Buffer = NULL;
+	unsigned char* outputDecompressed = NULL;
+
 	try
 	{
-		if (internalName == "")
-			tempLocation.Format("%s%06X.bin", folderPath, offset);
-		else
-			tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
+		int endSize = 0;
+		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
+		
+		outputDecompressed = new unsigned char[maxByteSize];
+		int fileSize = compressed->decode(Buffer, fileSizeCompressed, outputDecompressed); 
 
-		returnSize = compressed->decode(in, offset, tempLocation, fileSizeCompressed, type); 
+		if ((outputDecompressed != NULL))
+		{
+			if (fileSize > 0)
+			{
+				if ((expectedSize == -1) || (fileSize == expectedSize))
+				{
+					if (internalName == "")
+						tempLocation.Format("%s%06X.bin", folderPath, offset);
+					else
+						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
+
+					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
+
+					returnSize = fileSize;
+				}
+			}
+
+			delete [] outputDecompressed;
+		}
+
+		delete [] Buffer;
 	}
 	catch (...)
 	{
-	
+		if (Buffer != NULL)
+		{
+			delete [] Buffer;
+			Buffer = NULL;
+		}
+		if (outputDecompressed != NULL)
+		{
+			delete [] outputDecompressed;
+			outputDecompressed = NULL;
+		}
 	}
 	return returnSize;
 }
@@ -3630,10 +3709,10 @@ void CGEDecompressorDlg::AddRowData(CGEDecompressorDlg* dlg, unsigned long addre
 	::SendMessage(dlg->m_hWnd, UPDATE_LIST, 0, (LPARAM)listUpdate);
 }
 
-void CGEDecompressorDlg::ToUpdateProgressBar(CGEDecompressorDlg* dlg, int curSpot,  int romSize)
+void CGEDecompressorDlg::ToUpdateProgressBar(CGEDecompressorDlg* dlg, int curSpot,  int romSize, bool skipMultiplier)
 {
 	int progress = (((float)curSpot / (float)romSize) * 100);
-	if ((curSpot % 0x10000) == 0)
+	if (((curSpot % 0x10000) == 0) || skipMultiplier)
 	{
 		if (progress != 100)
 			::SendMessage(dlg->m_hWnd, UPDATE_PROGRESS_BAR, 0, (LPARAM)progress);
@@ -5079,7 +5158,7 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 			if (ReadROM(gameNameStr, strROMPath, GameBuffer, romSize, folderPath))
 			{
 				ReceivedNewROM(dlg, strROMPath, GameBuffer, romSize);
-				for (unsigned long x = 0x00147620; x < (romSize - 0x100); x++)
+				for (unsigned long x = 0x0; x < (romSize - 0x100); x++)
 				{	
 					if (dlg->killThread)
 						break;
@@ -5096,6 +5175,80 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 						if (fileSizeUncompressed > 0)
 						{
 							AddRowData(dlg, x, fileSizeCompressed, fileSizeUncompressed, "", tempLocation, type);
+						}
+					}
+				}
+				
+				delete [] GameBuffer;
+			}	
+		}
+		else if (gameNameStr == "Carnival")
+		{
+			int game = 1; // placeholder
+			int romSize = 0;
+			unsigned char* GameBuffer = NULL;
+			CString folderPath;
+
+			if (ReadROM(gameNameStr, strROMPath, GameBuffer, romSize, folderPath))
+			{
+				ReceivedNewROM(dlg, strROMPath, GameBuffer, romSize);
+				for (unsigned long x = 0x0095F59C; x < 0x009680EC; x+=0x10)
+				{	
+					if (dlg->killThread)
+						break;
+					ToUpdateProgressBar(dlg, x - 0x0095F59C, (0x009680EC - 0x0095F59C), true);
+
+					unsigned long nameOffset = CharArrayToLong(&GameBuffer[x]);
+					nameOffset += 0x8000496C; // offset RAM
+					nameOffset -= 0x80176EE8; // start names RAM
+					nameOffset += 0x009680EC; // ROM Offset starts name
+					CString name = (char*)&GameBuffer[nameOffset];
+
+
+					unsigned long romOffset = CharArrayToLong(&GameBuffer[x + 4]);
+					romOffset += 0x7F5B70;
+
+					int compressedSize = CharArrayToLong(&GameBuffer[x + 8]);
+					bool compressed = ((compressedSize >> 24) & 0xFF) == 0x80;
+					compressedSize &= 0xFFFFFF;
+
+					unsigned long unknown = CharArrayToLong(&GameBuffer[x + 0xC]);
+
+					CString internalName;
+					internalName.Format("%s", name);
+					if ((GameBuffer[romOffset + 4] == 0x59) && (GameBuffer[romOffset + 4+1] == 0x61) && (GameBuffer[romOffset + 4+2] == 0x79) && 
+						((GameBuffer[romOffset + 4+3] == 0x30) || (GameBuffer[romOffset + 4+3] == 0x31))
+						)
+					{
+						unsigned long uncompressedSize = CharArrayToLong(&GameBuffer[romOffset]);
+
+						int fileSizeCompressed = -1;
+						CString tempLocation;
+						CString type;
+						type.Format("YAY%c", GameBuffer[romOffset + 4+3]);
+						int fileSizeUncompressed = DecompressYAY0Spot(&yay0compressed, genText, romOffset + 4, GameBuffer, romSize, game, folderPath, name, -1, tempLocation, fileSizeCompressed, type);
+						if (fileSizeUncompressed > 0)
+						{
+							AddRowData(dlg, x, compressedSize, uncompressedSize, name, tempLocation, type);
+						}
+					}
+					else
+					{
+						CString tempLocation;
+						CString type;
+						type.Format("bin");
+						
+						if (name == "")
+							tempLocation.Format("%s%06X.bin", folderPath, romOffset);
+						else
+							tempLocation.Format("%s%06X_%s.bin", folderPath, romOffset, internalName);
+
+						int fileSizeUncompressed = compressedSize;
+						WriteResult(genText, tempLocation, &GameBuffer[romOffset], fileSizeUncompressed, false);
+
+						if (fileSizeUncompressed > 0)
+						{
+							AddRowData(dlg, x, fileSizeUncompressed, fileSizeUncompressed, internalName, tempLocation, type);
 						}
 					}
 				}
@@ -5480,7 +5633,6 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 			if (ReadROM(gameNameStr, strROMPath, GameBuffer, romSize, folderPath))
 			{
 				ReceivedNewROM(dlg, strROMPath, GameBuffer, romSize);
-				FILE* in = fopen(strROMPath, "rb");
 				for (unsigned long x = 0x0; x < (romSize - 0x100); x++)
 				{	
 					if (dlg->killThread)
@@ -5491,14 +5643,13 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 						CString tempLocation;
 						int fileSizeCompressed = -1;
 						CString type = "";
-						int fileSizeUncompressed = DecompressEDLSpot(&edlcompressed, genText, x, in, romSize, game, folderPath, "", -1, tempLocation, fileSizeCompressed, type);
+						int fileSizeUncompressed = DecompressEDLSpot(&edlcompressed, genText, x, GameBuffer, romSize, game, folderPath, "", -1, tempLocation, fileSizeCompressed, type);
 						if (fileSizeUncompressed > 0)
 						{
 							AddRowData(dlg, x, fileSizeCompressed, fileSizeUncompressed, "", tempLocation, type);
 						}
 					}
 				}
-				fclose(in);
 				delete [] GameBuffer;
 			}
 		}
@@ -6702,7 +6853,7 @@ void CGEDecompressorDlg::OnBnClickedButton3()
 		MessageBox("Unsupported game, cannot compress");
 		return;
 	}
-	else if ((gameNameStr == "1080Snow") || (gameNameStr == "BakuBomberman2")|| (gameNameStr == "Battlezone Black Dogs")|| (gameNameStr == "Bomberman 64 Second Attack")|| (gameNameStr == "Disney's Donald Duck - Goin' Quackers")|| (gameNameStr == "Doraemon 2")|| (gameNameStr == "Fushigi no Dungeon")|| (gameNameStr == "Kira to Kaiketsu")|| (gameNameStr == "Neon Genesis Evangelion")|| (gameNameStr == "Nushi Tsuri 64")|| (gameNameStr == "Paper Mario")|| (gameNameStr == "Parlor Pro 64")|| (gameNameStr == "Pokemon Stadium")|| (gameNameStr == "Pokemon Stadium 2")|| (gameNameStr == "Rayman 2")|| (gameNameStr == "Scooby-Doo")|| (gameNameStr == "Shadowgate 64")|| (gameNameStr == "Tonic Trouble")|| (gameNameStr == "Tsumi to Batsu")|| (gameNameStr == "Zool"))
+	else if ((gameNameStr == "Carnival") || (gameNameStr == "1080Snow") || (gameNameStr == "BakuBomberman2")|| (gameNameStr == "Battlezone Black Dogs")|| (gameNameStr == "Bomberman 64 Second Attack")|| (gameNameStr == "Disney's Donald Duck - Goin' Quackers")|| (gameNameStr == "Doraemon 2")|| (gameNameStr == "Fushigi no Dungeon")|| (gameNameStr == "Kira to Kaiketsu")|| (gameNameStr == "Neon Genesis Evangelion")|| (gameNameStr == "Nushi Tsuri 64")|| (gameNameStr == "Paper Mario")|| (gameNameStr == "Parlor Pro 64")|| (gameNameStr == "Pokemon Stadium")|| (gameNameStr == "Pokemon Stadium 2")|| (gameNameStr == "Rayman 2")|| (gameNameStr == "Scooby-Doo")|| (gameNameStr == "Shadowgate 64")|| (gameNameStr == "Tonic Trouble")|| (gameNameStr == "Tsumi to Batsu")|| (gameNameStr == "Zool"))
 	{
 		MessageBox("Unsupported game, cannot compress");
 		return;
@@ -6844,33 +6995,55 @@ void CGEDecompressorDlg::OnBnClickedButton3()
 	else if ((gameNameStr == "40 Winks")|| (gameNameStr == "Cruis'n World")|| (gameNameStr == "Duke Nukem - ZER0 H0UR")|| (gameNameStr == "Hydro Thunder")|| (gameNameStr == "Mortal Kombat 4")|| (gameNameStr == "NBA Showtime")|| (gameNameStr == "Tarzan")|| (gameNameStr == "TWINE")|| (gameNameStr == "War Gods"))
 	{
 		CEDLCompress edlcompress;
-		edlcompress.encode(m_ldFile.GetPathName(), (directory + tempAddrStr));
+		
+		FILE* tempInputFile = fopen(m_ldFile.GetPathName(), "rb");
+		fseek(tempInputFile, 0, SEEK_END);
+		unsigned long size = ftell(tempInputFile);
 
-		int inputSize = GetSizeFile(m_ldFile.GetPathName());
-		unsigned long outSize = GetSizeFile((directory + tempAddrStr));
-		if (outSize > 0)
+		unsigned char* tempBuffer;
+		tempBuffer = new unsigned char[size];
+		
+		fseek(tempInputFile, 0, SEEK_SET);
+		fread(tempBuffer, 1, size, tempInputFile);
+		fclose(tempInputFile);
+		int compressedSize;
+
+		// will flip to -1 if invalid
+		compressedSize = 0x200000;
+		unsigned char* outputBuffer = new unsigned char[0x200000];
+		edlcompress.encode(tempBuffer, size, outputBuffer, compressedSize, -1, "big");
+
+		if (compressedSize > 0)
 		{
-			if (outSize > diff)
+			if (compressedSize > diff)
 			{
 				CString sizeTempStr;
-				sizeTempStr.Format("%08X is larger than %08X (next item), are you sure you want to replace?", outSize, diff);
+				sizeTempStr.Format("%08X is larger than %08X (next item), are you sure you want to replace?", compressedSize, diff);
 				int iResults = MessageBox(sizeTempStr, "Are you sure?", MB_YESNO | MB_ICONINFORMATION);
 				if (iResults == IDNO)
+				{
+					delete [] tempBuffer;
+					delete [] outputBuffer;
 					return;
+				}
 			}
-			FILE* inNew = fopen((directory + tempAddrStr), "rb");
-			if (inNew == NULL)
+
+			FILE* outFile = fopen((directory + tempAddrStr), "wb");
+			if (outFile == NULL)
 			{
-				MessageBox("Error opening temporary file");
+				MessageBox("Cannot open file");
 				return;
 			}
-			fread(&ROM[address], 1, outSize, inNew);
-			fclose(inNew);
-			
-			listUpdateStruct->fileSizeUncompressed = inputSize;
-			listUpdateStruct->fileSizeCompressed = outSize;
+			fwrite(outputBuffer, 1, compressedSize, outFile);
+			fclose(outFile);
+			listUpdateStruct->fileSizeCompressed = compressedSize;
 			listUpdateStruct->tempLocation = static_cast<LPCTSTR>(directory + tempAddrStr);
+
+			memcpy(&ROM[address], outputBuffer, compressedSize);
 		}
+
+		delete [] tempBuffer;
+		delete [] outputBuffer;
 	}
 	else if ((gameNameStr == "Custom Robo") || (gameNameStr == "Custom Robo V2"))
 	{
