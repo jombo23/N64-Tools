@@ -4325,7 +4325,7 @@ void CMORTDecoder::CalculateBestPredictors(std::vector<unsigned short> actualVal
 	adjustersPrevious[7] = (signed short)temp;
 }
 
-void CMORTDecoder::Encode(unsigned char* data, int dataSize, unsigned char* outputBuffer, int& outputBufferSize)
+void CMORTDecoder::Encode(unsigned char* data, int dataSize, unsigned char* outputBuffer, int& outputBufferSize, unsigned short samplingRate)
 {
 	// TODO move to global
 	signed char table8004867CValue1[0x8];
@@ -4680,18 +4680,18 @@ void CMORTDecoder::Encode(unsigned char* data, int dataSize, unsigned char* outp
 
 	unsigned short number140s = dataSize / 0x140;
 	
-	WriteLongToBuffer(outputBuffer, 4, (number140s << 16) | 0x00003E80); // Header 1 TODO
+	WriteLongToBuffer(outputBuffer, 4, (number140s << 16) | samplingRate); // Header 1 TODO
 	WriteLongToBuffer(outputBuffer, 8, outputBufferSize / 4); // Header 2 TODO
 }
 
-void CMORTDecoder::Encode(unsigned char* data, int dataSize, CString outputFile)
+void CMORTDecoder::Encode(unsigned char* data, int dataSize, CString outputFile, unsigned short samplingRate)
 {
 	int outputBufferSize = 0;
 	unsigned char* outputBuffer = new unsigned char[0x100000];
 	for (int x = 0; x < 0x100000; x++)
 		outputBuffer[x] = 0x00;
 
-	Encode(data, dataSize, outputBuffer, outputBufferSize);
+	Encode(data, dataSize, outputBuffer, outputBufferSize, samplingRate);
 	
 	FILE* outFile = fopen(outputFile, "wb");
 	if (!outFile)

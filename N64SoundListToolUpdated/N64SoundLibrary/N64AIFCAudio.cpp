@@ -5141,7 +5141,7 @@ bool CN64AIFCAudio::ReplaceSoundWithWavData(ALBank*& alBank, int instrument, int
 
 		CMORTDecoder mortDecoder;
 		int outputBufferSize = 0;
-		mortDecoder.Encode(wavPCMData, rawLength, alWave->wavData, outputBufferSize);
+		mortDecoder.Encode(wavPCMData, rawLength, alWave->wavData, outputBufferSize, samplingRate);
 		alWave->len = outputBufferSize;
 	}
 	else if (newType == AL_RAW16_WAVE)

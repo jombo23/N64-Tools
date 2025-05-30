@@ -22,8 +22,8 @@ public:
 	static void WriteShortToFile(FILE* Buffer, unsigned short data);
 
 	bool ReadWavData(CString rawWavFileName, unsigned char*& rawData, int& rawLength, unsigned long& samplingRate, bool& hasLoopData, unsigned char& keyBase, unsigned long& loopStart, unsigned long& loopEnd, unsigned long& loopCount);
-	void Encode(unsigned char* data, int dataSize, CString outputFile);
-	void Encode(unsigned char* data, int dataSize, unsigned char* outputBuffer, int& outputBufferSize);
+	void Encode(unsigned char* data, int dataSize, CString outputFile, unsigned short samplingRate);
+	void Encode(unsigned char* data, int dataSize, unsigned char* outputBuffer, int& outputBufferSize, unsigned short samplingRate);
 	void CalculateBestPredictors(std::vector<unsigned short> actualValues, int actualValueOffset, unsigned short buffer800D2940PredictorTemp[0xA0], unsigned short shortsSP60[4][0xD], unsigned short shortsSPC8[0x4], unsigned short shortsSPD0[0x4], unsigned short stackBuffer2Offsets[0x4], unsigned short shortsSPE0[0x4], unsigned long& S0, unsigned long& S1, unsigned long& S2, unsigned long& S3, unsigned long& S4, unsigned long& S5, unsigned long& S6, unsigned long& S7, signed long& A3, signed short smoothersChosen[8], signed short adjustersPrevious[8]);
 private:
 	unsigned short buffer800D2940Predictor[0xA0];
