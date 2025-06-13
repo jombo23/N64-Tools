@@ -17,6 +17,8 @@
 #define IDD_KONAMIADSR                  139
 #define IDC_EXPORTCTLTBL                1000
 #define IDC_INJECTPLACE                 1001
+#define IDC_EXPORTCTLTBL2               1002
+#define IDC_IMPORTCTLTBL                1002
 #define IDC_BUTTONPLAYSND               1003
 #define IDC_BUTTONTEST                  1004
 #define IDC_EDITCTL                     1005

@@ -141,6 +141,7 @@ public:
 	afx_msg void OnBnClickedButtondeletesound2();
 	afx_msg void OnFileSave();
 	afx_msg void OnBnClickedExportctltbl();
+	afx_msg void OnBnClickedImportctltbl();
 	afx_msg void OnBnClickedInjectplace();
 	BOOL hiddenExec (PTSTR pCmdLine, CString currentDirectory);
 	BOOL hiddenExec (PTSTR pCmdLine, CString currentDirectory, HANDLE out);

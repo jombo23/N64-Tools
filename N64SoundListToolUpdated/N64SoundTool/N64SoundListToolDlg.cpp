@@ -221,6 +221,7 @@ BEGIN_MESSAGE_MAP(CN64SoundListToolDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTONDELETESOUND2, &CN64SoundListToolDlg::OnBnClickedButtondeletesound2)
 	ON_COMMAND(ID_FILE_SAVE, &CN64SoundListToolDlg::OnFileSave)
 	ON_BN_CLICKED(IDC_EXPORTCTLTBL, &CN64SoundListToolDlg::OnBnClickedExportctltbl)
+	ON_BN_CLICKED(IDC_IMPORTCTLTBL, &CN64SoundListToolDlg::OnBnClickedImportctltbl)
 	ON_BN_CLICKED(IDC_INJECTPLACE, &CN64SoundListToolDlg::OnBnClickedInjectplace)
 	ON_BN_CLICKED(IDC_BUTTONRIP, &CN64SoundListToolDlg::OnBnClickedButtonrip)
 	ON_BN_CLICKED(IDC_BUTTONPLAYSND, &CN64SoundListToolDlg::OnBnClickedButtonplayoriginalsound)
@@ -9257,6 +9258,319 @@ void CN64SoundListToolDlg::OnBnClickedExportctltbl()
 
 		delete [] testCtl;
 		delete [] testTbl;*/
+	}
+}
+
+void CN64SoundListToolDlg::OnBnClickedImportctltbl()
+{
+	if ((alBankCurrent != NULL) && (romSize > 0))
+	{
+		int bank = mSoundBankIndex.GetCurSel();
+		if (bank == -1)
+			return;
+
+		if ((alBankCurrent->soundBankFormat == STANDARDFORMAT) || (alBankCurrent->soundBankFormat == STANDARDFORMATRAWALLOWED) || (alBankCurrent->soundBankFormat == KONAMICTL) || (alBankCurrent->soundBankFormat == KONAMI8CTL))
+		{
+		}
+		else if (alBankCurrent->soundBankFormat == NINDEC)
+		{
+		}
+		else if ((alBankCurrent->soundBankFormat == TUROKFORMAT)  || (alBankCurrent->soundBankFormat == STANDARDRNCCOMPRESSED) || (alBankCurrent->soundBankFormat == CLAYFIGHTER) || (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED)|| (alBankCurrent->soundBankFormat == STANDARDRNXCOMPRESSED))
+		{
+		}
+		else if (alBankCurrent->soundBankFormat == SUPERMARIO64FORMAT)
+		{
+		}
+		else if (alBankCurrent->soundBankFormat == STARFOX64FORMAT)
+		{
+		}
+		else if (alBankCurrent->soundBankFormat == ZELDAFORMAT)
+		{
+		}
+		else if (alBankCurrent->soundBankFormat == CONKERFORMAT)
+		{
+			MessageBox("Not supported Conker import ctl/tbl");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLEV2)
+		{
+		}
+		else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLEV2BLITZ)
+		{
+		}
+		else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLEV1)
+		{
+		}
+		else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLEV2YAY0)
+		{
+		}
+		else if (alBankCurrent->soundBankFormat == TAZHUFFMAN)
+		{
+			MessageBox("Sorry, no encoding yet for TAZHUFFMAN format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == SNOW)
+		{
+			MessageBox("Sorry, no encoding yet for SNOW format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == ARMYMENFORMAT)
+		{
+			MessageBox("Sorry, no encoding yet for Army Men format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == MEGAMAN64PTRV2)
+		{
+			MessageBox("Sorry, no encoding yet for Mega Man format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLEV2ZLIB)
+		{
+			MessageBox("Sorry, no encoding yet for ZLIB N64Wave format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLEQUAKE2)
+		{
+			MessageBox("Sorry, no encoding yet for Quake N64Wave format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLETABLESNOWBOARDKIDS)
+		{
+			MessageBox("Sorry, no encoding yet for Snowboard Kids N64Wave format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == N64PTRWAVETABLEVIEWPOINT)
+		{
+			MessageBox("Sorry, no encoding yet for Viewpoint 2064 N64Wave format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == TITUS)
+		{
+			MessageBox("Sorry, no encoding yet for Titus format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == SYDNEY)
+		{
+			MessageBox("Sorry, no encoding yet for Sydney format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == MKMYTHOLOGIES)
+		{
+			MessageBox("Sorry, no encoding yet for BOFS format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == ZLIBSN64)
+		{
+			MessageBox("Sorry, no encoding yet for ZLIBSN64 format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == SN64)
+		{
+			MessageBox("Sorry, no encoding yet for SN64 format");
+			return;
+		}
+		else if (alBankCurrent->soundBankFormat == MORT)
+		{
+			
+		}
+		else
+		{
+			MessageBox("Sorry, no encoding");
+			return;
+		}
+
+		std::vector<ALBank*> alBanks = GetCombinedActiveBanks();
+
+		CFileDialog m_ldFileCtl(TRUE, "ctl", "SoundBank.ctl", OFN_HIDEREADONLY, "Ctl File (*.ctl)|*.ctl|", this);
+
+		int statusFileOpen2 = (int) m_ldFileCtl.DoModal();
+
+		if ((statusFileOpen2 == IDCANCEL) || (m_ldFileCtl.GetPathName() == ""))
+			return;
+
+		if (statusFileOpen2 == FALSE)
+			return;
+
+		CFileDialog m_ldFileTbl(TRUE, "tbl", "SoundBank.tbl", OFN_HIDEREADONLY, "Tbl File (*.tbl)|*.tbl|", this);
+
+		statusFileOpen2 = (int) m_ldFileTbl.DoModal();
+
+		if ((statusFileOpen2 == IDCANCEL) || (m_ldFileTbl.GetPathName() == ""))
+			return;
+
+		if (statusFileOpen2 == FALSE)
+			return;
+
+		int ctlSize = n64AudioLibrary.GetSizeFile(m_ldFileCtl.GetPathName());
+		unsigned char* ctl = new unsigned char[ctlSize];
+		FILE * inCtl = fopen(m_ldFileCtl.GetPathName(), "rb");
+		fread(ctl, 1, ctlSize, inCtl);
+		fclose(inCtl);
+
+		int tblSize = n64AudioLibrary.GetSizeFile(m_ldFileTbl.GetPathName());
+		unsigned char* tbl = new unsigned char[tblSize];
+		FILE * inTbl = fopen(m_ldFileTbl.GetPathName(), "rb");
+		fread(tbl, 1, tblSize, inTbl);
+		fclose(inTbl);
+
+		if (alBankCurrent->soundBankFormat == CONKERFORMAT)
+		{
+			CFileDialog m_ldFileCtl2(TRUE, "ctl2", "SoundBank2.ctl2", OFN_HIDEREADONLY, "Ctl 2 File (*.ctl2)|*.ctl2|", this);
+
+			int statusFileOpen3 = (int) m_ldFileCtl2.DoModal();
+
+			if ((statusFileOpen2 == IDCANCEL) || (m_ldFileCtl2.GetPathName() == ""))
+				return;
+
+			if (statusFileOpen2 == FALSE)
+				return;
+
+			int ctlSize2 = n64AudioLibrary.GetSizeFile(m_ldFileCtl2.GetPathName());
+			unsigned char* ctl2 = new unsigned char[ctlSize2];
+			FILE * inCtl2 = fopen(m_ldFileCtl2.GetPathName(), "rb");
+			fread(ctl2, 1, ctlSize2, inCtl2);
+			fclose(inCtl2);
+
+			if (n64AudioLibrary.InjectCtlTblIntoROMArrayInPlace(ROM, ctl, ctlSize, tbl, tblSize, results[bank].ctlOffset, results[bank].tblOffset, currentGameConfig.soundBanks[bank].numberInstruments - currentGameConfig.soundBanks[bank].ctl, results[bank].tblSize, ctl2, ctlSize2, currentGameConfig.soundBanks[bank].numberInstruments, results[bank].tblOffset - currentGameConfig.soundBanks[bank].numberInstruments))
+			{
+				/*for (int x = (results[bank].ctlOffset + ctlSize); x < (results[bank].ctlOffset + results[bank].ctlSize); x++)
+				{
+					ROM[x] = 0xFF;
+				}*/
+			}
+
+			delete [] ctl2;
+		}
+		else if ((alBankCurrent->soundBankFormat == ZELDAFORMAT) || (alBankCurrent->soundBankFormat == STARFOX64FORMAT))
+		{
+			if (n64AudioLibrary.InjectCtlTblIntoROMArrayInPlace(ROM, ctl, ctlSize, tbl, tblSize, currentGameConfig.startZeldaCtlData, currentGameConfig.startZeldaTblData, currentGameConfig.endZeldaCtlData - currentGameConfig.startZeldaCtlData + 1, currentGameConfig.endZeldaTblData - currentGameConfig.startZeldaTblData + 1, NULL, 0, 0, 0))
+			{
+
+			}
+		}
+		else if (alBankCurrent->soundBankFormat == MORT)
+		{
+			ctlTblResult result;
+			for (int x = 0; x < results.size(); x++)
+			{
+				if (alBanks[0] == results[x].bank)
+				{
+					result = results[x];
+					break;
+				}
+			}
+
+			if (alBankCurrent->inst[0]->sounds[0]->wav.len > result.ctlSize)
+			{
+				CString ctlError;
+				ctlError.Format("Error too big, %04X is too big for %04X", alBankCurrent->inst[0]->sounds[0]->wav.len, ctlSize);
+				MessageBox(ctlError, "Error");
+				return;
+			}
+			memcpy(&ROM[alBankCurrent->inst[0]->sounds[0]->wav.base], alBankCurrent->inst[0]->sounds[0]->wav.wavData, alBankCurrent->inst[0]->sounds[0]->wav.len);
+		}
+		else
+		{
+			ctlTblResult result;
+			for (int x = 0; x < results.size(); x++)
+			{
+				if (alBanks[0] == results[x].bank)
+				{
+					result = results[x];
+					break;
+				}
+			}
+			if (n64AudioLibrary.InjectCtlTblIntoROMArrayInPlace(ROM, ctl, ctlSize, tbl, tblSize, result.ctlOffset, result.tblOffset, result.ctlSize, result.tblSize, NULL, 0, 0, 0))
+			{
+				/*for (int x = (results[bank].ctlOffset + ctlSize); x < (results[bank].ctlOffset + results[bank].ctlSize); x++)
+				{
+					ROM[x] = 0xFF;
+				}*/
+			}
+		}
+
+		delete [] ctl;
+		delete [] tbl;
+
+		int curSoundBank = mSoundBankIndex.GetCurSel();
+		int curInstrument = mInstrumentChoice.GetCurSel();
+		int curSound = mSoundChoice.GetCurSel();
+		int subSound = mSubSound.GetCurSel();
+		int percussion = mPercussionChoice.GetCurSel();
+		int sfx = mSfxChoice.GetCurSel();
+
+		mSoundBankIndex.ResetContent();
+
+		try
+		{
+			for (int x = 0; x < t1results.size(); x++)
+			{
+				n64AudioLibrary.DisposeT1Bank(t1results[x].bank);
+			}
+
+			t1results.clear();
+
+			for (int x = 0; x < numberResults; x++)
+			{
+				n64AudioLibrary.DisposeALBank(results[x].bank);
+			}
+
+			results.clear();
+
+			alBankCurrent = NULL;
+			t1BankCurrent = NULL;
+			subBankCurrent = -1;
+
+			CN64SoundToolReader::ReadSoundbanks(ROM, romSize, currentGameConfig, numberResults, results, t1results);
+
+			for (int x = 0; x < numberResults; x++)
+			{
+				CString tempStr;
+				tempStr.Format("%02X - Ctl %08X (%08X) Tbl %08X (%08X)", x, results[x].ctlOffset, results[x].ctlSize, results[x].tblOffset, results[x].tblSize);
+
+
+				mSoundBankIndex.AddString(tempStr);
+			}
+
+			mSoundBankIndex.SetCurSel(0);
+			mSoundBankIndex.SetCurSel(curSoundBank);
+
+			OnCbnSelchangeCombosoundbank();
+
+			if (curInstrument != -1)
+			{
+				mInstrumentChoice.SetCurSel(curInstrument);
+				OnCbnSelchangeCombosound();
+			}
+			if (curSound != -1)
+			{
+				mSoundChoice.SetCurSel(curSound);
+				OnCbnSelchangeCombosoundsubsound();
+			}
+			if (subSound != -1)
+			{
+				mSubSound.SetCurSel(subSound);
+				OnCbnSelchangeCombosound2();
+			}
+			if (percussion != -1)
+			{
+				mPercussionChoice.SetCurSel(percussion);
+				OnCbnSelchangeCombopercussion();
+			}
+			if (sfx != -1)
+			{
+				mSfxChoice.SetCurSel(sfx);
+				OnCbnSelchangeCombosfx();
+			}
+		}
+		catch (char * str)
+		{
+			CString tempErrStr;
+			tempErrStr.Format("%s", str);
+			MessageBox(tempErrStr, LoadResourceText(IDS_STRINGERRORPROCESSING));
+
+			numberResults = 0;
+		}
 	}
 }
 
