@@ -7371,7 +7371,7 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosound2()
 				mCheckRaw.SetCheck(alBankCurrent->inst[instrSel]->sounds[soundChoice]->wav.type);
 
 				CString tempStr;
-				tempStr.Format("%02X", alBankCurrent->inst[instrSel]->sounds[soundChoice]->samplePan);
+				tempStr.Format("%02X", alBankCurrent->inst[instrSel]->sounds[soundChoice]->samplePan & 0xFF);
 				mSamplePan.SetWindowText(tempStr);
 
 				tempStr.Format("%02X", alBankCurrent->inst[instrSel]->sounds[soundChoice]->sampleVolume);
@@ -7474,7 +7474,7 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosound2()
 					tempStr.Format("%02X", alBankCurrent->inst[instrSel]->sounds[soundChoice]->key.keybase);
 					mKeyBase.SetWindowText(tempStr);
 
-					tempStr.Format("%02X", alBankCurrent->inst[instrSel]->sounds[soundChoice]->key.detune);
+					tempStr.Format("%02X", alBankCurrent->inst[instrSel]->sounds[soundChoice]->key.detune & 0xFF);
 					mDetune.SetWindowText(tempStr);
 				}
 
@@ -7543,7 +7543,7 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosound2()
 				tempStr.Format("%08X", alBankCurrent->percussion->sounds[soundChoice]->wav.len);
 				mLength.SetWindowText(tempStr);
 
-				tempStr.Format("%02X", alBankCurrent->percussion->sounds[soundChoice]->samplePan);
+				tempStr.Format("%02X", alBankCurrent->percussion->sounds[soundChoice]->samplePan & 0xFF);
 				mSamplePan.SetWindowText(tempStr);
 
 				tempStr.Format("%02X", alBankCurrent->percussion->sounds[soundChoice]->sampleVolume);
@@ -7580,7 +7580,7 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombosound2()
 				tempStr.Format("%02X", alBankCurrent->percussion->sounds[soundChoice]->key.keybase);
 				mKeyBase.SetWindowText(tempStr);
 
-				tempStr.Format("%02X", alBankCurrent->percussion->sounds[soundChoice]->key.detune);
+				tempStr.Format("%02X", alBankCurrent->percussion->sounds[soundChoice]->key.detune & 0xFF);
 				mDetune.SetWindowText(tempStr);
 
 				mSubSound.ResetContent();
@@ -13562,7 +13562,7 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombopercussion()
 			tempStr.Format("%02X", alBankCurrent->percussion->volume);
 			mVolume.SetWindowText(tempStr);
 
-			tempStr.Format("%02X", alBankCurrent->percussion->pan);
+			tempStr.Format("%02X", alBankCurrent->percussion->pan & 0xFF);
 			mPan.SetWindowText(tempStr);
 
 			tempStr.Format("%02X", alBankCurrent->percussion->priority);
@@ -13629,7 +13629,7 @@ void CN64SoundListToolDlg::OnCbnSelchangeCombopercussion()
 			tempStr.Format("%f", *reinterpret_cast<float*> (&alBankCurrent->eadPercussion[percussionChoice].keyBase));
 			mReleaseTime.SetWindowText(tempStr);
 
-			tempStr.Format("%02X", alBankCurrent->eadPercussion[percussionChoice].pan);
+			tempStr.Format("%02X", alBankCurrent->eadPercussion[percussionChoice].pan & 0xFF);
 			mAttackVolume.SetWindowText(tempStr);
 
 			if ( alBankCurrent->eadPercussion[percussionChoice].wav.type == AL_ADPCM_WAVE)
