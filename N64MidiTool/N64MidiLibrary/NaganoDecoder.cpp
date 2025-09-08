@@ -402,7 +402,7 @@ void flushsame(int l, int c, unsigned char* out, int& outputPosition)
 		 out[outputPosition++] = c;
          out[outputPosition++] = (0xC0 | l);
 	 }
-     else if (l > 31)
+     else if (l > 30)
 	 {
          out[outputPosition++] = l;
          out[outputPosition++] = 0xFF;
