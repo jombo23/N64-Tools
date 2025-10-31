@@ -4736,6 +4736,73 @@ void CObjToAn8Dlg::MoveVertices(std::vector<CVerticeColor*>& verticeColors, std:
 	}
 }
 
+void CObjToAn8Dlg::RecenterVertices(std::vector<CVerticeColor*>& verticeColors, std::vector<CNormal*>& normals, std::vector<CUVCoordinate*>& uvCoordinates, std::vector<CVertice*>& vertices, std::vector<CGroup*>& groups, std::vector<CMaterialFile*>& materialFiles, std::vector<CJoint*> joints, std::vector<CAnimation*> animations,
+	bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool foundTextureUV, bool foundNormals, bool foundVerticeColors)
+{
+	float centerX = 0;
+	float centerY = 0;
+	float centerZ = 0;
+
+	std::vector<CVertice*>::iterator	iterPointList;
+	for (iterPointList = vertices.begin(); iterPointList != vertices.end(); iterPointList++)
+	{
+		centerX += (*iterPointList)->vertex.x;
+		centerY += (*iterPointList)->vertex.y;
+		centerZ += (*iterPointList)->vertex.z;
+	}
+
+	centerX = centerX / vertices.size();
+	centerY = centerY / vertices.size();
+	centerZ = centerZ / vertices.size();
+
+	for (iterPointList = vertices.begin(); iterPointList != vertices.end(); iterPointList++)
+	{
+		CVertice* vertice = (CVertice*)*iterPointList;
+
+		CString formatVertice;
+		vertice->vertex.x = vertice->vertex.x - centerX;
+		vertice->vertex.y = vertice->vertex.y - centerY;
+		vertice->vertex.z = vertice->vertex.z - centerZ;
+	}
+
+	if (animations.size() > 0)
+	{
+		bool allBlendShape = true;
+
+		for (int x = 0; x < animations.size(); x++)
+		{
+			if (animations[x]->treatAsBlendShape == false)
+			{
+				allBlendShape = false;
+				break;
+			}
+		}
+
+		if (allBlendShape)
+		{
+			for (int x = 0; x < joints.size(); x++)
+			{
+				joints[x]->positionAbsolute.x -=centerX;
+				joints[x]->positionAbsolute.y -= centerY;
+				joints[x]->positionAbsolute.z -= centerZ;
+			}
+
+			for (int x = 0; x < animations.size(); x++)
+			{
+				for (int y = 0; y < animations[x]->keyframes.size(); y++)
+				{
+					for (int z = 0; z < animations[x]->keyframes[y]->animationParts.size(); z++)
+					{
+						animations[x]->keyframes[y]->animationParts[z]->translation.x -= centerX;
+						animations[x]->keyframes[y]->animationParts[z]->translation.y -= centerY;
+						animations[x]->keyframes[y]->animationParts[z]->translation.z -= centerZ;
+					}
+				}
+			}
+		}
+	}
+}
+
 void CObjToAn8Dlg::RoundVerticesTenths(std::vector<CVerticeColor*>& verticeColors, std::vector<CNormal*>& normals, std::vector<CUVCoordinate*>& uvCoordinates, std::vector<CVertice*>& vertices, std::vector<CGroup*>& groups, std::vector<CMaterialFile*>& materialFiles,  std::vector<CJoint*> joints, std::vector<CAnimation*> animations,
 		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool foundTextureUV, bool foundNormals, bool foundVerticeColors)
 {
@@ -8463,6 +8530,11 @@ bool CObjToAn8Dlg::PerformConversion(bool specialKeywordMode, bool mergeLikeMate
 	if (scaleVertices)
 	{
 		ScaleVertices(verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations, specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors, scaleVerticesFactor);
+	}
+
+	if (recenterObjects)
+	{
+		RecenterVertices(verticeColors, normals, uvCoordinates, vertices, groups, materialFiles, joints, animations, specialKeywordMode, mergeLikeMaterials, renameMaterials, foundTextureUV, foundNormals, foundVerticeColors);
 	}
 
 	if ((stripImagePaths)
