@@ -463,7 +463,7 @@ void CN64SoundListToolDlg::InitializeSpecificGames()
 	tempGameMenu.CreatePopupMenu();
 	int iteratorCount = 25;
 	for (int x = 0; x < countGames; x+=iteratorCount)
-	{   
+	{
 		CMenu tempSubMenu1;
 		tempSubMenu1.CreatePopupMenu();
 		int endCount = iteratorCount;
@@ -476,9 +476,9 @@ void CN64SoundListToolDlg::InitializeSpecificGames()
 			{
 				tempSubMenu1.AppendMenu( MF_STRING, STARTMENUOPTIONS + x + y, gameConfig[x + y].gameName);
 			}
-			tempGameMenu.InsertMenu((x / iteratorCount), MF_BYPOSITION | MF_POPUP, (UINT)tempSubMenu1.m_hMenu, groupText);
+			tempGameMenu.InsertMenu((x / iteratorCount), MF_BYPOSITION | MF_POPUP, (UINT_PTR)tempSubMenu1.Detach(), groupText);
 	}
-	subMenu->InsertMenu(0, MF_BYPOSITION | MF_POPUP, (UINT)tempGameMenu.m_hMenu, "Open Known Game");
+	subMenu->InsertMenu(0, MF_BYPOSITION | MF_POPUP, (UINT_PTR)tempGameMenu.Detach(), "Open Known Game");
 	
 }
 
