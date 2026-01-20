@@ -1177,6 +1177,19 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 				animations.push_back(lastAnimation);
 			}
 		}
+		else if (lineString.Find("#rotationorder ") == 0)
+		{
+			CString rotationOrder = lineString.Mid(15).MakeUpper();
+
+			if (lastAnimation != NULL)
+			{
+				if ((rotationOrder == "XYZ") || (rotationOrder == "XZY") || (rotationOrder == "YZX")
+					|| (rotationOrder == "YXZ") || (rotationOrder == "ZXY") || (rotationOrder == "ZYX"))
+				{
+					lastAnimation->rotationOrder = rotationOrder;
+				}
+			}
+		}
 		else if (lineString.Find("#shapeanimation ") == 0)
 		{
 			CString newAnimationName = lineString.Mid(16);
@@ -9726,13 +9739,24 @@ FbxTexture*  CObjToAn8Dlg::CreateTexture(FbxManager* pSdkManager, CString textur
 
 
 
-void CObjToAn8Dlg::WriteFbxSkeleton(std::map<CString, FbxCluster*>& jointCluster, std::map<CString, FbxNode*>& skeletonCluster, FbxScene* pScene, CJoint* joint, FbxNode* skeletonNode)
+void CObjToAn8Dlg::WriteFbxSkeleton(std::map<CString, FbxCluster*>& jointCluster, std::map<CString, FbxNode*>& skeletonCluster, FbxScene* pScene, CJoint* joint, FbxNode* skeletonNode, CString rotationOrder)
 {
 	FbxSkeleton* lSkeletonLimbNodeAttribute = FbxSkeleton::Create(pScene, joint->name);
     lSkeletonLimbNodeAttribute->SetSkeletonType(FbxSkeleton::eLimb);
     lSkeletonLimbNodeAttribute->Size.Set(1.0);
     FbxNode* lSkeletonLimbNode = FbxNode::Create(pScene, joint->name);
     lSkeletonLimbNode->SetNodeAttribute(lSkeletonLimbNodeAttribute);    
+	if (rotationOrder == "XZY")
+		lSkeletonLimbNode->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderXZY);
+	else if (rotationOrder == "YZX")
+		lSkeletonLimbNode->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYZX);
+	else if (rotationOrder == "YXZ")
+		lSkeletonLimbNode->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYXZ);
+	else if (rotationOrder == "ZXY")
+		lSkeletonLimbNode->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZXY);
+	else if (rotationOrder == "ZYX")
+		lSkeletonLimbNode->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZYX);
+	// XYZ default
 
 	if (joint->jointType == Absolute)
 	{
@@ -9758,7 +9782,7 @@ void CObjToAn8Dlg::WriteFbxSkeleton(std::map<CString, FbxCluster*>& jointCluster
 
 	for (int x = 0; x < joint->children.size(); x++)
 	{
-		WriteFbxSkeleton(jointCluster, skeletonCluster, pScene, joint->children[x], lSkeletonLimbNode);
+		WriteFbxSkeleton(jointCluster, skeletonCluster, pScene, joint->children[x], lSkeletonLimbNode, rotationOrder);
 	}
 }
 
@@ -9827,6 +9851,8 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 	bool allCamera = false;
 	bool allBlendShape = false;
 
+	CString rotationOrder = "XYZ";
+
 	if (joints.size() > 0)
 	{
 		if (animations.size() > 0)
@@ -9845,6 +9871,7 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 				{
 					allBlendShape = false;
 				}
+				rotationOrder = animations[x]->rotationOrder;
 			}
 		}
 
@@ -9870,6 +9897,17 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 				lSkeletonRootAttributeTopJoint->SetSkeletonType(FbxSkeleton::eLimb);
 				FbxNode* lSkeletonRootTopJoint = FbxNode::Create(pScene, "TopJoint");
 				lSkeletonRootTopJoint->SetNodeAttribute(lSkeletonRootAttributeTopJoint);
+				if (rotationOrder == "XZY")
+					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderXZY);
+				else if (rotationOrder == "YZX")
+					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYZX);
+				else if (rotationOrder == "YXZ")
+					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYXZ);
+				else if (rotationOrder == "ZXY")
+					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZXY);
+				else if (rotationOrder == "ZYX")
+					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZYX);
+				// XYZ default
 				lMainNode->AddChild(lSkeletonRootTopJoint);
 
 				lTopJointNode = lSkeletonRootTopJoint;
@@ -9907,7 +9945,7 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 
 				for (int y = 0; y < rootJoint->children.size(); y++)
 				{
-					WriteFbxSkeleton(jointCluster, jointSkeleton, pScene, rootJoint->children[y], lSkeletonRoot);
+					WriteFbxSkeleton(jointCluster, jointSkeleton, pScene, rootJoint->children[y], lSkeletonRoot, rotationOrder);
 				}
 			}
 			else
@@ -9918,6 +9956,17 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 				lSkeletonRootAttributeTopJoint->Size.Set(1.0);
 				FbxNode* lSkeletonRootTopJoint = FbxNode::Create(pScene, "TopJoint");
 				lSkeletonRootTopJoint->SetNodeAttribute(lSkeletonRootAttributeTopJoint);
+				if (rotationOrder == "XZY")
+					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderXZY);
+				else if (rotationOrder == "YZX")
+					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYZX);
+				else if (rotationOrder == "YXZ")
+					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYXZ);
+				else if (rotationOrder == "ZXY")
+					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZXY);
+				else if (rotationOrder == "ZYX")
+					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZYX);
+				// XYZ default
 				lMainNode->AddChild(lSkeletonRootTopJoint);
 
 				lTopJointNode = lSkeletonRootTopJoint;
@@ -9933,6 +9982,17 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 					lSkeletonRootAttribute->Size.Set(1.0);
 					lSkeletonRoot = FbxNode::Create(pScene, rootJoint->name);
 					lSkeletonRoot->SetNodeAttribute(lSkeletonRootAttribute);
+					if (rotationOrder == "XZY")
+						lSkeletonRoot->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderXZY);
+					else if (rotationOrder == "YZX")
+						lSkeletonRoot->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYZX);
+					else if (rotationOrder == "YXZ")
+						lSkeletonRoot->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYXZ);
+					else if (rotationOrder == "ZXY")
+						lSkeletonRoot->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZXY);
+					else if (rotationOrder == "ZYX")
+						lSkeletonRoot->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZYX);
+					// XYZ default
 					lSkeletonRootTopJoint->AddChild(lSkeletonRoot);
 
 					jointSkeleton[rootJoints[x]->name] = lSkeletonRoot;
@@ -9950,7 +10010,7 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 
 					for (int y = 0; y < rootJoints[x]->children.size(); y++)
 					{
-						WriteFbxSkeleton(jointCluster, jointSkeleton, pScene, rootJoints[x]->children[y], lSkeletonRoot);
+						WriteFbxSkeleton(jointCluster, jointSkeleton, pScene, rootJoints[x]->children[y], lSkeletonRoot, rotationOrder);
 					}
 				}
 			}
@@ -12122,6 +12182,19 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 {
 	if (pNode == NULL)
 		return;
+
+	FbxEuler::EOrder rotationOrder;
+	pNode->GetRotationOrder(FbxNode::eSourcePivot, rotationOrder);
+	if (rotationOrder == FbxEuler::EOrder::eOrderXZY)
+		animation->rotationOrder = "XZY";
+	else if (rotationOrder == FbxEuler::EOrder::eOrderYZX)
+		animation->rotationOrder = "YZX";
+	else if (rotationOrder == FbxEuler::EOrder::eOrderYXZ)
+		animation->rotationOrder = "YXZ";
+	else if (rotationOrder == FbxEuler::EOrder::eOrderZXY)
+		animation->rotationOrder = "ZXY";
+	else if (rotationOrder == FbxEuler::EOrder::eOrderZYX)
+		animation->rotationOrder = "ZYX";
 
 	CString name = pNode->GetName();
 
