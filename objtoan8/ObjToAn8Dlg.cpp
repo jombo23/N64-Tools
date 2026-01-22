@@ -6611,7 +6611,23 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 	}
 }
 
-void CObjToAn8Dlg::WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent)
+CString CObjToAn8Dlg::GetBvhRotationOrderChannelString(CString rotationOrder)
+{
+	if (rotationOrder == "XZY")
+		return "Xposition Yposition Zposition Xrotation Zrotation Yrotation";
+	else if (rotationOrder == "YZX")
+		return "Xposition Yposition Zposition Yrotation Zrotation Xrotation";
+	else if (rotationOrder == "YXZ")
+		return "Xposition Yposition Zposition Yrotation Xrotation Zrotation";
+	else if (rotationOrder == "ZXY")
+		return "Xposition Yposition Zposition Zrotation Xrotation Yrotation";
+	else if (rotationOrder == "ZYX")
+		return "Xposition Yposition Zposition Xrotation Yrotation Zrotation";
+	else // XYZ
+		return "Xposition Yposition Zposition Zrotation Yrotation Xrotation";
+}
+
+void CObjToAn8Dlg::WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent, CString rotationOrder)
 {
 	for (int x = 0; x < indent; x++)
 		fprintf(outFile, "	");
@@ -6638,7 +6654,7 @@ void CObjToAn8Dlg::WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent)
 	for (int x = 0; x < indent+1; x++)
 		fprintf(outFile, "	");
 
-	fprintf(outFile, "CHANNELS 6 Xposition Yposition Zposition Zrotation Yrotation Xrotation\n");
+	fprintf(outFile, "CHANNELS 6 %s\n", GetBvhRotationOrderChannelString(rotationOrder));
 
 	if (joint->children.size() == 0)
 	{
@@ -6661,7 +6677,7 @@ void CObjToAn8Dlg::WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent)
 	{
 		for (int x = 0; x < joint->children.size(); x++)
 		{
-			WriteBvhSkeleton(outFile, joint->children[x], indent+1);
+			WriteBvhSkeleton(outFile, joint->children[x], indent + 1, rotationOrder);
 		}
 	}
 
@@ -6671,14 +6687,25 @@ void CObjToAn8Dlg::WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent)
 	fprintf(outFile, "}\n");
 }
 
-void CObjToAn8Dlg::WriteBvhMotionKeyframe(FILE* outFile, CKeyframe* keyframe, CJoint* joint)
+void CObjToAn8Dlg::WriteBvhMotionKeyframe(FILE* outFile, CKeyframe* keyframe, CJoint* joint, CString rotationOrder)
 {
 	bool foundPart = false;
 	for (int x = 0; x < keyframe->animationParts.size(); x++)
 	{
 		if (keyframe->animationParts[x]->name == joint->name)
 		{
-			fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x));
+			if (rotationOrder == "XZY")
+				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y));
+			else if (rotationOrder == "YZX")
+				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x));
+			else if (rotationOrder == "YXZ")
+				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y));
+			else if (rotationOrder == "ZXY")
+				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z));
+			else if (rotationOrder == "ZYX")
+				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z));
+			else // XYZ
+				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x));
 			foundPart = true;
 			break;
 		}
@@ -6691,7 +6718,7 @@ void CObjToAn8Dlg::WriteBvhMotionKeyframe(FILE* outFile, CKeyframe* keyframe, CJ
 
 	for (int x = 0; x < joint->children.size(); x++)
 	{
-		WriteBvhMotionKeyframe(outFile, keyframe, joint->children[x]);
+		WriteBvhMotionKeyframe(outFile, keyframe, joint->children[x], rotationOrder);
 	}
 }
 
@@ -6724,7 +6751,7 @@ CString CObjToAn8Dlg::GetTranslationToEpsilonString(float translation)
 }
 
 void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CGroup*> groups, std::vector<CMaterialFile*> materialFiles, std::vector<CJoint*>& joints, std::vector<CAnimation*>& animations,
-		bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter)
+	bool specialKeywordMode, bool mergeLikeMaterials, bool renameMaterials, bool& foundTextureUV, bool& foundNormals, bool& foundVerticeColors, bool ignoreShading, bool ignoreShadingPoint7, bool noGroups, bool primarySecondaryGroups, bool mergeHierarchicalGroups, bool regexFilterCheck, CString regexFilter)
 {
 	FILE* outFile = fopen(outputFile, "w");
 	if (outFile != NULL)
@@ -6739,6 +6766,13 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 	}
 
 	fprintf(outFile, "HIERARCHY\n");
+
+	CString rotationOrder = "XYZ";
+	for (int x = 0; x < animations.size(); x++)
+	{
+		CAnimation* animation = animations[x];
+		rotationOrder = animation->rotationOrder;
+	}
 
 	std::vector<CJoint*> rootJoints = FindRootJoints(joints);
 
@@ -6760,18 +6794,18 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 		if (rootJoint->name != "TopJoint")
 		{
 			fprintf(outFile, "	OFFSET 0.000000 0.000000 0.000000\n");
-			fprintf(outFile, "	CHANNELS 6 Xposition Yposition Zposition Zrotation Yrotation Xrotation\n");
+			fprintf(outFile, "	CHANNELS 6 %s\n", GetBvhRotationOrderChannelString(rotationOrder));
 
-			WriteBvhSkeleton(outFile, rootJoint, 1);
+			WriteBvhSkeleton(outFile, rootJoint, 1, rotationOrder);
 		}
 		else
 		{
 			fprintf(outFile, "	OFFSET %f %f %f\n", rootJoint->positionAbsolute.x, rootJoint->positionAbsolute.y, rootJoint->positionAbsolute.z);
-			fprintf(outFile, "	CHANNELS 6 Xposition Yposition Zposition Zrotation Yrotation Xrotation\n");
+			fprintf(outFile, "	CHANNELS 6 %s\n", GetBvhRotationOrderChannelString(rotationOrder));
 
 			for (int y = 0; y < rootJoint->children.size(); y++)
 			{
-				WriteBvhSkeleton(outFile, rootJoint->children[y], 1);
+				WriteBvhSkeleton(outFile, rootJoint->children[y], 1, rotationOrder);
 			}
 		}
 
@@ -6783,13 +6817,13 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 		fprintf(outFile, "ROOT TopJoint\n");
 		fprintf(outFile, "{\n");
 		fprintf(outFile, "	OFFSET 0.000000 0.000000 0.000000\n");
-		fprintf(outFile, "	CHANNELS 6 Xposition Yposition Zposition Zrotation Yrotation Xrotation\n");
+		fprintf(outFile, "	CHANNELS 6 %s\n", GetBvhRotationOrderChannelString(rotationOrder));
 
 		for (int x = 0; x < rootJoints.size(); x++)
 		{
 			CJoint* rootJoint = rootJoints[x];
 
-			WriteBvhSkeleton(outFile, rootJoint, 1);
+			WriteBvhSkeleton(outFile, rootJoint, 1, rotationOrder);
 		}
 
 		fprintf(outFile, "}\n");
@@ -6816,7 +6850,7 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 						fprintf(outFile, "%s %s %s", GetTranslationToEpsilonString(keyframe->translation.x), GetTranslationToEpsilonString(keyframe->translation.y), GetTranslationToEpsilonString(keyframe->translation.z));
 						fprintf(outFile, " %s %s %s ", GetRotationAndTruncateToEpsilonString(keyframe->rotation.z), GetRotationAndTruncateToEpsilonString(keyframe->rotation.y), GetRotationAndTruncateToEpsilonString(keyframe->rotation.x));
 
-						WriteBvhMotionKeyframe(outFile, keyframe, rootJoint);
+						WriteBvhMotionKeyframe(outFile, keyframe, rootJoint, rotationOrder);
 					}
 					else
 					{
@@ -6825,7 +6859,7 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 
 						for (int y = 0; y < rootJoint->children.size(); y++)
 						{
-							WriteBvhMotionKeyframe(outFile, keyframe, rootJoint->children[y]);
+							WriteBvhMotionKeyframe(outFile, keyframe, rootJoint->children[y], rotationOrder);
 						}
 					}
 
@@ -6841,7 +6875,7 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 					{
 						CJoint* rootJoint = rootJoints[x];
 
-						WriteBvhMotionKeyframe(outFile, keyframe, rootJoint);
+						WriteBvhMotionKeyframe(outFile, keyframe, rootJoint, rotationOrder);
 					}
 
 					fprintf(outFile, "\n");
@@ -16870,6 +16904,7 @@ void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor
 		
 		for (int x = 0; x < animations.size(); x++)
 		{
+			CString rotationOrder = animations[x]->rotationOrder;
 			if (!animations[x]->isCamera)
 			{
 				// Top Joint First
@@ -16896,9 +16931,42 @@ void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor
 			float4x4 matrixKeyframe = float4x4::identity;
 
 			matrixKeyframe = matrixKeyframe * matrixKeyframe.Translate(float3(animations[x]->keyframes[z]->translation.x, animations[x]->keyframes[z]->translation.y, animations[x]->keyframes[z]->translation.z));
-			matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->rotation.z));
-			matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->rotation.y));
-			matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->rotation.x));
+			if (rotationOrder == "XZY")
+			{
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->rotation.y));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->rotation.z));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->rotation.x));
+			}
+			else if (rotationOrder == "YZX")
+			{
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->rotation.x));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->rotation.z));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->rotation.y));
+			}
+			else if (rotationOrder == "YXZ")
+			{
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->rotation.z));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->rotation.x));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->rotation.y));
+			}
+			else if (rotationOrder == "ZXY")
+			{
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->rotation.y));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->rotation.x));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->rotation.z));
+			}
+			else if (rotationOrder == "ZYX")
+			{
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->rotation.x));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->rotation.y));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->rotation.z));
+			}
+			else // XYZ
+			{
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->rotation.z));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->rotation.y));
+				matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->rotation.x));
+			}
 			matrixKeyframe = matrixKeyframe * (float4x4)matrixKeyframe.Scale(animations[x]->keyframes[z]->scale.x, animations[x]->keyframes[z]->scale.y, animations[x]->keyframes[z]->scale.z);
 
 			fprintf(outFile, "%f %f %f %f  %f %f %f %f  %f %f %f %f  %f %f %f %f ", 
@@ -16969,9 +17037,43 @@ void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor
 								{
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.Translate(float3(animations[x]->keyframes[z]->animationParts[w]->translation.x + (joints[joint]->positionAbsolute.x - joints[joint]->parent->positionAbsolute.x), animations[x]->keyframes[z]->animationParts[w]->translation.y + (joints[joint]->positionAbsolute.y - joints[joint]->parent->positionAbsolute.y), animations[x]->keyframes[z]->animationParts[w]->translation.z + (joints[joint]->positionAbsolute.z - joints[joint]->parent->positionAbsolute.z)));
 								}
-								matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.z));
-								matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));
-								matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
+
+								if (rotationOrder == "XZY")
+								{
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.z));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
+								}
+								else if (rotationOrder == "YZX")
+								{
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.z));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));
+								}
+								else if (rotationOrder == "YXZ")
+								{
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.z));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));
+								}
+								else if (rotationOrder == "ZXY")
+								{
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.z));
+								}
+								else if (rotationOrder == "ZYX")
+								{
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.z));
+								}
+								else // XYZ
+								{
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.z));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));
+									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
+								}
 								matrixKeyframe = matrixKeyframe * (float4x4)matrixKeyframe.Scale(animations[x]->keyframes[z]->animationParts[w]->scale.x, animations[x]->keyframes[z]->animationParts[w]->scale.y, animations[x]->keyframes[z]->animationParts[w]->scale.z);
 
 								break;

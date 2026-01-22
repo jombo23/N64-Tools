@@ -133,8 +133,9 @@ public:
 	CString GetRotationAndTruncateToEpsilonString(float rotation);
 	CString GetTranslationToEpsilonString(float translation);
 
-	void WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent);
-	void WriteBvhMotionKeyframe(FILE* outFile, CKeyframe* keyframe, CJoint* joint);
+	CString GetBvhRotationOrderChannelString(CString rotationOrder);
+	void WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent, CString rotationOrder);
+	void WriteBvhMotionKeyframe(FILE* outFile, CKeyframe* keyframe, CJoint* joint, CString rotationOrder);
 
 	void WriteAssimpMesh(aiScene* scene, aiMesh* mesh, bool foundNormals, bool foundTextureUV, bool foundVerticeColors, std::vector<CPolygon*> polygonList, std::vector<CVerticeColor*> verticeColors, std::vector<CNormal*> normals, std::vector<CUVCoordinate*> uvCoordinates, std::vector<CVertice*> vertices, std::vector<CJoint*> joints);
 	void WriteAssimpSkeleton(aiScene* scene, CJoint* joint, aiNode* parentNode);
