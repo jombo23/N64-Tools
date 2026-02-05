@@ -1177,19 +1177,6 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 				animations.push_back(lastAnimation);
 			}
 		}
-		else if (lineString.Find("#rotationorder ") == 0)
-		{
-			CString rotationOrder = lineString.Mid(15).MakeUpper();
-
-			if (lastAnimation != NULL)
-			{
-				if ((rotationOrder == "XYZ") || (rotationOrder == "XZY") || (rotationOrder == "YZX")
-					|| (rotationOrder == "YXZ") || (rotationOrder == "ZXY") || (rotationOrder == "ZYX"))
-				{
-					lastAnimation->rotationOrder = rotationOrder;
-				}
-			}
-		}
 		else if (lineString.Find("#shapeanimation ") == 0)
 		{
 			CString newAnimationName = lineString.Mid(16);
@@ -1386,6 +1373,18 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 				}
 			}
 		}
+		else if (lineString.Find("#jointrotationorder ") == 0)
+		{
+			CString rotationOrder = lineString.Mid(20).Trim().MakeUpper();
+			if (lastJoint != NULL)
+			{
+				if ((rotationOrder == "XYZ") || (rotationOrder == "XZY") || (rotationOrder == "YZX")
+					|| (rotationOrder == "YXZ") || (rotationOrder == "ZXY") || (rotationOrder == "ZYX"))
+				{
+					lastJoint->rotationOrder = rotationOrder;
+				}
+			}
+		}
 		else if (lineString.Find("#partrotation ") == 0)
 		{
 			if (lastAnimationPart != NULL)
@@ -1449,6 +1448,24 @@ bool CObjToAn8Dlg::ReadObjFile(CString inputFile, std::vector<CVerticeColor*>& v
 				lastAnimationPart->translation.y = (((atof(pch))));
 				pch = strtok (NULL, " ");
 				lastAnimationPart->translation.z = (((atof(pch))));
+			}
+		}
+		else if (lineString.Find("#partshapetranslation ") == 0)
+		{
+			if (lastAnimationPart != NULL)
+			{
+				CAnimationShapeVertex animationShapeVertex;
+				char* pch = strtok(currentLine, " ");
+				pch = strtok(NULL, " ");
+				animationShapeVertex.vertexIndex = (((atoi(pch)))) - 1;
+				pch = strtok(NULL, " ");
+				animationShapeVertex.translation.x = (((atof(pch))));
+				pch = strtok(NULL, " ");
+				animationShapeVertex.translation.y = (((atof(pch))));
+				pch = strtok(NULL, " ");
+				animationShapeVertex.translation.z = (((atof(pch))));
+
+				lastAnimationPart->shapeVertices.push_back(animationShapeVertex);
 			}
 		}
 		else if (lineString.Find("#partisinterpolatedtranslation ") == 0)
@@ -6178,6 +6195,8 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 				fprintf(outFile, "#jointposition %f %f %f\n", joints[x]->positionAbsolute.x, joints[x]->positionAbsolute.y, joints[x]->positionAbsolute.z);
 			else if (jointType == Relative)
 				fprintf(outFile, "#jointsrt %f %f %f %f %f %f %f %f %f\n", joints[x]->scaleRelative.x, joints[x]->scaleRelative.y, joints[x]->scaleRelative.z, joints[x]->rotationRelative.x, joints[x]->rotationRelative.y, joints[x]->rotationRelative.z, joints[x]->positionRelative.x, joints[x]->positionRelative.y, joints[x]->positionRelative.z);
+			if (joints[x]->rotationOrder != "XYZ")
+				fprintf(outFile, "#jointrotationorder %s\n", joints[x]->rotationOrder);
 		}
 
 		for (int x = 0; x < joints.size(); x++)
@@ -6547,54 +6566,64 @@ void CObjToAn8Dlg::WriteObjFile(CString outputFile, std::vector<CVerticeColor*> 
 					CAnimationPart* animationPart = keyframe->animationParts[z];
 					fprintf(outFile, "#part %s\n", animationPart->name);
 					
-					//if ((fabs(animationPart->translation.x) > EPSILONVALUES) || (fabs(animationPart->translation.y) > EPSILONVALUES) || (fabs(animationPart->translation.z) > EPSILONVALUES))
+					if (animationPart->shapeVertices.size() == 0)
+					{
+						//if ((fabs(animationPart->translation.x) > EPSILONVALUES) || (fabs(animationPart->translation.y) > EPSILONVALUES) || (fabs(animationPart->translation.z) > EPSILONVALUES))
 						fprintf(outFile, "#parttranslation %f %f %f\n", animationPart->translation.x, animationPart->translation.y, animationPart->translation.z);
 						if ((animationPart->translationIsInterpolated[0]) || (animationPart->translationIsInterpolated[1]) || (animationPart->translationIsInterpolated[2]))
 							fprintf(outFile, "#partisinterpolatedtranslation %d %d %d\n", animationPart->translationIsInterpolated[0], animationPart->translationIsInterpolated[1], animationPart->translationIsInterpolated[2]);
 
-					if ((fabs(animationPart->rotation.x) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.x) < EPSILONVALUES))
-						animationPart->rotation.x = 0;
-					if ((fabs(animationPart->rotation.y) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.y) < EPSILONVALUES))
-						animationPart->rotation.y = 0;
-					if ((fabs(animationPart->rotation.z) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.z) < EPSILONVALUES))
-						animationPart->rotation.z = 0;
+						if ((fabs(animationPart->rotation.x) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.x) < EPSILONVALUES))
+							animationPart->rotation.x = 0;
+						if ((fabs(animationPart->rotation.y) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.y) < EPSILONVALUES))
+							animationPart->rotation.y = 0;
+						if ((fabs(animationPart->rotation.z) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.z) < EPSILONVALUES))
+							animationPart->rotation.z = 0;
 
-					while (animationPart->rotation.x >= 360.0f)
-						animationPart->rotation.x -= 360.0f;
-					while (animationPart->rotation.x < 0.0f)
-						animationPart->rotation.x += 360.0f;
+						while (animationPart->rotation.x >= 360.0f)
+							animationPart->rotation.x -= 360.0f;
+						while (animationPart->rotation.x < 0.0f)
+							animationPart->rotation.x += 360.0f;
 
-					while (animationPart->rotation.y >= 360.0f)
-						animationPart->rotation.y -= 360.0f;
-					while (animationPart->rotation.y < 0.0f)
-						animationPart->rotation.y += 360.0f;
+						while (animationPart->rotation.y >= 360.0f)
+							animationPart->rotation.y -= 360.0f;
+						while (animationPart->rotation.y < 0.0f)
+							animationPart->rotation.y += 360.0f;
 
-					while (animationPart->rotation.z >= 360.0f)
-						animationPart->rotation.z -= 360.0f;
-					while (animationPart->rotation.z < 0.0f)
-						animationPart->rotation.z += 360.0f;
+						while (animationPart->rotation.z >= 360.0f)
+							animationPart->rotation.z -= 360.0f;
+						while (animationPart->rotation.z < 0.0f)
+							animationPart->rotation.z += 360.0f;
 
-					if ((fabs(animationPart->rotation.x) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.x) < EPSILONVALUES))
-						animationPart->rotation.x = 0;
-					if ((fabs(animationPart->rotation.y) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.y) < EPSILONVALUES))
-						animationPart->rotation.y = 0;
-					if ((fabs(animationPart->rotation.z) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.z) < EPSILONVALUES))
-						animationPart->rotation.z = 0;
+						if ((fabs(animationPart->rotation.x) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.x) < EPSILONVALUES))
+							animationPart->rotation.x = 0;
+						if ((fabs(animationPart->rotation.y) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.y) < EPSILONVALUES))
+							animationPart->rotation.y = 0;
+						if ((fabs(animationPart->rotation.z) < EPSILONVALUES) || (fabs(360 - animationPart->rotation.z) < EPSILONVALUES))
+							animationPart->rotation.z = 0;
 
-					fprintf(outFile, "#partrotation %f %f %f\n", animationPart->rotation.x, animationPart->rotation.y, animationPart->rotation.z);
-					if ((animationPart->rotationIsInterpolated[0]) || (animationPart->rotationIsInterpolated[1]) || (animationPart->rotationIsInterpolated[2]))
-						fprintf(outFile, "#partisinterpolatedrotation %d %d %d\n", animationPart->rotationIsInterpolated[0], animationPart->rotationIsInterpolated[1], animationPart->rotationIsInterpolated[2]);
+						fprintf(outFile, "#partrotation %f %f %f\n", animationPart->rotation.x, animationPart->rotation.y, animationPart->rotation.z);
+						if ((animationPart->rotationIsInterpolated[0]) || (animationPart->rotationIsInterpolated[1]) || (animationPart->rotationIsInterpolated[2]))
+							fprintf(outFile, "#partisinterpolatedrotation %d %d %d\n", animationPart->rotationIsInterpolated[0], animationPart->rotationIsInterpolated[1], animationPart->rotationIsInterpolated[2]);
 
-					fprintf(outFile, "#partscale %f %f %f\n", animationPart->scale.x, animationPart->scale.y, animationPart->scale.z);
-					if ((animationPart->scaleIsInterpolated[0]) || (animationPart->scaleIsInterpolated[1]) || (animationPart->scaleIsInterpolated[2]))
-						fprintf(outFile, "#partisinterpolatedscale %d %d %d\n", animationPart->scaleIsInterpolated[0], animationPart->scaleIsInterpolated[1], animationPart->scaleIsInterpolated[2]);
+						fprintf(outFile, "#partscale %f %f %f\n", animationPart->scale.x, animationPart->scale.y, animationPart->scale.z);
+						if ((animationPart->scaleIsInterpolated[0]) || (animationPart->scaleIsInterpolated[1]) || (animationPart->scaleIsInterpolated[2]))
+							fprintf(outFile, "#partisinterpolatedscale %d %d %d\n", animationPart->scaleIsInterpolated[0], animationPart->scaleIsInterpolated[1], animationPart->scaleIsInterpolated[2]);
 
-					/*if ((animationPart->rotationHasDerivative[0]) || (animationPart->rotationHasDerivative[1]) || (animationPart->rotationHasDerivative[2]))
-						fprintf(outFile, "#partderivativerotation %f %f %f\n", animationPart->rotationDerivativeValue.x, animationPart->rotationDerivativeValue.y, animationPart->rotationDerivativeValue.z);
-					if ((animationPart->translationHasDerivative[0]) || (animationPart->translationHasDerivative[1]) || (animationPart->translationHasDerivative[2]))
-						fprintf(outFile, "#partderivativetranslation %f %f %f\n", animationPart->translationDerivativeValue.x, animationPart->translationDerivativeValue.y, animationPart->translationDerivativeValue.z);
-					if ((animationPart->scaleHasDerivative[0]) || (animationPart->scaleHasDerivative[1]) || (animationPart->scaleHasDerivative[2]))
-						fprintf(outFile, "#partderivativescale %f %f %f\n", animationPart->scaleDerivativeValue.x, animationPart->scaleDerivativeValue.y, animationPart->scaleDerivativeValue.z);*/
+						/*if ((animationPart->rotationHasDerivative[0]) || (animationPart->rotationHasDerivative[1]) || (animationPart->rotationHasDerivative[2]))
+							fprintf(outFile, "#partderivativerotation %f %f %f\n", animationPart->rotationDerivativeValue.x, animationPart->rotationDerivativeValue.y, animationPart->rotationDerivativeValue.z);
+							if ((animationPart->translationHasDerivative[0]) || (animationPart->translationHasDerivative[1]) || (animationPart->translationHasDerivative[2]))
+							fprintf(outFile, "#partderivativetranslation %f %f %f\n", animationPart->translationDerivativeValue.x, animationPart->translationDerivativeValue.y, animationPart->translationDerivativeValue.z);
+							if ((animationPart->scaleHasDerivative[0]) || (animationPart->scaleHasDerivative[1]) || (animationPart->scaleHasDerivative[2]))
+							fprintf(outFile, "#partderivativescale %f %f %f\n", animationPart->scaleDerivativeValue.x, animationPart->scaleDerivativeValue.y, animationPart->scaleDerivativeValue.z);*/
+					}
+					else
+					{
+						for (int p = 0; p < animationPart->shapeVertices.size(); p++)
+						{
+							fprintf(outFile, "#partshapetranslation %d %f %f %f\n", animationPart->shapeVertices[p].vertexIndex, animationPart->shapeVertices[p].translation.x, animationPart->shapeVertices[p].translation.y, animationPart->shapeVertices[p].translation.z);
+						}
+					}
 				}
 			}
 		}
@@ -6627,7 +6656,7 @@ CString CObjToAn8Dlg::GetBvhRotationOrderChannelString(CString rotationOrder)
 		return "Xposition Yposition Zposition Zrotation Yrotation Xrotation";
 }
 
-void CObjToAn8Dlg::WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent, CString rotationOrder)
+void CObjToAn8Dlg::WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent)
 {
 	for (int x = 0; x < indent; x++)
 		fprintf(outFile, "	");
@@ -6654,7 +6683,7 @@ void CObjToAn8Dlg::WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent, CS
 	for (int x = 0; x < indent+1; x++)
 		fprintf(outFile, "	");
 
-	fprintf(outFile, "CHANNELS 6 %s\n", GetBvhRotationOrderChannelString(rotationOrder));
+	fprintf(outFile, "CHANNELS 6 %s\n", GetBvhRotationOrderChannelString(joint->rotationOrder));
 
 	if (joint->children.size() == 0)
 	{
@@ -6677,7 +6706,7 @@ void CObjToAn8Dlg::WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent, CS
 	{
 		for (int x = 0; x < joint->children.size(); x++)
 		{
-			WriteBvhSkeleton(outFile, joint->children[x], indent + 1, rotationOrder);
+			WriteBvhSkeleton(outFile, joint->children[x], indent + 1);
 		}
 	}
 
@@ -6687,22 +6716,22 @@ void CObjToAn8Dlg::WriteBvhSkeleton(FILE* outFile, CJoint* joint, int indent, CS
 	fprintf(outFile, "}\n");
 }
 
-void CObjToAn8Dlg::WriteBvhMotionKeyframe(FILE* outFile, CKeyframe* keyframe, CJoint* joint, CString rotationOrder)
+void CObjToAn8Dlg::WriteBvhMotionKeyframe(FILE* outFile, CKeyframe* keyframe, CJoint* joint)
 {
 	bool foundPart = false;
 	for (int x = 0; x < keyframe->animationParts.size(); x++)
 	{
 		if (keyframe->animationParts[x]->name == joint->name)
 		{
-			if (rotationOrder == "XZY")
+			if (joint->rotationOrder == "XZY")
 				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y));
-			else if (rotationOrder == "YZX")
+			else if (joint->rotationOrder == "YZX")
 				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x));
-			else if (rotationOrder == "YXZ")
+			else if (joint->rotationOrder == "YXZ")
 				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y));
-			else if (rotationOrder == "ZXY")
+			else if (joint->rotationOrder == "ZXY")
 				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z));
-			else if (rotationOrder == "ZYX")
+			else if (joint->rotationOrder == "ZYX")
 				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z));
 			else // XYZ
 				fprintf(outFile, " %s %s %s %s %s %s", GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.x), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.y), GetTranslationToEpsilonString(keyframe->animationParts[x]->translation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.z), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.y), GetRotationAndTruncateToEpsilonString(keyframe->animationParts[x]->rotation.x));
@@ -6718,7 +6747,7 @@ void CObjToAn8Dlg::WriteBvhMotionKeyframe(FILE* outFile, CKeyframe* keyframe, CJ
 
 	for (int x = 0; x < joint->children.size(); x++)
 	{
-		WriteBvhMotionKeyframe(outFile, keyframe, joint->children[x], rotationOrder);
+		WriteBvhMotionKeyframe(outFile, keyframe, joint->children[x]);
 	}
 }
 
@@ -6767,11 +6796,9 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 
 	fprintf(outFile, "HIERARCHY\n");
 
-	CString rotationOrder = "XYZ";
 	for (int x = 0; x < animations.size(); x++)
 	{
 		CAnimation* animation = animations[x];
-		rotationOrder = animation->rotationOrder;
 	}
 
 	std::vector<CJoint*> rootJoints = FindRootJoints(joints);
@@ -6794,18 +6821,18 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 		if (rootJoint->name != "TopJoint")
 		{
 			fprintf(outFile, "	OFFSET 0.000000 0.000000 0.000000\n");
-			fprintf(outFile, "	CHANNELS 6 %s\n", GetBvhRotationOrderChannelString(rotationOrder));
+			fprintf(outFile, "	CHANNELS 6 %s\n", GetBvhRotationOrderChannelString(rootJoint->rotationOrder));
 
-			WriteBvhSkeleton(outFile, rootJoint, 1, rotationOrder);
+			WriteBvhSkeleton(outFile, rootJoint, 1);
 		}
 		else
 		{
 			fprintf(outFile, "	OFFSET %f %f %f\n", rootJoint->positionAbsolute.x, rootJoint->positionAbsolute.y, rootJoint->positionAbsolute.z);
-			fprintf(outFile, "	CHANNELS 6 %s\n", GetBvhRotationOrderChannelString(rotationOrder));
+			fprintf(outFile, "	CHANNELS 6 %s\n", GetBvhRotationOrderChannelString(rootJoint->rotationOrder));
 
 			for (int y = 0; y < rootJoint->children.size(); y++)
 			{
-				WriteBvhSkeleton(outFile, rootJoint->children[y], 1, rotationOrder);
+				WriteBvhSkeleton(outFile, rootJoint->children[y], 1);
 			}
 		}
 
@@ -6817,13 +6844,13 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 		fprintf(outFile, "ROOT TopJoint\n");
 		fprintf(outFile, "{\n");
 		fprintf(outFile, "	OFFSET 0.000000 0.000000 0.000000\n");
-		fprintf(outFile, "	CHANNELS 6 %s\n", GetBvhRotationOrderChannelString(rotationOrder));
+		fprintf(outFile, "	CHANNELS 6 %s\n", GetBvhRotationOrderChannelString("XYZ"));
 
 		for (int x = 0; x < rootJoints.size(); x++)
 		{
 			CJoint* rootJoint = rootJoints[x];
 
-			WriteBvhSkeleton(outFile, rootJoint, 1, rotationOrder);
+			WriteBvhSkeleton(outFile, rootJoint, 1);
 		}
 
 		fprintf(outFile, "}\n");
@@ -6850,7 +6877,7 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 						fprintf(outFile, "%s %s %s", GetTranslationToEpsilonString(keyframe->translation.x), GetTranslationToEpsilonString(keyframe->translation.y), GetTranslationToEpsilonString(keyframe->translation.z));
 						fprintf(outFile, " %s %s %s ", GetRotationAndTruncateToEpsilonString(keyframe->rotation.z), GetRotationAndTruncateToEpsilonString(keyframe->rotation.y), GetRotationAndTruncateToEpsilonString(keyframe->rotation.x));
 
-						WriteBvhMotionKeyframe(outFile, keyframe, rootJoint, rotationOrder);
+						WriteBvhMotionKeyframe(outFile, keyframe, rootJoint);
 					}
 					else
 					{
@@ -6859,7 +6886,7 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 
 						for (int y = 0; y < rootJoint->children.size(); y++)
 						{
-							WriteBvhMotionKeyframe(outFile, keyframe, rootJoint->children[y], rotationOrder);
+							WriteBvhMotionKeyframe(outFile, keyframe, rootJoint->children[y]);
 						}
 					}
 
@@ -6875,7 +6902,7 @@ void CObjToAn8Dlg::WriteBvhFile(CString outputFile, std::vector<CVerticeColor*> 
 					{
 						CJoint* rootJoint = rootJoints[x];
 
-						WriteBvhMotionKeyframe(outFile, keyframe, rootJoint, rotationOrder);
+						WriteBvhMotionKeyframe(outFile, keyframe, rootJoint);
 					}
 
 					fprintf(outFile, "\n");
@@ -9346,8 +9373,11 @@ std::vector<CJoint*> CObjToAn8Dlg::FindRootJoints(std::vector<CJoint*>& joints)
 	{
 		if (joints[x]->parent == NULL)
 		{
-			//if ((StringHasNumber(joints[x]->name)) || (joints[x]->name.Find("TopJoint") != -1))
-			rootJoints.push_back(joints[x]);
+			if (!joints[x]->isShapeAnimationJoint)
+			{
+				//if ((StringHasNumber(joints[x]->name)) || (joints[x]->name.Find("TopJoint") != -1))
+				rootJoints.push_back(joints[x]);
+			}
 		}
 	}
 
@@ -9660,6 +9690,15 @@ bool CObjToAn8Dlg::ReadFbxFile(CString inputFile, std::vector<CVerticeColor*>& v
 
 							ParseFbxAnimationRecursive(lAnimLayer, pScene->GetRootNode(), joints, animation, numberKeyframes);
 
+							bool containsBlendShape = false;
+							ContainsFbxBlendShapeRecursive(lAnimLayer, pScene->GetRootNode(), containsBlendShape);
+
+							if (containsBlendShape)
+							{
+								int verticesOffset = 0;
+								ParseFbxBlendShapePartRecursive(lAnimLayer, pScene->GetRootNode(), vertices, groups, joints, animation, noGroups, verticesOffset);
+							}
+
 							animations.push_back(animation);
 						}
 					}
@@ -9773,22 +9812,22 @@ FbxTexture*  CObjToAn8Dlg::CreateTexture(FbxManager* pSdkManager, CString textur
 
 
 
-void CObjToAn8Dlg::WriteFbxSkeleton(std::map<CString, FbxCluster*>& jointCluster, std::map<CString, FbxNode*>& skeletonCluster, FbxScene* pScene, CJoint* joint, FbxNode* skeletonNode, CString rotationOrder)
+void CObjToAn8Dlg::WriteFbxSkeleton(std::map<CString, FbxCluster*>& jointCluster, std::map<CString, FbxNode*>& skeletonCluster, FbxScene* pScene, CJoint* joint, FbxNode* skeletonNode)
 {
 	FbxSkeleton* lSkeletonLimbNodeAttribute = FbxSkeleton::Create(pScene, joint->name);
     lSkeletonLimbNodeAttribute->SetSkeletonType(FbxSkeleton::eLimb);
     lSkeletonLimbNodeAttribute->Size.Set(1.0);
     FbxNode* lSkeletonLimbNode = FbxNode::Create(pScene, joint->name);
     lSkeletonLimbNode->SetNodeAttribute(lSkeletonLimbNodeAttribute);    
-	if (rotationOrder == "XZY")
+	if (joint->rotationOrder == "XZY")
 		lSkeletonLimbNode->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderXZY);
-	else if (rotationOrder == "YZX")
+	else if (joint->rotationOrder == "YZX")
 		lSkeletonLimbNode->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYZX);
-	else if (rotationOrder == "YXZ")
+	else if (joint->rotationOrder == "YXZ")
 		lSkeletonLimbNode->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYXZ);
-	else if (rotationOrder == "ZXY")
+	else if (joint->rotationOrder == "ZXY")
 		lSkeletonLimbNode->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZXY);
-	else if (rotationOrder == "ZYX")
+	else if (joint->rotationOrder == "ZYX")
 		lSkeletonLimbNode->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZYX);
 	// XYZ default
 
@@ -9816,7 +9855,7 @@ void CObjToAn8Dlg::WriteFbxSkeleton(std::map<CString, FbxCluster*>& jointCluster
 
 	for (int x = 0; x < joint->children.size(); x++)
 	{
-		WriteFbxSkeleton(jointCluster, skeletonCluster, pScene, joint->children[x], lSkeletonLimbNode, rotationOrder);
+		WriteFbxSkeleton(jointCluster, skeletonCluster, pScene, joint->children[x], lSkeletonLimbNode);
 	}
 }
 
@@ -9873,6 +9912,28 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 		pScene->GetGlobalSettings().SetTimeMode(FbxTime::EMode::eCustom);
 		pScene->GetGlobalSettings().SetCustomFrameRate(fps);
 	}
+
+	int x = 0;
+	if (animations[x]->keyframes.size() > 0)
+	{
+		int y = 0;
+		{
+			for (int w = 0; w < animations[x]->keyframes[y]->animationParts.size(); w++)
+			{
+				for (int j = 0; j < joints.size(); j++)
+				{
+					if (animations[x]->keyframes[y]->animationParts[w]->name == joints[j]->name)
+					{
+						if (animations[x]->keyframes[y]->animationParts[w]->shapeVertices.size() > 0)
+						{
+							joints[j]->isShapeAnimationJoint = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
 			
 	FbxNode* lMainNode = pScene->GetRootNode();
 
@@ -9884,8 +9945,6 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 
 	bool allCamera = false;
 	bool allBlendShape = false;
-
-	CString rotationOrder = "XYZ";
 
 	if (joints.size() > 0)
 	{
@@ -9905,7 +9964,6 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 				{
 					allBlendShape = false;
 				}
-				rotationOrder = animations[x]->rotationOrder;
 			}
 		}
 
@@ -9931,15 +9989,15 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 				lSkeletonRootAttributeTopJoint->SetSkeletonType(FbxSkeleton::eLimb);
 				FbxNode* lSkeletonRootTopJoint = FbxNode::Create(pScene, "TopJoint");
 				lSkeletonRootTopJoint->SetNodeAttribute(lSkeletonRootAttributeTopJoint);
-				if (rotationOrder == "XZY")
+				if (rootJoints[0]->rotationOrder == "XZY")
 					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderXZY);
-				else if (rotationOrder == "YZX")
+				else if (rootJoints[0]->rotationOrder == "YZX")
 					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYZX);
-				else if (rotationOrder == "YXZ")
+				else if (rootJoints[0]->rotationOrder == "YXZ")
 					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYXZ);
-				else if (rotationOrder == "ZXY")
+				else if (rootJoints[0]->rotationOrder == "ZXY")
 					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZXY);
-				else if (rotationOrder == "ZYX")
+				else if (rootJoints[0]->rotationOrder == "ZYX")
 					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZYX);
 				// XYZ default
 				lMainNode->AddChild(lSkeletonRootTopJoint);
@@ -9979,7 +10037,7 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 
 				for (int y = 0; y < rootJoint->children.size(); y++)
 				{
-					WriteFbxSkeleton(jointCluster, jointSkeleton, pScene, rootJoint->children[y], lSkeletonRoot, rotationOrder);
+					WriteFbxSkeleton(jointCluster, jointSkeleton, pScene, rootJoint->children[y], lSkeletonRoot);
 				}
 			}
 			else
@@ -9990,16 +10048,6 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 				lSkeletonRootAttributeTopJoint->Size.Set(1.0);
 				FbxNode* lSkeletonRootTopJoint = FbxNode::Create(pScene, "TopJoint");
 				lSkeletonRootTopJoint->SetNodeAttribute(lSkeletonRootAttributeTopJoint);
-				if (rotationOrder == "XZY")
-					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderXZY);
-				else if (rotationOrder == "YZX")
-					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYZX);
-				else if (rotationOrder == "YXZ")
-					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYXZ);
-				else if (rotationOrder == "ZXY")
-					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZXY);
-				else if (rotationOrder == "ZYX")
-					lSkeletonRootTopJoint->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZYX);
 				// XYZ default
 				lMainNode->AddChild(lSkeletonRootTopJoint);
 
@@ -10016,15 +10064,15 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 					lSkeletonRootAttribute->Size.Set(1.0);
 					lSkeletonRoot = FbxNode::Create(pScene, rootJoint->name);
 					lSkeletonRoot->SetNodeAttribute(lSkeletonRootAttribute);
-					if (rotationOrder == "XZY")
+					if (rootJoint->rotationOrder == "XZY")
 						lSkeletonRoot->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderXZY);
-					else if (rotationOrder == "YZX")
+					else if (rootJoint->rotationOrder == "YZX")
 						lSkeletonRoot->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYZX);
-					else if (rotationOrder == "YXZ")
+					else if (rootJoint->rotationOrder == "YXZ")
 						lSkeletonRoot->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderYXZ);
-					else if (rotationOrder == "ZXY")
+					else if (rootJoint->rotationOrder == "ZXY")
 						lSkeletonRoot->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZXY);
-					else if (rotationOrder == "ZYX")
+					else if (rootJoint->rotationOrder == "ZYX")
 						lSkeletonRoot->SetRotationOrder(FbxNode::eSourcePivot, FbxEuler::eOrderZYX);
 					// XYZ default
 					lSkeletonRootTopJoint->AddChild(lSkeletonRoot);
@@ -10044,7 +10092,7 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 
 					for (int y = 0; y < rootJoints[x]->children.size(); y++)
 					{
-						WriteFbxSkeleton(jointCluster, jointSkeleton, pScene, rootJoints[x]->children[y], lSkeletonRoot, rotationOrder);
+						WriteFbxSkeleton(jointCluster, jointSkeleton, pScene, rootJoints[x]->children[y], lSkeletonRoot);
 					}
 				}
 			}
@@ -10126,6 +10174,56 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 			}
 		}
 
+		for (int x = 0; x < animations.size(); x++)
+		{
+			if (!animations[x]->treatAsBlendShape)
+			{
+				int jointMatch = -1;
+				std::vector<CPolygon*>::iterator	iterpolygon;
+				for (iterpolygon = group->polygons.begin(); iterpolygon != group->polygons.end(); iterpolygon++)
+				{
+					CPolygon* polygon = ((CPolygon*)(*iterpolygon));
+
+					std::vector<CPolygonPoint*>::iterator	iterpolygonpoint;
+					for (iterpolygonpoint = polygon->polygonPoints.begin(); iterpolygonpoint != polygon->polygonPoints.end(); iterpolygonpoint++)
+					{
+						CPolygonPoint* polygonPoint = (CPolygonPoint*)*iterpolygonpoint;
+
+						CVertice* vertice = NULL;
+						if ((polygonPoint->verticeIndex != -1) && (polygonPoint->verticeIndex < vertices.size()))
+							vertice = vertices[polygonPoint->verticeIndex];
+
+						if (vertice != NULL)
+						{
+							for (int z = 0; z < joints.size(); z++)
+							{
+								if (joints[z]->isShapeAnimationJoint)
+								{
+									for (int y = 0; y < joints[z]->controlPoints.size(); y++)
+									{
+										CVertice* controlVertice = vertices[joints[z]->controlPoints[y]];
+										if (controlVertice == vertice)
+										{
+											jointMatch = z;
+											break;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+				if (jointMatch != -1)
+				{
+					CString tempFormatStr;
+					tempFormatStr.Format("_JointAssociation%s", joints[jointMatch]->name);
+					group->name += tempFormatStr;
+					break;
+				}
+			}
+		}
+
 		CString defaultMaterial = "DefaultMaterial";
 
 		std::vector<CPolygon*>::iterator	iterpolygon;
@@ -10149,15 +10247,18 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 		{
 			lSkin = FbxSkin::Create(pScene, "");
 
-			for (int x = 0; x < joints.size(); x++)
+			for (int j = 0; j < joints.size(); j++)
 			{
+				if (joints[j]->isShapeAnimationJoint)
+					continue;
+
 				FbxCluster* cluster = FbxCluster::Create(pScene, "");
-				cluster->SetLink(jointSkeleton[joints[x]->name]);
+				cluster->SetLink(jointSkeleton[joints[j]->name]);
 				cluster->SetLinkMode(FbxCluster::eNormalize);
 
 				lSkin->AddCluster(cluster);
 
-				jointCluster[joints[x]->name] = cluster;
+				jointCluster[joints[j]->name] = cluster;
 			}
 
 			lMesh->AddDeformer(lSkin);
@@ -10386,30 +10487,33 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 
 				for (int x = 0; x < joints.size(); x++)
 				{
-					FbxCluster* cluster = jointCluster[joints[x]->name];
-
-					for (int y = 0; y < joints[x]->controlPoints.size(); y++)
+					if (!joints[x]->isShapeAnimationJoint)
 					{
-						CVertice* controlVertice = vertices[joints[x]->controlPoints[y]];
-						if (controlVertice == vertice)
+						FbxCluster* cluster = jointCluster[joints[x]->name];
+
+						for (int y = 0; y < joints[x]->controlPoints.size(); y++)
 						{
-							cluster->AddControlPointIndex(subVerticeCounter, 1.0f);
+							CVertice* controlVertice = vertices[joints[x]->controlPoints[y]];
+							if (controlVertice == vertice)
+							{
+								cluster->AddControlPointIndex(subVerticeCounter, 1.0f);
 
-							if (joints[x]->jointType == Absolute)
-							{
-								lControlPoints[subVerticeCounter] = FbxVector4(vertice->vertex.x - joints[x]->positionAbsolute.x, vertice->vertex.y - joints[x]->positionAbsolute.y, vertice->vertex.z - joints[x]->positionAbsolute.z);
+								if (joints[x]->jointType == Absolute)
+								{
+									lControlPoints[subVerticeCounter] = FbxVector4(vertice->vertex.x - joints[x]->positionAbsolute.x, vertice->vertex.y - joints[x]->positionAbsolute.y, vertice->vertex.z - joints[x]->positionAbsolute.z);
+								}
+								else if (joints[x]->jointType == Relative)
+								{
+									lControlPoints[subVerticeCounter] = FbxVector4(vertice->vertex.x, vertice->vertex.y, vertice->vertex.z);
+								}
+								found++;
+								break;
 							}
-							else if (joints[x]->jointType == Relative)
-							{
-								lControlPoints[subVerticeCounter] = FbxVector4(vertice->vertex.x, vertice->vertex.y, vertice->vertex.z);
-							}
-							found++;
-							break;
 						}
-					}
 
-					if (found > 0)
-						break;
+						if (found > 0)
+							break;
+					}
 				}
 			}
 
@@ -10805,9 +10909,9 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 					
 					FbxVector4* lMeshControlPoints = lMesh->GetControlPoints();
 					FbxVector4* lShapeControlPoints = lShape->GetControlPoints();
-					for (int y = 0; y < numberMeshPoints; y++)
+					for (int m = 0; m < numberMeshPoints; m++)
 					{
-						lShapeControlPoints[y] = lMeshControlPoints[y];
+						lShapeControlPoints[m] = lMeshControlPoints[m];
 					}
 
 					for (int z = 0; z < joints.size(); z++)
@@ -10948,274 +11052,410 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 			lCurveTopTranslationZ->KeyModifyEnd();
 			for (int z = 0; z < joints.size(); z++)
 			{
-				std::map<CString,FbxNode*>::iterator iterJointSkeleton = jointSkeleton.find(joints[z]->name);
-				if (iterJointSkeleton != jointSkeleton.end())
+				if (joints[z]->isShapeAnimationJoint)
 				{
-					FbxNode* node = iterJointSkeleton->second;
-					if (node != NULL)
+					for (std::map<CGroup*, FbxMesh*>::iterator itMeshes = meshGrouplookup.begin(); itMeshes != meshGrouplookup.end(); itMeshes++)
 					{
-						std::string name = node->GetName();
-						FbxAnimCurve* lCurveRotationX = node->LclRotation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
-						FbxAnimCurve* lCurveRotationY = node->LclRotation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
-						FbxAnimCurve* lCurveRotationZ = node->LclRotation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
-						FbxAnimCurve* lCurveScaleX = node->LclScaling.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
-						FbxAnimCurve* lCurveScaleY = node->LclScaling.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
-						FbxAnimCurve* lCurveScaleZ = node->LclScaling.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
-						FbxAnimCurve* lCurveTranslationX = node->LclTranslation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
-						FbxAnimCurve* lCurveTranslationY = node->LclTranslation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
-						FbxAnimCurve* lCurveTranslationZ = node->LclTranslation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
-					
-						lCurveRotationX->KeyModifyBegin();
-						lCurveRotationY->KeyModifyBegin();
-						lCurveRotationZ->KeyModifyBegin();
-						lCurveScaleX->KeyModifyBegin();
-						lCurveScaleY->KeyModifyBegin();
-						lCurveScaleZ->KeyModifyBegin();
-						lCurveTranslationX->KeyModifyBegin();
-						lCurveTranslationY->KeyModifyBegin();
-						lCurveTranslationZ->KeyModifyBegin();
+						FbxMesh* lMesh = itMeshes->second;
 
-						/*if (joints[z]->parent != NULL)
+						bool isMeshAShapeAnimationPart = false;
+						//for (int y = 0; y < animations[x]->keyframes.size(); y++)
+						if (animations[x]->keyframes.size() > 0)
 						{
-							node->LclTranslation.Set(FbxVector4((joints[z]->positionAbsolute.x - joints[z]->parent->positionAbsolute.x), (joints[z]->positionAbsolute.y - joints[z]->parent->positionAbsolute.y), (joints[z]->positionAbsolute.z - joints[z]->parent->positionAbsolute.z)));
+							int y = 0;
+							{
+								for (int w = 0; w < animations[x]->keyframes[y]->animationParts.size(); w++)
+								{
+									if (animations[x]->keyframes[y]->animationParts[w]->name == joints[z]->name)
+									{
+										if (animations[x]->keyframes[y]->animationParts[w]->shapeVertices.size() > 0)
+										{
+											for (int c = 0; c < joints[z]->controlPoints.size(); c++)
+											{
+												int controlPointIndex = joints[z]->controlPoints[c];
+												if (originalToSubVerticeControlPointMapping[itMeshes->first].find(controlPointIndex) != originalToSubVerticeControlPointMapping[itMeshes->first].end())
+												{
+													int controlPointIndexSub = originalToSubVerticeControlPointMapping[itMeshes->first][controlPointIndex];
+
+													for (int s = 0; s < animations[x]->keyframes[y]->animationParts[w]->shapeVertices.size(); s++)
+													{
+														if (animations[x]->keyframes[y]->animationParts[w]->shapeVertices[s].vertexIndex == controlPointIndex)
+														{
+															isMeshAShapeAnimationPart = true;
+
+															break;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
 						}
-						else
-						{
-							node->LclTranslation.Set(FbxVector4(joints[z]->positionAbsolute.x, joints[z]->positionAbsolute.y, joints[z]->positionAbsolute.z));
-						}*/
 
+						if (!isMeshAShapeAnimationPart)
+							continue;
+
+						FbxAnimCurve* lCurveShape = lMesh->GetShapeChannel(0, 0, lAnimLayer);
+
+						std::vector<FbxShape*> fbxBlendShapes;
 						for (int y = 0; y < animations[x]->keyframes.size(); y++)
 						{
-							lTime.SetFrame((float)animations[x]->keyframes[y]->number);
-							
-							bool foundRotationKey = false;
-							bool foundScaleKey = false;
-							bool foundTranslationKey = false;
+							CString shapeStr;
+							shapeStr.Format("%s_%s_%d", animations[x]->name, itMeshes->first->name, y);
+
+							FbxBlendShape* lBlendShape = FbxBlendShape::Create(pScene, shapeStr);
+							FbxBlendShapeChannel* lBlendShapeChannel = FbxBlendShapeChannel::Create(pScene, itMeshes->first->name);
+							lBlendShape->AddBlendShapeChannel(lBlendShapeChannel);
+
+							FbxShape* lShape = FbxShape::Create(pScene, shapeStr);
+							int numberMeshPoints = lMesh->GetControlPointsCount();
+							lShape->InitControlPoints(numberMeshPoints);
+
+							FbxVector4* lMeshControlPoints = lMesh->GetControlPoints();
+							FbxVector4* lShapeControlPoints = lShape->GetControlPoints();
+							for (int m = 0; m < numberMeshPoints; m++)
+							{
+								lShapeControlPoints[m] = lMeshControlPoints[m];
+							}
 
 							for (int w = 0; w < animations[x]->keyframes[y]->animationParts.size(); w++)
 							{
 								if (animations[x]->keyframes[y]->animationParts[w]->name == joints[z]->name)
 								{
-									int lKeyIndex;
-									if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->rotation.x != animations[x]->keyframes[y-1]->animationParts[w]->rotation.x) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->rotation.x == animations[x]->keyframes[y-1]->animationParts[w]->rotation.x) && (animations[x]->keyframes[y]->animationParts[w]->rotation.x != animations[x]->keyframes[y+1]->animationParts[w]->rotation.x)))
+									for (int c = 0; c < joints[z]->controlPoints.size(); c++)
 									{
-										key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->rotation.x);
-										//key.Set(lTime, 0.0f);
-										lKeyIndex = lCurveRotationX->KeyAdd(lTime, key);
-										lCurveRotationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-									}
-
-									if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->rotation.y != animations[x]->keyframes[y-1]->animationParts[w]->rotation.y) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->rotation.y == animations[x]->keyframes[y-1]->animationParts[w]->rotation.y) && (animations[x]->keyframes[y]->animationParts[w]->rotation.y != animations[x]->keyframes[y+1]->animationParts[w]->rotation.y)))
-									{
-										key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->rotation.y);
-										//key.Set(lTime, 0.0f);
-										lKeyIndex = lCurveRotationY->KeyAdd(lTime, key);
-										lCurveRotationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-									}
-
-									if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->rotation.z != animations[x]->keyframes[y-1]->animationParts[w]->rotation.z) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->rotation.z == animations[x]->keyframes[y-1]->animationParts[w]->rotation.z) && (animations[x]->keyframes[y]->animationParts[w]->rotation.z != animations[x]->keyframes[y+1]->animationParts[w]->rotation.z)))
-									{
-										key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->rotation.z);
-										//key.Set(lTime, 0.0f);
-										lKeyIndex = lCurveRotationZ->KeyAdd(lTime, key);
-										lCurveRotationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-									}
-
-
-									if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->scale.x != animations[x]->keyframes[y-1]->animationParts[w]->scale.x) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->scale.x == animations[x]->keyframes[y-1]->animationParts[w]->scale.x) && (animations[x]->keyframes[y]->animationParts[w]->scale.x != animations[x]->keyframes[y+1]->animationParts[w]->scale.x)))
-									{
-										key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->scale.x);
-										//key.Set(lTime, 1.0f);
-										lKeyIndex = lCurveScaleX->KeyAdd(lTime, key);
-										lCurveScaleX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-									}
-
-									if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->scale.y != animations[x]->keyframes[y-1]->animationParts[w]->scale.y) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->scale.y == animations[x]->keyframes[y-1]->animationParts[w]->scale.y) && (animations[x]->keyframes[y]->animationParts[w]->scale.y != animations[x]->keyframes[y+1]->animationParts[w]->scale.y)))
-									{
-										key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->scale.y);
-										//key.Set(lTime, 1.0f);
-										lKeyIndex = lCurveScaleY->KeyAdd(lTime, key);
-										lCurveScaleY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-									}
-
-									if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->scale.z != animations[x]->keyframes[y-1]->animationParts[w]->scale.z) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->scale.z == animations[x]->keyframes[y-1]->animationParts[w]->scale.z) && (animations[x]->keyframes[y]->animationParts[w]->scale.z != animations[x]->keyframes[y+1]->animationParts[w]->scale.z)))
-									{
-										key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->scale.z);
-										//key.Set(lTime, 1.0f);
-										lKeyIndex = lCurveScaleZ->KeyAdd(lTime, key);
-										lCurveScaleZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-									}
-
-									
-									if (joints[z]->name == "10")
-									{
-										joints[z]->name = joints[z]->name;
-									}
-
-
-									if (joints[z]->parent == NULL)
-									{
-										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.x != animations[x]->keyframes[y-1]->animationParts[w]->translation.x) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.x == animations[x]->keyframes[y-1]->animationParts[w]->translation.x) && (animations[x]->keyframes[y]->animationParts[w]->translation.x != animations[x]->keyframes[y+1]->animationParts[w]->translation.x)))
+										int controlPointIndex = joints[z]->controlPoints[c];
+										if (originalToSubVerticeControlPointMapping[itMeshes->first].find(controlPointIndex) != originalToSubVerticeControlPointMapping[itMeshes->first].end())
 										{
-											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.x + joints[z]->positionAbsolute.x);
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationX->KeyAdd(lTime, key);
-											lCurveTranslationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-										}
+											int controlPointIndexSub = originalToSubVerticeControlPointMapping[itMeshes->first][controlPointIndex];
 
-										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.y != animations[x]->keyframes[y-1]->animationParts[w]->translation.y) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.y == animations[x]->keyframes[y-1]->animationParts[w]->translation.y) && (animations[x]->keyframes[y]->animationParts[w]->translation.y != animations[x]->keyframes[y+1]->animationParts[w]->translation.y)))
-										{
-											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.y + joints[z]->positionAbsolute.y);
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationY->KeyAdd(lTime, key);
-											lCurveTranslationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-										}
+											for (int s = 0; s < animations[x]->keyframes[y]->animationParts[w]->shapeVertices.size(); s++)
+											{
+												if (animations[x]->keyframes[y]->animationParts[w]->shapeVertices[s].vertexIndex == controlPointIndex)
+												{
+													lShapeControlPoints[controlPointIndexSub][0] = lMeshControlPoints[controlPointIndexSub][0] + animations[x]->keyframes[y]->animationParts[w]->shapeVertices[s].translation.x;
+													lShapeControlPoints[controlPointIndexSub][1] = lMeshControlPoints[controlPointIndexSub][1] + animations[x]->keyframes[y]->animationParts[w]->shapeVertices[s].translation.y;
+													lShapeControlPoints[controlPointIndexSub][2] = lMeshControlPoints[controlPointIndexSub][2] + animations[x]->keyframes[y]->animationParts[w]->shapeVertices[s].translation.z;
 
-										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.z != animations[x]->keyframes[y-1]->animationParts[w]->translation.z) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.z == animations[x]->keyframes[y-1]->animationParts[w]->translation.z) && (animations[x]->keyframes[y]->animationParts[w]->translation.z != animations[x]->keyframes[y+1]->animationParts[w]->translation.z)))
-										{
-											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.z + joints[z]->positionAbsolute.z);
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationZ->KeyAdd(lTime, key);
-											lCurveTranslationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+													break;
+												}
+											}
 										}
 									}
-									else
-									{
-										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.x != animations[x]->keyframes[y-1]->animationParts[w]->translation.x) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.x == animations[x]->keyframes[y-1]->animationParts[w]->translation.x) && (animations[x]->keyframes[y]->animationParts[w]->translation.x != animations[x]->keyframes[y+1]->animationParts[w]->translation.x)))
-										{
-											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.x + (joints[z]->positionAbsolute.x - joints[z]->parent->positionAbsolute.x));
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationX->KeyAdd(lTime, key);
-											lCurveTranslationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-										}
-
-										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.y != animations[x]->keyframes[y-1]->animationParts[w]->translation.y) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.y == animations[x]->keyframes[y-1]->animationParts[w]->translation.y) && (animations[x]->keyframes[y]->animationParts[w]->translation.y != animations[x]->keyframes[y+1]->animationParts[w]->translation.y)))
-										{
-											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.y + (joints[z]->positionAbsolute.y - joints[z]->parent->positionAbsolute.y));
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationY->KeyAdd(lTime, key);
-											lCurveTranslationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-										}
-
-										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.z != animations[x]->keyframes[y-1]->animationParts[w]->translation.z) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.z == animations[x]->keyframes[y-1]->animationParts[w]->translation.z) && (animations[x]->keyframes[y]->animationParts[w]->translation.z != animations[x]->keyframes[y+1]->animationParts[w]->translation.z)))
-										{
-											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.z + (joints[z]->positionAbsolute.z - joints[z]->parent->positionAbsolute.z));
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationZ->KeyAdd(lTime, key);
-											lCurveTranslationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-										}
-									}
-
-									foundRotationKey = true;
-									foundScaleKey = true;
-									foundTranslationKey = true;
-									break;
 								}
 							}
 
-							if (animations.size() == 1)
-							{
-								if (!foundRotationKey)
-								{
-									if ((y == 0))
-									{
-										FbxAnimCurveKey key;
-
-										key.Set(lTime, 0.0f);
-										int lKeyIndex = lCurveRotationX->KeyAdd(lTime, key);
-										lCurveRotationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-
-										key.Set(lTime, 0.0f);
-										lKeyIndex = lCurveRotationY->KeyAdd(lTime, key);
-										lCurveRotationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-
-										key.Set(lTime, 0.0f);
-										lKeyIndex = lCurveRotationZ->KeyAdd(lTime, key);
-										lCurveRotationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-										foundRotationKey = true;
-									}
-								}
-
-								if (!foundScaleKey)
-								{
-									if ((y == 0))
-									{
-										FbxAnimCurveKey key;
-
-										key.Set(lTime, 1.0f);
-										int lKeyIndex = lCurveScaleX->KeyAdd(lTime, key);
-										lCurveScaleX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-
-										key.Set(lTime, 1.0f);
-										lKeyIndex = lCurveScaleY->KeyAdd(lTime, key);
-										lCurveScaleY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-
-										key.Set(lTime, 1.0f);
-										lKeyIndex = lCurveScaleZ->KeyAdd(lTime, key);
-										lCurveScaleZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-										foundScaleKey = true;
-									}
-								}
-
-								if (!foundTranslationKey)
-								{
-									FbxAnimCurveKey key;
-									int lKeyIndex;
-
-									if (joints[z]->parent == NULL)
-									{
-										if ((y == 0))
-										{
-											key.Set(lTime, joints[z]->positionAbsolute.x);
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationX->KeyAdd(lTime, key);
-											lCurveTranslationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-
-											key.Set(lTime, joints[z]->positionAbsolute.y);
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationY->KeyAdd(lTime, key);
-											lCurveTranslationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-
-											key.Set(lTime, joints[z]->positionAbsolute.z);
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationZ->KeyAdd(lTime, key);
-											lCurveTranslationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-										}
-									}
-									else
-									{
-										if ((y == 0))
-										{
-											key.Set(lTime, (joints[z]->positionAbsolute.x - joints[z]->parent->positionAbsolute.x));
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationX->KeyAdd(lTime, key);
-											lCurveTranslationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-
-											key.Set(lTime, (joints[z]->positionAbsolute.y - joints[z]->parent->positionAbsolute.y));
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationY->KeyAdd(lTime, key);
-											lCurveTranslationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-
-											key.Set(lTime, (joints[z]->positionAbsolute.z - joints[z]->parent->positionAbsolute.z));
-											//key.Set(lTime, 0.0f);
-											lKeyIndex = lCurveTranslationZ->KeyAdd(lTime, key);
-											lCurveTranslationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
-										}
-									}
-									foundTranslationKey = true;
-								}
-							}
+							fbxBlendShapes.push_back(lShape);
+							lBlendShapeChannel->AddTargetShape(lShape);
+							lMesh->AddDeformer(lBlendShape);
 						}
 
-						lCurveRotationX->KeyModifyEnd();
-						lCurveRotationY->KeyModifyEnd();
-						lCurveRotationZ->KeyModifyEnd();
-						lCurveScaleX->KeyModifyEnd();
-						lCurveScaleY->KeyModifyEnd();
-						lCurveScaleZ->KeyModifyEnd();
-						lCurveTranslationX->KeyModifyEnd();
-						lCurveTranslationY->KeyModifyEnd();
-						lCurveTranslationZ->KeyModifyEnd();
+						int lKeyIndex;
+						for (int y = 0; y < animations[x]->keyframes.size(); y++)
+						{
+							FbxShape* lShape = fbxBlendShapes[y];
+							FbxBlendShapeChannel* lBlendShapeChannel = lShape->GetBlendShapeChannel();
+
+							FbxAnimCurve* lCurveShape = lBlendShapeChannel->DeformPercent.GetCurve(lAnimLayer, true);
+							lCurveShape->KeyModifyBegin();
+							for (int yy = 0; yy < animations[x]->keyframes.size(); yy++)
+							{
+								if (y != yy)
+								{
+									if ((yy == 0) || (yy == (y - 1)) || (yy == (y + 1)))
+									{
+										lTime.SetFrame((float)animations[x]->keyframes[yy]->number);
+										key.Set(lTime, 0.0);
+										lKeyIndex = lCurveShape->KeyAdd(lTime, key);
+										lCurveShape->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+									}
+								}
+								else
+								{
+									lTime.SetFrame((float)animations[x]->keyframes[yy]->number);
+									key.Set(lTime, 100.0);
+									lKeyIndex = lCurveShape->KeyAdd(lTime, key);
+									lCurveShape->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+								}
+							}
+							lCurveShape->KeyModifyEnd();
+						}
+					}
+				}
+				else
+				{
+					std::map<CString,FbxNode*>::iterator iterJointSkeleton = jointSkeleton.find(joints[z]->name);
+					if (iterJointSkeleton != jointSkeleton.end())
+					{
+						FbxNode* node = iterJointSkeleton->second;
+						if (node != NULL)
+						{
+							std::string name = node->GetName();
+
+							FbxAnimCurve* lCurveRotationX = node->LclRotation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
+							FbxAnimCurve* lCurveRotationY = node->LclRotation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
+							FbxAnimCurve* lCurveRotationZ = node->LclRotation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
+							FbxAnimCurve* lCurveScaleX = node->LclScaling.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
+							FbxAnimCurve* lCurveScaleY = node->LclScaling.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
+							FbxAnimCurve* lCurveScaleZ = node->LclScaling.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
+							FbxAnimCurve* lCurveTranslationX = node->LclTranslation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_X, true);
+							FbxAnimCurve* lCurveTranslationY = node->LclTranslation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Y, true);
+							FbxAnimCurve* lCurveTranslationZ = node->LclTranslation.GetCurve(lAnimLayer, FBXSDK_CURVENODE_COMPONENT_Z, true);
+
+							lCurveRotationX->KeyModifyBegin();
+							lCurveRotationY->KeyModifyBegin();
+							lCurveRotationZ->KeyModifyBegin();
+							lCurveScaleX->KeyModifyBegin();
+							lCurveScaleY->KeyModifyBegin();
+							lCurveScaleZ->KeyModifyBegin();
+							lCurveTranslationX->KeyModifyBegin();
+							lCurveTranslationY->KeyModifyBegin();
+							lCurveTranslationZ->KeyModifyBegin();
+
+							/*if (joints[z]->parent != NULL)
+							{
+							node->LclTranslation.Set(FbxVector4((joints[z]->positionAbsolute.x - joints[z]->parent->positionAbsolute.x), (joints[z]->positionAbsolute.y - joints[z]->parent->positionAbsolute.y), (joints[z]->positionAbsolute.z - joints[z]->parent->positionAbsolute.z)));
+							}
+							else
+							{
+							node->LclTranslation.Set(FbxVector4(joints[z]->positionAbsolute.x, joints[z]->positionAbsolute.y, joints[z]->positionAbsolute.z));
+							}*/
+
+							for (int y = 0; y < animations[x]->keyframes.size(); y++)
+							{
+								lTime.SetFrame((float)animations[x]->keyframes[y]->number);
+
+								bool foundRotationKey = false;
+								bool foundScaleKey = false;
+								bool foundTranslationKey = false;
+
+								for (int w = 0; w < animations[x]->keyframes[y]->animationParts.size(); w++)
+								{
+									if (animations[x]->keyframes[y]->animationParts[w]->name == joints[z]->name)
+									{
+										int lKeyIndex;
+										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->rotation.x != animations[x]->keyframes[y - 1]->animationParts[w]->rotation.x) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->rotation.x == animations[x]->keyframes[y - 1]->animationParts[w]->rotation.x) && (animations[x]->keyframes[y]->animationParts[w]->rotation.x != animations[x]->keyframes[y + 1]->animationParts[w]->rotation.x)))
+										{
+											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->rotation.x);
+											//key.Set(lTime, 0.0f);
+											lKeyIndex = lCurveRotationX->KeyAdd(lTime, key);
+											lCurveRotationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+										}
+
+										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->rotation.y != animations[x]->keyframes[y - 1]->animationParts[w]->rotation.y) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->rotation.y == animations[x]->keyframes[y - 1]->animationParts[w]->rotation.y) && (animations[x]->keyframes[y]->animationParts[w]->rotation.y != animations[x]->keyframes[y + 1]->animationParts[w]->rotation.y)))
+										{
+											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->rotation.y);
+											//key.Set(lTime, 0.0f);
+											lKeyIndex = lCurveRotationY->KeyAdd(lTime, key);
+											lCurveRotationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+										}
+
+										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->rotation.z != animations[x]->keyframes[y - 1]->animationParts[w]->rotation.z) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->rotation.z == animations[x]->keyframes[y - 1]->animationParts[w]->rotation.z) && (animations[x]->keyframes[y]->animationParts[w]->rotation.z != animations[x]->keyframes[y + 1]->animationParts[w]->rotation.z)))
+										{
+											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->rotation.z);
+											//key.Set(lTime, 0.0f);
+											lKeyIndex = lCurveRotationZ->KeyAdd(lTime, key);
+											lCurveRotationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+										}
+
+
+										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->scale.x != animations[x]->keyframes[y - 1]->animationParts[w]->scale.x) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->scale.x == animations[x]->keyframes[y - 1]->animationParts[w]->scale.x) && (animations[x]->keyframes[y]->animationParts[w]->scale.x != animations[x]->keyframes[y + 1]->animationParts[w]->scale.x)))
+										{
+											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->scale.x);
+											//key.Set(lTime, 1.0f);
+											lKeyIndex = lCurveScaleX->KeyAdd(lTime, key);
+											lCurveScaleX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+										}
+
+										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->scale.y != animations[x]->keyframes[y - 1]->animationParts[w]->scale.y) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->scale.y == animations[x]->keyframes[y - 1]->animationParts[w]->scale.y) && (animations[x]->keyframes[y]->animationParts[w]->scale.y != animations[x]->keyframes[y + 1]->animationParts[w]->scale.y)))
+										{
+											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->scale.y);
+											//key.Set(lTime, 1.0f);
+											lKeyIndex = lCurveScaleY->KeyAdd(lTime, key);
+											lCurveScaleY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+										}
+
+										if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->scale.z != animations[x]->keyframes[y - 1]->animationParts[w]->scale.z) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->scale.z == animations[x]->keyframes[y - 1]->animationParts[w]->scale.z) && (animations[x]->keyframes[y]->animationParts[w]->scale.z != animations[x]->keyframes[y + 1]->animationParts[w]->scale.z)))
+										{
+											key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->scale.z);
+											//key.Set(lTime, 1.0f);
+											lKeyIndex = lCurveScaleZ->KeyAdd(lTime, key);
+											lCurveScaleZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+										}
+
+
+										if (joints[z]->name == "10")
+										{
+											joints[z]->name = joints[z]->name;
+										}
+
+
+										if (joints[z]->parent == NULL)
+										{
+											if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.x != animations[x]->keyframes[y - 1]->animationParts[w]->translation.x) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.x == animations[x]->keyframes[y - 1]->animationParts[w]->translation.x) && (animations[x]->keyframes[y]->animationParts[w]->translation.x != animations[x]->keyframes[y + 1]->animationParts[w]->translation.x)))
+											{
+												key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.x + joints[z]->positionAbsolute.x);
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationX->KeyAdd(lTime, key);
+												lCurveTranslationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+											}
+
+											if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.y != animations[x]->keyframes[y - 1]->animationParts[w]->translation.y) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.y == animations[x]->keyframes[y - 1]->animationParts[w]->translation.y) && (animations[x]->keyframes[y]->animationParts[w]->translation.y != animations[x]->keyframes[y + 1]->animationParts[w]->translation.y)))
+											{
+												key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.y + joints[z]->positionAbsolute.y);
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationY->KeyAdd(lTime, key);
+												lCurveTranslationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+											}
+
+											if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.z != animations[x]->keyframes[y - 1]->animationParts[w]->translation.z) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.z == animations[x]->keyframes[y - 1]->animationParts[w]->translation.z) && (animations[x]->keyframes[y]->animationParts[w]->translation.z != animations[x]->keyframes[y + 1]->animationParts[w]->translation.z)))
+											{
+												key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.z + joints[z]->positionAbsolute.z);
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationZ->KeyAdd(lTime, key);
+												lCurveTranslationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+											}
+										}
+										else
+										{
+											if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.x != animations[x]->keyframes[y - 1]->animationParts[w]->translation.x) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.x == animations[x]->keyframes[y - 1]->animationParts[w]->translation.x) && (animations[x]->keyframes[y]->animationParts[w]->translation.x != animations[x]->keyframes[y + 1]->animationParts[w]->translation.x)))
+											{
+												key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.x + (joints[z]->positionAbsolute.x - joints[z]->parent->positionAbsolute.x));
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationX->KeyAdd(lTime, key);
+												lCurveTranslationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+											}
+
+											if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.y != animations[x]->keyframes[y - 1]->animationParts[w]->translation.y) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.y == animations[x]->keyframes[y - 1]->animationParts[w]->translation.y) && (animations[x]->keyframes[y]->animationParts[w]->translation.y != animations[x]->keyframes[y + 1]->animationParts[w]->translation.y)))
+											{
+												key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.y + (joints[z]->positionAbsolute.y - joints[z]->parent->positionAbsolute.y));
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationY->KeyAdd(lTime, key);
+												lCurveTranslationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+											}
+
+											if ((y == 0) || (animations[x]->keyframes[y]->animationParts[w]->translation.z != animations[x]->keyframes[y - 1]->animationParts[w]->translation.z) || ((y != (animations[x]->keyframes.size() - 1)) && (animations[x]->keyframes[y]->animationParts[w]->translation.z == animations[x]->keyframes[y - 1]->animationParts[w]->translation.z) && (animations[x]->keyframes[y]->animationParts[w]->translation.z != animations[x]->keyframes[y + 1]->animationParts[w]->translation.z)))
+											{
+												key.Set(lTime, animations[x]->keyframes[y]->animationParts[w]->translation.z + (joints[z]->positionAbsolute.z - joints[z]->parent->positionAbsolute.z));
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationZ->KeyAdd(lTime, key);
+												lCurveTranslationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+											}
+										}
+
+										foundRotationKey = true;
+										foundScaleKey = true;
+										foundTranslationKey = true;
+										break;
+									}
+								}
+
+								if (animations.size() == 1)
+								{
+									if (!foundRotationKey)
+									{
+										if ((y == 0))
+										{
+											FbxAnimCurveKey key;
+
+											key.Set(lTime, 0.0f);
+											int lKeyIndex = lCurveRotationX->KeyAdd(lTime, key);
+											lCurveRotationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+
+											key.Set(lTime, 0.0f);
+											lKeyIndex = lCurveRotationY->KeyAdd(lTime, key);
+											lCurveRotationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+
+											key.Set(lTime, 0.0f);
+											lKeyIndex = lCurveRotationZ->KeyAdd(lTime, key);
+											lCurveRotationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+											foundRotationKey = true;
+										}
+									}
+
+									if (!foundScaleKey)
+									{
+										if ((y == 0))
+										{
+											FbxAnimCurveKey key;
+
+											key.Set(lTime, 1.0f);
+											int lKeyIndex = lCurveScaleX->KeyAdd(lTime, key);
+											lCurveScaleX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+
+											key.Set(lTime, 1.0f);
+											lKeyIndex = lCurveScaleY->KeyAdd(lTime, key);
+											lCurveScaleY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+
+											key.Set(lTime, 1.0f);
+											lKeyIndex = lCurveScaleZ->KeyAdd(lTime, key);
+											lCurveScaleZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+											foundScaleKey = true;
+										}
+									}
+
+									if (!foundTranslationKey)
+									{
+										FbxAnimCurveKey key;
+										int lKeyIndex;
+
+										if (joints[z]->parent == NULL)
+										{
+											if ((y == 0))
+											{
+												key.Set(lTime, joints[z]->positionAbsolute.x);
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationX->KeyAdd(lTime, key);
+												lCurveTranslationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+
+												key.Set(lTime, joints[z]->positionAbsolute.y);
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationY->KeyAdd(lTime, key);
+												lCurveTranslationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+
+												key.Set(lTime, joints[z]->positionAbsolute.z);
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationZ->KeyAdd(lTime, key);
+												lCurveTranslationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+											}
+										}
+										else
+										{
+											if ((y == 0))
+											{
+												key.Set(lTime, (joints[z]->positionAbsolute.x - joints[z]->parent->positionAbsolute.x));
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationX->KeyAdd(lTime, key);
+												lCurveTranslationX->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+
+												key.Set(lTime, (joints[z]->positionAbsolute.y - joints[z]->parent->positionAbsolute.y));
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationY->KeyAdd(lTime, key);
+												lCurveTranslationY->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+
+												key.Set(lTime, (joints[z]->positionAbsolute.z - joints[z]->parent->positionAbsolute.z));
+												//key.Set(lTime, 0.0f);
+												lKeyIndex = lCurveTranslationZ->KeyAdd(lTime, key);
+												lCurveTranslationZ->KeySetInterpolation(lKeyIndex, FbxAnimCurveDef::eInterpolationLinear);
+											}
+										}
+										foundTranslationKey = true;
+									}
+								}
+							}
+
+							lCurveRotationX->KeyModifyEnd();
+							lCurveRotationY->KeyModifyEnd();
+							lCurveRotationZ->KeyModifyEnd();
+							lCurveScaleX->KeyModifyEnd();
+							lCurveScaleY->KeyModifyEnd();
+							lCurveScaleZ->KeyModifyEnd();
+							lCurveTranslationX->KeyModifyEnd();
+							lCurveTranslationY->KeyModifyEnd();
+							lCurveTranslationZ->KeyModifyEnd();
+						}
 					}
 				}
 			}
@@ -12218,17 +12458,6 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 		return;
 
 	FbxEuler::EOrder rotationOrder;
-	pNode->GetRotationOrder(FbxNode::eSourcePivot, rotationOrder);
-	if (rotationOrder == FbxEuler::EOrder::eOrderXZY)
-		animation->rotationOrder = "XZY";
-	else if (rotationOrder == FbxEuler::EOrder::eOrderYZX)
-		animation->rotationOrder = "YZX";
-	else if (rotationOrder == FbxEuler::EOrder::eOrderYXZ)
-		animation->rotationOrder = "YXZ";
-	else if (rotationOrder == FbxEuler::EOrder::eOrderZXY)
-		animation->rotationOrder = "ZXY";
-	else if (rotationOrder == FbxEuler::EOrder::eOrderZYX)
-		animation->rotationOrder = "ZYX";
 
 	CString name = pNode->GetName();
 
@@ -12250,6 +12479,25 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 	{
 		if (name == "TopJoint")
 		{
+			for (int x = 0; x < joints.size(); x++)
+			{
+				if (joints[x]->name == "TopJoint")
+				{
+					pNode->GetRotationOrder(FbxNode::eSourcePivot, rotationOrder);
+					if (rotationOrder == FbxEuler::EOrder::eOrderXZY)
+						joints[x]->rotationOrder = "XZY";
+					else if (rotationOrder == FbxEuler::EOrder::eOrderYZX)
+						joints[x]->rotationOrder = "YZX";
+					else if (rotationOrder == FbxEuler::EOrder::eOrderYXZ)
+						joints[x]->rotationOrder = "YXZ";
+					else if (rotationOrder == FbxEuler::EOrder::eOrderZXY)
+						joints[x]->rotationOrder = "ZXY";
+					else if (rotationOrder == FbxEuler::EOrder::eOrderZYX)
+						joints[x]->rotationOrder = "ZYX";
+					break;
+				}
+			}
+
 			FbxAnimCurve* lAnimCurve = NULL;
 
 			lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
@@ -13144,6 +13392,18 @@ void CObjToAn8Dlg::ParseFbxAnimationRecursive(FbxAnimLayer* pAnimLayer, FbxNode*
 			{
 				if (joints[x]->name == name)
 				{
+					pNode->GetRotationOrder(FbxNode::eSourcePivot, rotationOrder);
+					if (rotationOrder == FbxEuler::EOrder::eOrderXZY)
+						joints[x]->rotationOrder = "XZY";
+					else if (rotationOrder == FbxEuler::EOrder::eOrderYZX)
+						joints[x]->rotationOrder = "YZX";
+					else if (rotationOrder == FbxEuler::EOrder::eOrderYXZ)
+						joints[x]->rotationOrder = "YXZ";
+					else if (rotationOrder == FbxEuler::EOrder::eOrderZXY)
+						joints[x]->rotationOrder = "ZXY";
+					else if (rotationOrder == FbxEuler::EOrder::eOrderZYX)
+						joints[x]->rotationOrder = "ZYX";
+
 					FbxAnimCurve* lAnimCurve = NULL;
 
 					lAnimCurve = pNode->LclTranslation.GetCurve(pAnimLayer, FBXSDK_CURVENODE_COMPONENT_X);
@@ -15090,6 +15350,173 @@ void CObjToAn8Dlg::ParseFbxBlendShapeRecursive(FbxAnimLayer* pAnimLayer, FbxNode
     }
 }
 
+void CObjToAn8Dlg::ParseFbxBlendShapePartRecursive(FbxAnimLayer* pAnimLayer, FbxNode* pNode, std::vector<CVertice*>& vertices, std::vector<CGroup*>& groups, std::vector<CJoint*>& joints, CAnimation* animation, bool noGroups, int& verticesOffset)
+{
+	if (pNode == NULL)
+		return;
+
+	CString name = pNode->GetName();
+
+	//TODO make flag for special
+	if (name.Find(":") != -1)
+	{
+		name = name.Mid(name.Find(":") + 1);
+	}
+
+	if (name.Find("_") == 0)
+		name = name.Mid(1);
+
+	if (pNode->GetNodeAttribute() != NULL)
+	{
+		FbxNodeAttribute::EType attributeType = pNode->GetNodeAttribute()->GetAttributeType();
+
+		FbxNode* parentNode = pNode->GetParent();
+		if (attributeType == FbxNodeAttribute::eMesh)
+		{
+			FbxMesh* pMesh = pNode->GetMesh();
+			if (pMesh->GetNode())
+			{
+				FbxNode* pMeshNode = pMesh->GetNode();
+				CString meshName = pMeshNode->GetName();;
+
+				if (meshName.Find(":") != -1)
+				{
+					meshName = meshName.Mid(meshName.Find(":") + 1);
+				}
+
+				CGroup* group = NULL;
+				if (!noGroups)
+				{
+					for (int x = 0; x < groups.size(); x++)
+					{
+						if (groups[x]->name == meshName)
+						{
+							group = groups[x];
+							break;
+						}
+					}
+				}
+
+				if (group == NULL)
+				{
+					if (groups.size() > 0)
+					{
+						group = groups[0];
+					}
+
+					for (int x = 0; x < groups.size(); x++)
+					{
+						if (groups[x]->polygons.size() > 0)
+						{
+							group = groups[x];
+							break;
+						}
+					}
+				}
+
+				int lBlendShapeDeformerCount = pMesh->GetDeformerCount(FbxDeformer::eBlendShape);
+
+				if (lBlendShapeDeformerCount > 0)
+				{
+					if (meshName.Find("_JointAssociation") != -1)
+					{
+						CString jointAssociationName = meshName.Mid(meshName.Find("_JointAssociation") + 17);
+						group->name = group->name.Mid(0, group->name.Find("_JointAssociation"));
+
+						int numberShapeControlPoints = 0;
+						for (int lBlendShapeIndex = 0; lBlendShapeIndex < lBlendShapeDeformerCount; ++lBlendShapeIndex)
+						{
+							FbxBlendShape* lBlendShape = (FbxBlendShape*)pMesh->GetDeformer(lBlendShapeIndex, FbxDeformer::eBlendShape);
+
+							int lBlendShapeChannelCount = lBlendShape->GetBlendShapeChannelCount();
+							for (int lChannelIndex = 0; lChannelIndex < lBlendShapeChannelCount; ++lChannelIndex)
+							{
+								FbxBlendShapeChannel* lChannel = lBlendShape->GetBlendShapeChannel(lChannelIndex);
+
+								if (lChannel)
+								{
+									FbxShape* lShape = lShape = lChannel->GetTargetShape(0);
+
+									if (lShape)
+									{
+										// Get the percentage of influence of the shape.
+										FbxAnimCurve* lAnimCurve = pMesh->GetShapeChannel(lBlendShapeIndex, lChannelIndex, pAnimLayer);
+
+										int numberKeyframes = 0;
+										for (int x = 0; x < lAnimCurve->KeyGetCount(); x++)
+										{
+											int currentKeyFrame = lAnimCurve->KeyGet(x).GetTime().GetFrameCount();
+											if ((currentKeyFrame + 1) > numberKeyframes)
+												numberKeyframes = currentKeyFrame + 1;
+										}
+
+										// add initial in order
+										for (int x = 0; x < numberKeyframes; x++)
+										{
+											GetAddKeyframe(x, animation);
+										}
+
+										if (lAnimCurve)
+										{
+											for (int lCount = 0; lCount < numberKeyframes; lCount++)
+											{
+												FbxTime fbxTime;
+												fbxTime.SetFrame(lCount);
+
+												double lWeight = lAnimCurve->Evaluate(fbxTime) * 0.01;
+
+												if (lWeight > 0)
+												{
+													numberShapeControlPoints = lShape->GetControlPointsCount();
+													FbxVector4* shapeControlPoints = lShape->GetControlPoints();
+													FbxVector4* lMeshControlPoints = pMesh->GetControlPoints();
+													CKeyframe* keyframe = GetAddKeyframe(lCount, animation);
+
+													for (int z = 0; z < joints.size(); z++)
+													{
+														if (joints[z]->name == jointAssociationName)
+														{
+															joints[z]->isShapeAnimationJoint = true;
+
+															CAnimationPart* animationPart = new CAnimationPart();
+															animationPart->name = joints[z]->name;
+
+															for (int x = 0; x < numberShapeControlPoints; x++)
+															{
+																CAnimationShapeVertex animationShapeVertex;
+
+																animationShapeVertex.vertexIndex = joints[z]->controlPoints[x];
+																animationShapeVertex.translation.x = ((shapeControlPoints[x][0] - vertices[animationShapeVertex.vertexIndex]->vertex.x));
+																animationShapeVertex.translation.y = ((shapeControlPoints[x][1] - vertices[animationShapeVertex.vertexIndex]->vertex.y));
+																animationShapeVertex.translation.z = ((shapeControlPoints[x][2] - vertices[animationShapeVertex.vertexIndex]->vertex.z));
+																animationPart->shapeVertices.push_back(animationShapeVertex);
+															}
+															keyframe->animationParts.push_back(animationPart);
+
+															break;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+
+						verticesOffset += numberShapeControlPoints;
+					}
+				}
+			}
+		}
+	}
+
+	for (int lModelCount = 0; lModelCount < pNode->GetChildCount(); lModelCount++)
+	{
+		ParseFbxBlendShapePartRecursive(pAnimLayer, pNode->GetChild(lModelCount), vertices, groups, joints, animation, noGroups, verticesOffset);
+	}
+}
+
 void CObjToAn8Dlg::ParseFbxSkeletonRecursive(FbxNode* pNode, std::vector<CJoint*>& joints, float3 position, CJoint* parent, map<CString, float3> skeletalOverrides, map<CString, float3> skeletalOverridesRelativeScale, map<CString, float3> skeletalOverridesRelativeRotation, map<CString, float3> skeletalOverridesRelativePosition, JointType jointType)
 {
 	if (pNode == NULL)
@@ -15421,83 +15848,118 @@ void CObjToAn8Dlg::ParseFbxNodeRecursive(FbxNode* pNode, CGroup* currentGroup, C
 
 				for (unsigned int deformerIndex = 0; deformerIndex < numOfDeformers; deformerIndex++)
 				{
-					FbxSkin* currSkin = reinterpret_cast<FbxSkin*>(pMesh->GetDeformer(deformerIndex, FbxDeformer::eSkin));
+					FbxDeformer* deformer = pMesh->GetDeformer(deformerIndex);
+					FbxSkin* currSkin = NULL;
+					if (deformer->Is<FbxSkin>()) 
+						currSkin = reinterpret_cast<FbxSkin*>(pMesh->GetDeformer(deformerIndex, FbxDeformer::eSkin));
 					if (currSkin == NULL)
 					{
-						continue;
-					}
+						FbxBlendShape* lBlendShape = NULL;
+						if (deformer->Is<FbxBlendShape>())
+							lBlendShape = reinterpret_cast<FbxBlendShape*>(pMesh->GetDeformer(deformerIndex, FbxDeformer::eBlendShape));
 
-					int numOfClusters = currSkin->GetClusterCount();
-					for (int clusterIndex = 0; clusterIndex < numOfClusters; clusterIndex++)
-					{
-						FbxCluster* lCluster = currSkin->GetCluster(clusterIndex);
-
-						FbxAMatrix transformMatrix;
-						lCluster->GetTransformMatrix(transformMatrix);
-
-						FbxAMatrix transformLinkMatrix;
-						lCluster->GetTransformLinkMatrix(transformLinkMatrix);
-
-						FbxAMatrix finalTransformMatrix = transformLinkMatrix.Inverse() * transformMatrix;
-
-						if (!lCluster->GetLink())
-							continue;
-
-						int linkMode = lCluster->GetLinkMode();
-
-						FbxNode* link = lCluster->GetLink();
-						CString currJointName = link->GetName();
-
-						if (currJointName.Find(":") != -1)
+						if (lBlendShape != NULL)
 						{
-							currJointName = currJointName.Mid(currJointName.Find(":") + 1);
-						}
-
-						if (currJointName.Find("_") == 0)
-							currJointName = currJointName.Mid(1);
-
-						int lVertexIndexCount = lCluster->GetControlPointIndicesCount();
-
-						if (lVertexIndexCount > 0)
-						{
-							CJoint* matchedJoint = NULL;
-							for (int r = 0; r < joints.size(); r++)
+							if (meshName.Find("_JointAssociation") != -1)
 							{
-								if (joints[r]->name == currJointName)
+								CString jointAssociationName = meshName.Mid(meshName.Find("_JointAssociation") + 17);
+
+								CJoint* matchedJoint = NULL;
+								for (int r = 0; r < joints.size(); r++)
 								{
-									matchedJoint = joints[r];
-									break;
+									if (joints[r]->name == jointAssociationName)
+									{
+										matchedJoint = joints[r];
+										break;
+									}
+								}
+
+								if (matchedJoint != NULL)
+								{
+									int numberMeshControlPoints = pMesh->GetControlPointsCount();
+
+									for (int lIndex = 0; lIndex < numberMeshControlPoints; lIndex++)
+									{
+										matchedJoint->controlPoints.push_back(meshVerticeOffset + lIndex);
+									}
 								}
 							}
+						}
+					}
+					else
+					{
+						int numOfClusters = currSkin->GetClusterCount();
+						for (int clusterIndex = 0; clusterIndex < numOfClusters; clusterIndex++)
+						{
+							FbxCluster* lCluster = currSkin->GetCluster(clusterIndex);
 
-							if (matchedJoint != NULL)
+							FbxAMatrix transformMatrix;
+							lCluster->GetTransformMatrix(transformMatrix);
+
+							FbxAMatrix transformLinkMatrix;
+							lCluster->GetTransformLinkMatrix(transformLinkMatrix);
+
+							FbxAMatrix finalTransformMatrix = transformLinkMatrix.Inverse() * transformMatrix;
+
+							if (!lCluster->GetLink())
+								continue;
+
+							int linkMode = lCluster->GetLinkMode();
+
+							FbxNode* link = lCluster->GetLink();
+							CString currJointName = link->GetName();
+
+							if (currJointName.Find(":") != -1)
 							{
-								for (int k = 0; k < lVertexIndexCount; ++k) 
-								{            
-									int lIndex = lCluster->GetControlPointIndices()[k];
+								currJointName = currJointName.Mid(currJointName.Find(":") + 1);
+							}
 
-									FbxCluster::ELinkMode clusterMode = lCluster->GetLinkMode();
+							if (currJointName.Find("_") == 0)
+								currJointName = currJointName.Mid(1);
 
-									// Sometimes, the mesh can have less points than at the time of the skinning
-									// because a smooth operator was active when skinning but has been deactivated during export.
-									if (lIndex >= lControlPointsCount)
-										continue;
+							int lVertexIndexCount = lCluster->GetControlPointIndicesCount();
 
-									double lWeight = lCluster->GetControlPointWeights()[k];
-
-									if (fabs(lWeight - 1.0) > EPSILONVALUES)
-									//if (lWeight != 1.0)
+							if (lVertexIndexCount > 0)
+							{
+								CJoint* matchedJoint = NULL;
+								for (int r = 0; r < joints.size(); r++)
+								{
+									if (joints[r]->name == currJointName)
 									{
-										if (fabs(lWeight) > EPSILONVALUES)
-										//if (lWeight != 0.0)
-										{
-											CString tempStr;
-											tempStr.Format("Node %s Joint %s has weight that is %f, not 1.0 Vertice %d\n", nodeName, matchedJoint->name, lWeight, lIndex);
-											errorString += tempStr;
-										}
+										matchedJoint = joints[r];
+										break;
 									}
+								}
 
-									matchedJoint->controlPoints.push_back(meshVerticeOffset + lIndex);
+								if (matchedJoint != NULL)
+								{
+									for (int k = 0; k < lVertexIndexCount; ++k)
+									{
+										int lIndex = lCluster->GetControlPointIndices()[k];
+
+										FbxCluster::ELinkMode clusterMode = lCluster->GetLinkMode();
+
+										// Sometimes, the mesh can have less points than at the time of the skinning
+										// because a smooth operator was active when skinning but has been deactivated during export.
+										if (lIndex >= lControlPointsCount)
+											continue;
+
+										double lWeight = lCluster->GetControlPointWeights()[k];
+
+										if (fabs(lWeight - 1.0) > EPSILONVALUES)
+											//if (lWeight != 1.0)
+										{
+											if (fabs(lWeight) > EPSILONVALUES)
+												//if (lWeight != 0.0)
+											{
+												CString tempStr;
+												tempStr.Format("Node %s Joint %s has weight that is %f, not 1.0 Vertice %d\n", nodeName, matchedJoint->name, lWeight, lIndex);
+												errorString += tempStr;
+											}
+										}
+
+										matchedJoint->controlPoints.push_back(meshVerticeOffset + lIndex);
+									}
 								}
 							}
 						}
@@ -16904,7 +17366,6 @@ void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor
 		
 		for (int x = 0; x < animations.size(); x++)
 		{
-			CString rotationOrder = animations[x]->rotationOrder;
 			if (!animations[x]->isCamera)
 			{
 				// Top Joint First
@@ -16929,6 +17390,15 @@ void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor
 		for (int z = 0; z < animations[x]->keyframes.size(); z++)
 		{
 			float4x4 matrixKeyframe = float4x4::identity;
+			CString rotationOrder = "XYZ";
+			for (int joint = 0; joint < joints.size(); joint++)
+			{
+				if (joints[joint]->name == "TopJoint")
+				{
+					rotationOrder = joints[joint]->rotationOrder;
+					break;
+				}
+			}
 
 			matrixKeyframe = matrixKeyframe * matrixKeyframe.Translate(float3(animations[x]->keyframes[z]->translation.x, animations[x]->keyframes[z]->translation.y, animations[x]->keyframes[z]->translation.z));
 			if (rotationOrder == "XZY")
@@ -17038,31 +17508,31 @@ void CObjToAn8Dlg::WriteOwnDaeFile(CString outputFile, std::vector<CVerticeColor
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.Translate(float3(animations[x]->keyframes[z]->animationParts[w]->translation.x + (joints[joint]->positionAbsolute.x - joints[joint]->parent->positionAbsolute.x), animations[x]->keyframes[z]->animationParts[w]->translation.y + (joints[joint]->positionAbsolute.y - joints[joint]->parent->positionAbsolute.y), animations[x]->keyframes[z]->animationParts[w]->translation.z + (joints[joint]->positionAbsolute.z - joints[joint]->parent->positionAbsolute.z)));
 								}
 
-								if (rotationOrder == "XZY")
+								if (joints[joint]->rotationOrder == "XZY")
 								{
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.z));
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
 								}
-								else if (rotationOrder == "YZX")
+								else if (joints[joint]->rotationOrder == "YZX")
 								{
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.z));
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));
 								}
-								else if (rotationOrder == "YXZ")
+								else if (joints[joint]->rotationOrder == "YXZ")
 								{
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.z));
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));
 								}
-								else if (rotationOrder == "ZXY")
+								else if (joints[joint]->rotationOrder == "ZXY")
 								{
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateZ(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.z));
 								}
-								else if (rotationOrder == "ZYX")
+								else if (joints[joint]->rotationOrder == "ZYX")
 								{
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateX(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.x));
 									matrixKeyframe = matrixKeyframe * matrixKeyframe.RotateY(AN8XToRadian(animations[x]->keyframes[z]->animationParts[w]->rotation.y));

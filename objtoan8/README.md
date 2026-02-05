@@ -195,7 +195,12 @@ Example:
 Relative to parent Scaling applied to the part.  Must appear after the matching \#keyframe and \#part command.  If not present, defaults to 1,1,1.  
   
 Example:  
-\#partscale 0.420000 0.420000 0.420000  
+\#partscale 0.420000 0.420000 0.420000
+
+***Part Shape Animation***
+\##partshapetranslation 1393 37.122864 75.727661 -926.345032
+
+If a single part is going to be a shape animation, instead of the full model, the animation can include a part shape translation, which is the vertex index followed by the relative translation of that point.  Note that the translations will not be relative to the joint hierarchy, so should be absolute, as if the joint were 0,0,0.  This is not supporting for output to dae, bvh, or an8.
   
 ***Part is Interpolated***  
   

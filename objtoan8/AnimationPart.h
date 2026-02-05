@@ -1,6 +1,7 @@
 #pragma once
 
 #include "float3.h"
+#include "AnimationShapeVertex.h"
 
 using namespace math;
 
@@ -23,4 +24,6 @@ public:
 	bool scaleIsInterpolated[3];
 	bool scaleHasDerivative[3];
 	float3 scaleDerivativeValue;
+
+	std::vector<CAnimationShapeVertex> shapeVertices;
 };

@@ -29,4 +29,8 @@ public:
 
 	std::vector<int> controlPoints;
 	JointType jointType;
+
+	CString rotationOrder;
+
+	bool isShapeAnimationJoint;
 };

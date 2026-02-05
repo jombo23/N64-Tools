@@ -414,6 +414,9 @@
     <ClCompile Include="liban8\AN8XMath_Quaternion.cpp">
       <Filter>Source Files\LibAn8</Filter>
     </ClCompile>
+    <ClCompile Include="AnimationShapeVertex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation.h">
@@ -718,6 +721,9 @@
     </ClInclude>
     <ClInclude Include="liban8\AN8X.h">
       <Filter>Header Files\LibAn8</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationShapeVertex.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

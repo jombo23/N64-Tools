@@ -174,8 +174,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,6
- PRODUCTVERSION 1,0,0,6
+ FILEVERSION 1,0,0,7
+ PRODUCTVERSION 1,0,0,7
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -192,12 +192,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "GoldenEyeVault.com"
             VALUE "FileDescription", "Obj2An8 Convertor"
-            VALUE "FileVersion", "1.0.0.6"
+            VALUE "FileVersion", "1.0.0.7"
             VALUE "InternalName", "ObjToAn8.exe"
             VALUE "LegalCopyright", "(c) GoldenEyeVault.com  All rights reserved."
             VALUE "OriginalFilename", "ObjToAn8.exe"
             VALUE "ProductName", "ObjToAn8"
-            VALUE "ProductVersion", "1.0.0.6"
+            VALUE "ProductVersion", "1.0.0.7"
         END
     END
     BLOCK "VarFileInfo"

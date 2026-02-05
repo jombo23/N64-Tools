@@ -9,6 +9,8 @@ CJoint::CJoint(void)
 	orientationVectorY = float3(0,1,0);
 	orientationVectorZ = float3(0,0,1);
 	jointType = Absolute;
+	rotationOrder = "XYZ";
+	isShapeAnimationJoint = false;
 }
 
 CJoint::~CJoint(void)

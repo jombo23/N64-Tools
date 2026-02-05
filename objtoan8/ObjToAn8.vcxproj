@@ -340,6 +340,7 @@
   <ItemGroup>
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="AnimationPart.cpp" />
+    <ClCompile Include="AnimationShapeVertex.cpp" />
     <ClCompile Include="Bone.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ColorQuadruplet.cpp" />
@@ -1268,6 +1269,7 @@
   <ItemGroup>
     <ClInclude Include="Animation.h" />
     <ClInclude Include="AnimationPart.h" />
+    <ClInclude Include="AnimationShapeVertex.h" />
     <ClInclude Include="Bone.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ColorQuadruplet.h" />

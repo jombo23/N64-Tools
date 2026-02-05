@@ -14,5 +14,4 @@ public:
 
 	bool isCamera;
 	bool treatAsBlendShape;
-	CString rotationOrder;
 };
