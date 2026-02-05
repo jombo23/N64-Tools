@@ -102,8 +102,15 @@ Example:
 \#joint 1  
 \#vjoint 1 2 3 4 6 7  
   
-  
-  
+***Joint Rotation Order***
+Supports different joint rotation order (for everything except an8 format).
+
+#jointrotationorder ZXY
+
+Only supported are the 6 standard combinations of XYZ.  If unspecified, default to XYZ.
+
+\#joint 0
+\#jointrotationorder ZXY
   
 ### Animations  
 Animations are defined, much like FBX format, using Euler Angles, Translation, and Scaling relative to the parent part.  Though the format supports multiple animations, one animation per file is recommended.  
