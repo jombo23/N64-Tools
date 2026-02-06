@@ -4727,6 +4727,21 @@ void CObjToAn8Dlg::MoveVertices(std::vector<CVerticeColor*>& verticeColors, std:
 		vertice->vertex.z = vertice->vertex.z + zMove;
 	}
 
+	for (int x = 0; x < animations.size(); x++)
+	{
+		for (int y = 0; y < animations[x]->keyframes.size(); y++)
+		{
+			for (int z = 0; z < animations[x]->keyframes[y]->animationParts.size(); z++)
+			{
+				for (int b = 0; b < animations[x]->keyframes[y]->animationParts[z]->shapeVertices.size(); b++)
+				{
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.x += xMove;
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.y += yMove;
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.z += zMove;
+				}
+			}
+		}
+	}
 	
 	if (animations.size() > 0)
 	{
@@ -4795,6 +4810,22 @@ void CObjToAn8Dlg::RecenterVertices(std::vector<CVerticeColor*>& verticeColors, 
 		vertice->vertex.z = vertice->vertex.z - centerZ;
 	}
 
+	for (int x = 0; x < animations.size(); x++)
+	{
+		for (int y = 0; y < animations[x]->keyframes.size(); y++)
+		{
+			for (int z = 0; z < animations[x]->keyframes[y]->animationParts.size(); z++)
+			{
+				for (int b = 0; b < animations[x]->keyframes[y]->animationParts[z]->shapeVertices.size(); b++)
+				{
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.x -= centerX;
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.y -= centerY;
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.z -= centerZ;
+				}
+			}
+		}
+	}
+
 	if (animations.size() > 0)
 	{
 		bool allBlendShape = true;
@@ -4847,6 +4878,22 @@ void CObjToAn8Dlg::RoundVerticesTenths(std::vector<CVerticeColor*>& verticeColor
 		vertice->vertex.z = roundtenths(vertice->vertex.z);
 	}
 
+	for (int x = 0; x < animations.size(); x++)
+	{
+		for (int y = 0; y < animations[x]->keyframes.size(); y++)
+		{
+			for (int z = 0; z < animations[x]->keyframes[y]->animationParts.size(); z++)
+			{
+				for (int b = 0; b < animations[x]->keyframes[y]->animationParts[z]->shapeVertices.size(); b++)
+				{
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.x = roundtenths(animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.x);
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.y = roundtenths(animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.y);
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.z = roundtenths(animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.z);
+				}
+			}
+		}
+	}
+
 	if (animations.size() > 0)
 	{
 		bool allBlendShape = true;
@@ -4897,6 +4944,22 @@ void CObjToAn8Dlg::RoundVerticesHundredths(std::vector<CVerticeColor*>& verticeC
 		vertice->vertex.x = roundhundreths(vertice->vertex.x);
 		vertice->vertex.y = roundhundreths(vertice->vertex.y);
 		vertice->vertex.z = roundhundreths(vertice->vertex.z);
+	}
+
+	for (int x = 0; x < animations.size(); x++)
+	{
+		for (int y = 0; y < animations[x]->keyframes.size(); y++)
+		{
+			for (int z = 0; z < animations[x]->keyframes[y]->animationParts.size(); z++)
+			{
+				for (int b = 0; b < animations[x]->keyframes[y]->animationParts[z]->shapeVertices.size(); b++)
+				{
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.x = roundhundreths(animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.x);
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.y = roundhundreths(animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.y);
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.z = roundhundreths(animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.z);
+				}
+			}
+		}
 	}
 
 	if (animations.size() > 0)
@@ -4970,6 +5033,22 @@ void CObjToAn8Dlg::ScaleVertices(std::vector<CVerticeColor*>& verticeColors, std
 		vertice->vertex.z = (vertice->vertex.z * scaleFactor);
 	}
 
+	for (int x = 0; x < animations.size(); x++)
+	{
+		for (int y = 0; y < animations[x]->keyframes.size(); y++)
+		{
+			for (int z = 0; z < animations[x]->keyframes[y]->animationParts.size(); z++)
+			{
+				for (int b = 0; b < animations[x]->keyframes[y]->animationParts[z]->shapeVertices.size(); b++)
+				{
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.x *= scaleFactor;
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.y *= scaleFactor;
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.z *= scaleFactor;
+				}
+			}
+		}
+	}
+
 	if (animations.size() > 0)
 	{
 		bool allBlendShape = true;
@@ -5020,6 +5099,22 @@ void CObjToAn8Dlg::RoundVertices(std::vector<CVerticeColor*>& verticeColors, std
 		vertice->vertex.x = round(vertice->vertex.x);
 		vertice->vertex.y = round(vertice->vertex.y);
 		vertice->vertex.z = round(vertice->vertex.z);
+	}
+
+	for (int x = 0; x < animations.size(); x++)
+	{
+		for (int y = 0; y < animations[x]->keyframes.size(); y++)
+		{
+			for (int z = 0; z < animations[x]->keyframes[y]->animationParts.size(); z++)
+			{
+				for (int b = 0; b < animations[x]->keyframes[y]->animationParts[z]->shapeVertices.size(); b++)
+				{
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.x = round(animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.x);
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.y = round(animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.y);
+					animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.z = round(animations[x]->keyframes[y]->animationParts[z]->shapeVertices[b].translation.z);
+				}
+			}
+		}
 	}
 
 	if (animations.size() > 0)
