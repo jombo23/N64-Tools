@@ -10008,21 +10008,24 @@ void CObjToAn8Dlg::WriteFbxFile(CString outputFile, std::vector<CVerticeColor*> 
 		pScene->GetGlobalSettings().SetCustomFrameRate(fps);
 	}
 
-	int x = 0;
-	if (animations[x]->keyframes.size() > 0)
+	if (animations.size() > 0)
 	{
-		int y = 0;
+		int x = 0;
+		if (animations[x]->keyframes.size() > 0)
 		{
-			for (int w = 0; w < animations[x]->keyframes[y]->animationParts.size(); w++)
+			int y = 0;
 			{
-				for (int j = 0; j < joints.size(); j++)
+				for (int w = 0; w < animations[x]->keyframes[y]->animationParts.size(); w++)
 				{
-					if (animations[x]->keyframes[y]->animationParts[w]->name == joints[j]->name)
+					for (int j = 0; j < joints.size(); j++)
 					{
-						if (animations[x]->keyframes[y]->animationParts[w]->shapeVertices.size() > 0)
+						if (animations[x]->keyframes[y]->animationParts[w]->name == joints[j]->name)
 						{
-							joints[j]->isShapeAnimationJoint = true;
-							break;
+							if (animations[x]->keyframes[y]->animationParts[w]->shapeVertices.size() > 0)
+							{
+								joints[j]->isShapeAnimationJoint = true;
+								break;
+							}
 						}
 					}
 				}
