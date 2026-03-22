@@ -16854,11 +16854,11 @@ ALBank* CN64AIFCAudio::ReadAudioZelda(std::vector<ctlTblResult>& results, unsign
 
 		int tblIndex2 = ctlTblTableData[backwards + offsetZeldaCtlTable + 0x10 + (0x10 * ctlIndex) + 0xB];
 
-		while (CharArrayToLong(&ctlTblTableData[offsetZeldaTblTable + 0x10 + (0x10 * tblIndex2) + 4]) == 0x0)
-			tblIndex2--;
-
 		if (tblIndex2 != 0xFF)
 		{
+			while (CharArrayToLong(&ctlTblTableData[offsetZeldaTblTable + 0x10 + (0x10 * tblIndex2) + 4]) == 0x0)
+				tblIndex2--;
+
 			tblOffset = startZeldaTblData + CharArrayToLong(&ctlTblTableData[offsetZeldaTblTable + 0x10 + (0x10 * tblIndex2)]);
 			tbl2 = &rom[tblOffset];
 		}
