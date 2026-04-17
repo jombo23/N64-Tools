@@ -2641,10 +2641,16 @@ beq $t0, $zero, back
 addiu $t6, $zero, 1
 
 lb $t0, 10D($t0)
-
-beq $t0, $t6, doinvert
+; normal gameplay
+beq $t0, $t6, RCheck
 nop
 
+; detected by enemy
+addiu $t6, $zero, 25
+beq $t0, $t6, RCheck
+nop
+
+; not player
 bne $t0, zero, back
 nop
 
