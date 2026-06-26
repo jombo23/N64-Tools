@@ -68,6 +68,7 @@
 #define IDC_CHECK1                      1046
 #define IDC_BUTTONPLAYSND2              1046
 #define IDC_CHECKHALFSAMPLINGRATE       1047
+#define IDC_CHECKHALFSAMPLINGRATE2      1048
 #define IDC_EDITBENDRANGE               1050
 #define IDC_STATICBENDRANGE             1051
 #define IDC_PERCUSSIONLABEL             1054
@@ -193,6 +194,7 @@
 #define IDC_BUTTONIMPORTSDKTOOLS        1719
 #define IDC_EDITTBLINDEX                1720
 #define IDC_CHECKRAWBATCH               1721
+#define IDC_CHECKRAWBATCH2              1722
 #define IDC_BUTTONVADPCMIMPORT          1767
 #define IDC_BUTTONVADPCMIMPORTSAMEPRED  1768
 #define ID_FILE_OPENROM                 32771
