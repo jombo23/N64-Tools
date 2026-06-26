@@ -232,6 +232,7 @@ public:
 	afx_msg void OnBnClickedButtonaddprev2();
 	afx_msg void OnBnClickedButtonremoveprev2();
 	CButton mHalfSamplingRate;
+	CButton mCheckRawBatch;
 	afx_msg void OnBnClickedButtonstopsound();
 	CButton m_stopButton;
 	CString LoadResourceText(int resourceTextId);
