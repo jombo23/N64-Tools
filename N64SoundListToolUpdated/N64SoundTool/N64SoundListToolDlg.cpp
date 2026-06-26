@@ -133,6 +133,7 @@ void CN64SoundListToolDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTONADDPREV2, mAddSecButton);
 	DDX_Control(pDX, IDC_BUTTONREMOVEPREV2, mRemoveSecButton);
 	DDX_Control(pDX, IDC_CHECKHALFSAMPLINGRATE, mHalfSamplingRate);
+	DDX_Control(pDX, IDC_CHECKRAWBATCH, mCheckRawBatch);
 	DDX_Control(pDX, IDC_BUTTONSTOPSOUND, m_stopButton);
 	DDX_Control(pDX, IDC_STATICBENDRANGE, m_InstrBendRangeStatic);
 	DDX_Control(pDX, IDC_EDITBENDRANGE, mBendRange);
@@ -9998,11 +9999,78 @@ void CN64SoundListToolDlg::OnBnClickedButtonrip()
 		CString outputFolder;
 		if (GetFolder(outputFolder, "Folder To Save To", NULL))
 		{
+			bool exportRaw = mCheckRawBatch.GetCheck() != 0;
 			float sampleRate = alBankCurrent->samplerate;
 
-			if (alBankCurrent->percussion != NULL)
+			if (exportRaw)
 			{
-				for (int y = 0; y < alBankCurrent->percussion->soundCount; y++)
+				// Export as raw binary files
+				if (alBankCurrent->percussion != NULL)
+				{
+					for (int y = 0; y < alBankCurrent->percussion->soundCount; y++)
+					{
+						CString tempExportNameStr;
+						if (mExportShortFilename.GetCheck())
+							tempExportNameStr.Format("%s\\B%02XP%02X.bin", outputFolder, mSoundBankIndex.GetCurSel(), y);
+						else
+							tempExportNameStr.Format("%s\\BANK_%02X_PERC_%04X.bin", outputFolder, mSoundBankIndex.GetCurSel(), y);
+						n64AudioLibrary.ExportEADRawPercussionData(alBankCurrent, y, tempExportNameStr);
+					}
+				}
+
+				for (int y = 0; y < alBankCurrent->countEADPercussion; y++)
+				{
+					CString tempExportNameStr;
+					if (mExportShortFilename.GetCheck())
+						tempExportNameStr.Format("%s\\B%02XP%02X.bin", outputFolder, mSoundBankIndex.GetCurSel(), y);
+					else
+						tempExportNameStr.Format("%s\\BANK_%02X_PERC_%04X.bin", outputFolder, mSoundBankIndex.GetCurSel(), y);
+					n64AudioLibrary.ExportEADRawPercussionData(alBankCurrent, y, tempExportNameStr);
+				}
+
+				for (int y = 0; y < alBankCurrent->countSfx; y++)
+				{
+					CString tempExportNameStr;
+					if (mExportShortFilename.GetCheck())
+						tempExportNameStr.Format("%s\\B%02XF%02X.bin", outputFolder, mSoundBankIndex.GetCurSel(), y);
+					else
+						tempExportNameStr.Format("%s\\BANK_%02X_SFX_%04X.bin", outputFolder, mSoundBankIndex.GetCurSel(), y);
+					n64AudioLibrary.ExportRawSfxData(alBankCurrent, y, tempExportNameStr);
+				}
+
+				for (int x = 0; x < alBankCurrent->count; x++)
+				{
+					for (int y = 0; y < alBankCurrent->inst[x]->soundCount; y++)
+					{
+						CString tempExportNameStr;
+						if (mExportShortFilename.GetCheck())
+							tempExportNameStr.Format("%s\\B%02XI%02XS%02X.bin", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+						else
+							tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.bin", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+
+						n64AudioLibrary.ExportRawData(alBankCurrent, x, y, tempExportNameStr, PRIMARY);
+					}
+				}
+			}
+			else
+			{
+				// Export as wave files
+				if (alBankCurrent->percussion != NULL)
+				{
+					for (int y = 0; y < alBankCurrent->percussion->soundCount; y++)
+					{
+						if (alBankCurrent->samplerate != 0)
+							sampleRate = (alBankCurrent->samplerate);
+						CString tempExportNameStr;
+						if (mExportShortFilename.GetCheck())
+							tempExportNameStr.Format("%s\\B%02XP%02X.wav", outputFolder, mSoundBankIndex.GetCurSel(), y);
+						else
+							tempExportNameStr.Format("%s\\BANK_%02X_PERC_%04X.wav", outputFolder, mSoundBankIndex.GetCurSel(), y);
+						n64AudioLibrary.ExtractPercussion(mainFolder, alBankCurrent, y, tempExportNameStr, sampleRate, mHalfSamplingRate.GetCheck());
+					}
+				}
+
+				for (int y = 0; y < alBankCurrent->countEADPercussion; y++)
 				{
 					if (alBankCurrent->samplerate != 0)
 						sampleRate = (alBankCurrent->samplerate);
@@ -10011,89 +10079,77 @@ void CN64SoundListToolDlg::OnBnClickedButtonrip()
 						tempExportNameStr.Format("%s\\B%02XP%02X.wav", outputFolder, mSoundBankIndex.GetCurSel(), y);
 					else
 						tempExportNameStr.Format("%s\\BANK_%02X_PERC_%04X.wav", outputFolder, mSoundBankIndex.GetCurSel(), y);
-					n64AudioLibrary.ExtractPercussion(mainFolder, alBankCurrent, y, tempExportNameStr, sampleRate, mHalfSamplingRate.GetCheck());
+					n64AudioLibrary.ExtractEADPercussion(alBankCurrent, y, tempExportNameStr, sampleRate, mHalfSamplingRate.GetCheck());
 				}
-			}
 
-			for (int y = 0; y < alBankCurrent->countEADPercussion; y++)
-			{
-				if (alBankCurrent->samplerate != 0)
-					sampleRate = (alBankCurrent->samplerate);
-				CString tempExportNameStr;
-				if (mExportShortFilename.GetCheck())
-					tempExportNameStr.Format("%s\\B%02XP%02X.wav", outputFolder, mSoundBankIndex.GetCurSel(), y);
-				else
-					tempExportNameStr.Format("%s\\BANK_%02X_PERC_%04X.wav", outputFolder, mSoundBankIndex.GetCurSel(), y);
-				n64AudioLibrary.ExtractEADPercussion(alBankCurrent, y, tempExportNameStr, sampleRate, mHalfSamplingRate.GetCheck());
-			}
-
-			for (int y = 0; y < alBankCurrent->countSfx; y++)
-			{
-				if (alBankCurrent->samplerate != 0)
-					sampleRate = (alBankCurrent->samplerate);
-				CString tempExportNameStr;
-				if (mExportShortFilename.GetCheck())
-					tempExportNameStr.Format("%s\\B%02XF%02X.wav", outputFolder, mSoundBankIndex.GetCurSel(), y);
-				else
-					tempExportNameStr.Format("%s\\BANK_%02X_SFX_%04X.wav", outputFolder, mSoundBankIndex.GetCurSel(), y);
-				n64AudioLibrary.ExtractSfx(alBankCurrent, y, tempExportNameStr, sampleRate, mHalfSamplingRate.GetCheck());
-			}
-
-			for (int x = 0; x < alBankCurrent->count; x++)
-			{
-				for (int y = 0; y < alBankCurrent->inst[x]->soundCount; y++)
+				for (int y = 0; y < alBankCurrent->countSfx; y++)
 				{
-					if (alBankCurrent->inst[x]->samplerate != 0)
-						sampleRate = (alBankCurrent->inst[x]->samplerate);
-
+					if (alBankCurrent->samplerate != 0)
+						sampleRate = (alBankCurrent->samplerate);
 					CString tempExportNameStr;
-					if (alBankCurrent->soundBankFormat == MP3)
-					{
-						if (mExportShortFilename.GetCheck())
-							tempExportNameStr.Format("%s\\B%02XI%02XS%02X.mp3", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
-						else
-							tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.mp3", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
-					}
+					if (mExportShortFilename.GetCheck())
+						tempExportNameStr.Format("%s\\B%02XF%02X.wav", outputFolder, mSoundBankIndex.GetCurSel(), y);
 					else
-					{
-						if (mExportShortFilename.GetCheck())
-							tempExportNameStr.Format("%s\\B%02XI%02XS%02X.wav", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
-						else
-							tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.wav", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
-					}
+						tempExportNameStr.Format("%s\\BANK_%02X_SFX_%04X.wav", outputFolder, mSoundBankIndex.GetCurSel(), y);
+					n64AudioLibrary.ExtractSfx(alBankCurrent, y, tempExportNameStr, sampleRate, mHalfSamplingRate.GetCheck());
+				}
 
-					float sampleRatePrimary = sampleRate;
-					if (mUseT1.GetCheck())
+				for (int x = 0; x < alBankCurrent->count; x++)
+				{
+					for (int y = 0; y < alBankCurrent->inst[x]->soundCount; y++)
 					{
-						if (mT1Index.GetCount() > 0)
+						if (alBankCurrent->inst[x]->samplerate != 0)
+							sampleRate = (alBankCurrent->inst[x]->samplerate);
+
+						CString tempExportNameStr;
+						if (alBankCurrent->soundBankFormat == MP3)
 						{
-							if (t1BankCurrent != NULL)
-							{
-								int bankIndex = mSoundBankIndex.GetCurSel();
+							if (mExportShortFilename.GetCheck())
+								tempExportNameStr.Format("%s\\B%02XI%02XS%02X.mp3", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+							else
+								tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.mp3", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+						}
+						else
+						{
+							if (mExportShortFilename.GetCheck())
+								tempExportNameStr.Format("%s\\B%02XI%02XS%02X.wav", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+							else
+								tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.wav", outputFolder, mSoundBankIndex.GetCurSel(), x, y);
+						}
 
-								for (int t = 0; t < t1BankCurrent->t1Entries.size(); t++)
+						float sampleRatePrimary = sampleRate;
+						if (mUseT1.GetCheck())
+						{
+							if (mT1Index.GetCount() > 0)
+							{
+								if (t1BankCurrent != NULL)
 								{
-									if (
-										(t1BankCurrent->t1Entries[t].bankNumber == bankIndex)
-										&& (t1BankCurrent->t1Entries[t].instrumentNumber == x)
-										&& (t1BankCurrent->t1Entries[t].soundNumber == y)
-										)
+									int bankIndex = mSoundBankIndex.GetCurSel();
+
+									for (int t = 0; t < t1BankCurrent->t1Entries.size(); t++)
 									{
-										sampleRatePrimary = t1BankCurrent->t1Entries[t].frequency;
-										break;
+										if (
+											(t1BankCurrent->t1Entries[t].bankNumber == bankIndex)
+											&& (t1BankCurrent->t1Entries[t].instrumentNumber == x)
+											&& (t1BankCurrent->t1Entries[t].soundNumber == y)
+											)
+										{
+											sampleRatePrimary = t1BankCurrent->t1Entries[t].frequency;
+											break;
+										}
 									}
 								}
 							}
 						}
-					}
 
-					n64AudioLibrary.ExtractRawSound(mainFolder, alBankCurrent, x, y, tempExportNameStr, sampleRatePrimary, PRIMARY, mHalfSamplingRate.GetCheck());
-					if ((alBankCurrent->inst[x] != NULL) && (alBankCurrent->inst[x]->sounds[y] != NULL))
-					{
-						if (alBankCurrent->inst[x]->sounds[y]->hasWavePrevious)
-							n64AudioLibrary.ExtractRawSound(mainFolder, alBankCurrent, x, y, tempExportNameStr + "Prev.wav", sampleRate, PREVIOUS, mHalfSamplingRate.GetCheck());
-						if (alBankCurrent->inst[x]->sounds[y]->hasWaveSecondary)
-							n64AudioLibrary.ExtractRawSound(mainFolder, alBankCurrent, x, y, tempExportNameStr + "Sec.wav", sampleRate, SECONDARY, mHalfSamplingRate.GetCheck());
+						n64AudioLibrary.ExtractRawSound(mainFolder, alBankCurrent, x, y, tempExportNameStr, sampleRatePrimary, PRIMARY, mHalfSamplingRate.GetCheck());
+						if ((alBankCurrent->inst[x] != NULL) && (alBankCurrent->inst[x]->sounds[y] != NULL))
+						{
+							if (alBankCurrent->inst[x]->sounds[y]->hasWavePrevious)
+								n64AudioLibrary.ExtractRawSound(mainFolder, alBankCurrent, x, y, tempExportNameStr + "Prev.wav", sampleRate, PREVIOUS, mHalfSamplingRate.GetCheck());
+							if (alBankCurrent->inst[x]->sounds[y]->hasWaveSecondary)
+								n64AudioLibrary.ExtractRawSound(mainFolder, alBankCurrent, x, y, tempExportNameStr + "Sec.wav", sampleRate, SECONDARY, mHalfSamplingRate.GetCheck());
+						}
 					}
 				}
 			}
@@ -11592,13 +11648,82 @@ void CN64SoundListToolDlg::OnBnClickedButtonrip3()
 	CString outputFolder;
 	if (GetFolder(outputFolder, "Folder To Save To", NULL))
 	{
+		bool exportRaw = mCheckRawBatch.GetCheck() != 0;
+
 		for (int x = 0; x < numberResults; x++)
 		{
 			float sampleRate = (results[x].bank->samplerate);
 
-			if (results[x].bank->percussion != NULL)
+			if (exportRaw)
 			{
-				for (int z = 0; z < results[x].bank->percussion->soundCount; z++)
+				// Export as raw binary files
+				if (results[x].bank->percussion != NULL)
+				{
+					for (int z = 0; z < results[x].bank->percussion->soundCount; z++)
+					{
+						CString tempExportNameStr;
+						if (mExportShortFilename.GetCheck())
+							tempExportNameStr.Format("%s\\B%02XP%02X.bin", outputFolder, x, z);
+						else
+							tempExportNameStr.Format("%s\\BANK_%02X__PERC_%04X.bin", outputFolder, x, z);
+						n64AudioLibrary.ExportEADRawPercussionData(results[x].bank, z, tempExportNameStr);
+					}
+				}
+
+				for (int z = 0; z < results[x].bank->countEADPercussion; z++)
+				{
+					CString tempExportNameStr;
+					if (mExportShortFilename.GetCheck())
+						tempExportNameStr.Format("%s\\B%02XP%02X.bin", outputFolder, x, z);
+					else
+						tempExportNameStr.Format("%s\\BANK_%02X__PERC_%04X.bin", outputFolder, x, z);
+					n64AudioLibrary.ExportEADRawPercussionData(results[x].bank, z, tempExportNameStr);
+				}
+
+				for (int z = 0; z < results[x].bank->countSfx; z++)
+				{
+					CString tempExportNameStr;
+					if (mExportShortFilename.GetCheck())
+						tempExportNameStr.Format("%s\\B%02XF%02X.bin", outputFolder, x, z);
+					else
+						tempExportNameStr.Format("%s\\BANK_%02X__SFX_%04X.bin", outputFolder, x, z);
+					n64AudioLibrary.ExportRawSfxData(results[x].bank, z, tempExportNameStr);
+				}
+
+				for (int r = 0; r < results[x].bank->count; r++)
+				{
+					for (int z = 0; z < results[x].bank->inst[r]->soundCount; z++)
+					{
+						CString tempExportNameStr;
+						if (mExportShortFilename.GetCheck())
+							tempExportNameStr.Format("%s\\B%02XI%02XS%02X.bin", outputFolder, x, r, z);
+						else
+							tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.bin", outputFolder, x, r, z);
+
+						n64AudioLibrary.ExportRawData(results[x].bank, r, z, tempExportNameStr, PRIMARY);
+					}
+				}
+			}
+			else
+			{
+				// Export as wave files
+				if (results[x].bank->percussion != NULL)
+				{
+					for (int z = 0; z < results[x].bank->percussion->soundCount; z++)
+					{
+						if (results[x].bank->samplerate != 0)
+							sampleRate = (alBankCurrent->samplerate);
+
+						CString tempExportNameStr;
+						if (mExportShortFilename.GetCheck())
+							tempExportNameStr.Format("%s\\B%02XP%02X.wav", outputFolder, x, z);
+						else
+							tempExportNameStr.Format("%s\\BANK_%02X__PERC_%04X.wav", outputFolder, x, z);
+						n64AudioLibrary.ExtractPercussion(mainFolder, results[x].bank, z, tempExportNameStr, sampleRate, results[x].halfSamplingRate);
+					}
+				}
+
+				for (int z = 0; z < results[x].bank->countEADPercussion; z++)
 				{
 					if (results[x].bank->samplerate != 0)
 						sampleRate = (alBankCurrent->samplerate);
@@ -11608,94 +11733,81 @@ void CN64SoundListToolDlg::OnBnClickedButtonrip3()
 						tempExportNameStr.Format("%s\\B%02XP%02X.wav", outputFolder, x, z);
 					else
 						tempExportNameStr.Format("%s\\BANK_%02X__PERC_%04X.wav", outputFolder, x, z);
-					n64AudioLibrary.ExtractPercussion(mainFolder, results[x].bank, z, tempExportNameStr, sampleRate, results[x].halfSamplingRate);
+					n64AudioLibrary.ExtractEADPercussion(results[x].bank, z, tempExportNameStr, sampleRate, results[x].halfSamplingRate);
 				}
-			}
 
-			for (int z = 0; z < results[x].bank->countEADPercussion; z++)
-			{
-				if (results[x].bank->samplerate != 0)
-					sampleRate = (alBankCurrent->samplerate);
-
-				CString tempExportNameStr;
-				if (mExportShortFilename.GetCheck())
-					tempExportNameStr.Format("%s\\B%02XP%02X.wav", outputFolder, x, z);
-				else
-					tempExportNameStr.Format("%s\\BANK_%02X__PERC_%04X.wav", outputFolder, x, z);
-				n64AudioLibrary.ExtractEADPercussion(results[x].bank, z, tempExportNameStr, sampleRate, results[x].halfSamplingRate);
-			}
-
-			for (int z = 0; z < results[x].bank->countSfx; z++)
-			{
-				if (results[x].bank->samplerate != 0)
-					sampleRate = (alBankCurrent->samplerate);
-
-				CString tempExportNameStr;
-				if (mExportShortFilename.GetCheck())
-					tempExportNameStr.Format("%s\\B%02XF%02X.wav", outputFolder, x, z);
-				else
-					tempExportNameStr.Format("%s\\BANK_%02X__SFX_%04X.wav", outputFolder, x, z);
-				n64AudioLibrary.ExtractSfx(results[x].bank, z, tempExportNameStr, sampleRate, results[x].halfSamplingRate);
-			}
-
-			for (int r = 0; r < results[x].bank->count; r++)
-			{
-				for (int z = 0; z < results[x].bank->inst[r]->soundCount; z++)
+				for (int z = 0; z < results[x].bank->countSfx; z++)
 				{
-					if (results[x].bank->inst[r]->samplerate != 0)
-						sampleRate = (results[x].bank->inst[r]->samplerate);
+					if (results[x].bank->samplerate != 0)
+						sampleRate = (alBankCurrent->samplerate);
 
 					CString tempExportNameStr;
-					if (alBankCurrent->soundBankFormat == MP3)
-					{
-						if (mExportShortFilename.GetCheck())
-							tempExportNameStr.Format("%s\\B%02XI%02XS%02X.mp3", outputFolder, x, r, z);
-						else
-							tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.mp3", outputFolder, x, r, z);
-					}
+					if (mExportShortFilename.GetCheck())
+						tempExportNameStr.Format("%s\\B%02XF%02X.wav", outputFolder, x, z);
 					else
-					{
-						if (mExportShortFilename.GetCheck())
-							tempExportNameStr.Format("%s\\B%02XI%02XS%02X.wav", outputFolder, x, r, z);
-						else
-							tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.wav", outputFolder, x, r, z);
-					}
+						tempExportNameStr.Format("%s\\BANK_%02X__SFX_%04X.wav", outputFolder, x, z);
+					n64AudioLibrary.ExtractSfx(results[x].bank, z, tempExportNameStr, sampleRate, results[x].halfSamplingRate);
+				}
 
-					float sampleRatePrimary = sampleRate;
-					if (mUseT1.GetCheck())
+				for (int r = 0; r < results[x].bank->count; r++)
+				{
+					for (int z = 0; z < results[x].bank->inst[r]->soundCount; z++)
 					{
-						if (mT1Index.GetCount() > 0)
+						if (results[x].bank->inst[r]->samplerate != 0)
+							sampleRate = (results[x].bank->inst[r]->samplerate);
+
+						CString tempExportNameStr;
+						if (alBankCurrent->soundBankFormat == MP3)
 						{
-							if (t1BankCurrent != NULL)
-							{
-								int bankIndex = mSoundBankIndex.GetCurSel();
+							if (mExportShortFilename.GetCheck())
+								tempExportNameStr.Format("%s\\B%02XI%02XS%02X.mp3", outputFolder, x, r, z);
+							else
+								tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.mp3", outputFolder, x, r, z);
+						}
+						else
+						{
+							if (mExportShortFilename.GetCheck())
+								tempExportNameStr.Format("%s\\B%02XI%02XS%02X.wav", outputFolder, x, r, z);
+							else
+								tempExportNameStr.Format("%s\\BANK_%02X_INSTR_%04X_SND_%04X.wav", outputFolder, x, r, z);
+						}
 
-								for (int t = 0; t < t1BankCurrent->t1Entries.size(); t++)
+						float sampleRatePrimary = sampleRate;
+						if (mUseT1.GetCheck())
+						{
+							if (mT1Index.GetCount() > 0)
+							{
+								if (t1BankCurrent != NULL)
 								{
-									if (
-										(t1BankCurrent->t1Entries[t].bankNumber == bankIndex)
-										&& (t1BankCurrent->t1Entries[t].instrumentNumber == r)
-										&& (t1BankCurrent->t1Entries[t].soundNumber == z)
-										)
+									int bankIndex = mSoundBankIndex.GetCurSel();
+
+									for (int t = 0; t < t1BankCurrent->t1Entries.size(); t++)
 									{
-										sampleRatePrimary = t1BankCurrent->t1Entries[t].frequency;
-										break;
+										if (
+											(t1BankCurrent->t1Entries[t].bankNumber == bankIndex)
+											&& (t1BankCurrent->t1Entries[t].instrumentNumber == r)
+											&& (t1BankCurrent->t1Entries[t].soundNumber == z)
+											)
+										{
+											sampleRatePrimary = t1BankCurrent->t1Entries[t].frequency;
+											break;
+										}
 									}
 								}
 							}
 						}
-					}
 
-					//if (results[x].bank->inst[r]->sounds[z]->wav.adpcmWave->loop != NULL)
-						n64AudioLibrary.ExtractRawSound(mainFolder, results[x].bank, r, z, tempExportNameStr, sampleRatePrimary, PRIMARY, results[x].halfSamplingRate);
-					if ((results[x].bank->inst[r] != NULL) && (results[x].bank->inst[r]->sounds[z] != NULL))
-					{
-						if (results[x].bank->inst[r]->sounds[z]->hasWavePrevious)
-							//if (results[x].bank->inst[r]->sounds[z]->wavPrevious.adpcmWave->loop != NULL)
-								n64AudioLibrary.ExtractRawSound(mainFolder, results[x].bank, r, z, tempExportNameStr + "Prev.wav", sampleRate, PREVIOUS, results[x].halfSamplingRate);
-							if (results[x].bank->inst[r]->sounds[z]->hasWaveSecondary)
-								//if (results[x].bank->inst[r]->sounds[z]->wavSecondary.adpcmWave->loop != NULL)
-									n64AudioLibrary.ExtractRawSound(mainFolder, results[x].bank, r, z, tempExportNameStr + "Sec.wav", sampleRate, SECONDARY, results[x].halfSamplingRate);
+						//if (results[x].bank->inst[r]->sounds[z]->wav.adpcmWave->loop != NULL)
+							n64AudioLibrary.ExtractRawSound(mainFolder, results[x].bank, r, z, tempExportNameStr, sampleRatePrimary, PRIMARY, results[x].halfSamplingRate);
+						if ((results[x].bank->inst[r] != NULL) && (results[x].bank->inst[r]->sounds[z] != NULL))
+						{
+							if (results[x].bank->inst[r]->sounds[z]->hasWavePrevious)
+								//if (results[x].bank->inst[r]->sounds[z]->wavPrevious.adpcmWave->loop != NULL)
+									n64AudioLibrary.ExtractRawSound(mainFolder, results[x].bank, r, z, tempExportNameStr + "Prev.wav", sampleRate, PREVIOUS, results[x].halfSamplingRate);
+								if (results[x].bank->inst[r]->sounds[z]->hasWaveSecondary)
+									//if (results[x].bank->inst[r]->sounds[z]->wavSecondary.adpcmWave->loop != NULL)
+										n64AudioLibrary.ExtractRawSound(mainFolder, results[x].bank, r, z, tempExportNameStr + "Sec.wav", sampleRate, SECONDARY, results[x].halfSamplingRate);
+						}
 					}
 				}
 			}
