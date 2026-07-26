@@ -390,14 +390,29 @@ void CMidiParse::DuckDodgersMidiToMidi(byte* inputMID, int inputSize, CString ou
 
 						if (subType == 0x51) // tempo
 						{
-							int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+							unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
 						}
 						else if (subType == 0x2D) // end loop
 						{
 							byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 							byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
-							unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+							unsigned char byteData[4];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+											| ((unsigned long)byteData[1] << 16)
+											| ((unsigned long)byteData[2] << 8)
+											| (unsigned long)byteData[3];
 							
 							if ((loopCount == 0xFF) || (loopCount == 0x00))
 							{
@@ -772,7 +787,14 @@ void CMidiParse::DuckDodgersMidiToMidi(byte* inputMID, int inputSize, CString ou
 
 						if (subType == 0x51) // tempo
 						{
-							int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+							unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
 
 							trackEventsSub[trackEventCountSub].type = 0xFF;
 							trackEventsSub[trackEventCountSub].contentSize = 5;
@@ -812,7 +834,17 @@ void CMidiParse::DuckDodgersMidiToMidi(byte* inputMID, int inputSize, CString ou
 
 							byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 							byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
-							unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+							
+							unsigned char byteData[4];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+											| ((unsigned long)byteData[1] << 16)
+											| ((unsigned long)byteData[2] << 8)
+											| (unsigned long)byteData[3];
 							
 							if ((loopCount == 0xFF) || (loopCount == 0x00))
 							{
@@ -1432,14 +1464,30 @@ void CMidiParse::GEMidiToMidi(byte* inputMID, int inputSize, CString outFileName
 
 						if (subType == 0x51) // tempo
 						{
-							int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+							unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
 						}
 						else if (subType == 0x2D) // end loop
 						{
 							byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 							byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
-							unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+							
+							unsigned char byteData[4];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+											| ((unsigned long)byteData[1] << 16)
+											| ((unsigned long)byteData[2] << 8)
+											| (unsigned long)byteData[3];
 							
 							if ((loopCount == 0xFF) || (loopCount == 0x00))
 							{
@@ -1796,7 +1844,14 @@ void CMidiParse::GEMidiToMidi(byte* inputMID, int inputSize, CString outFileName
 
 						if (subType == 0x51) // tempo
 						{
-							int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+							unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
 
 							trackEventsSub[trackEventCountSub].type = 0xFF;
 							trackEventsSub[trackEventCountSub].contentSize = 5;
@@ -1833,7 +1888,17 @@ void CMidiParse::GEMidiToMidi(byte* inputMID, int inputSize, CString outFileName
 
 							byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 							byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
-							unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+							
+							unsigned char byteData[4];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+											| ((unsigned long)byteData[1] << 16)
+											| ((unsigned long)byteData[2] << 8)
+											| (unsigned long)byteData[3];
 							
 							if ((loopCount == 0xFF) || (loopCount == 0x00))
 							{
@@ -2409,7 +2474,14 @@ void CMidiParse::MIDxMidiToMidi(byte* inputMID, int inputSize, CString outFileNa
 
 				if (subType == 0x51) // tempo
 				{
-					int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+					unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
 
 					trackEvents[trackEventCount].type = 0xFF;
 					trackEvents[trackEventCount].contentSize = 5;
@@ -2431,7 +2503,17 @@ void CMidiParse::MIDxMidiToMidi(byte* inputMID, int inputSize, CString outFileNa
 				{
 					byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false);
 					byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false);
-					unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+					
+					unsigned char byteData[4];
+					byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+					byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+					byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+					byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+					unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+									| ((unsigned long)byteData[1] << 16)
+									| ((unsigned long)byteData[2] << 8)
+									| (unsigned long)byteData[3];
 				}
 				else if (subType == 0x2E) // start loop
 				{
@@ -11307,14 +11389,31 @@ void CMidiParse::BTMidiToMidi(byte* inputMID, int inputSize, CString outFileName
 
 						if (subType == 0x51) // tempo
 						{
-							int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+							unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
 
 						}
 						else if (subType == 0x2D) // end loop
 						{
 							byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 							byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
-							unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+							
+							unsigned char byteData[4];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+											| ((unsigned long)byteData[1] << 16)
+											| ((unsigned long)byteData[2] << 8)
+											| (unsigned long)byteData[3];
 							
 							if ((loopCount == 0xFF) || (loopCount == 0x00))
 							{
@@ -11653,7 +11752,14 @@ void CMidiParse::BTMidiToMidi(byte* inputMID, int inputSize, CString outFileName
 
 						if (subType == 0x51) // tempo
 						{
-							int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+							unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
 
 							trackEventsSub[trackEventCountSub].type = 0xFF;
 							trackEventsSub[trackEventCountSub].contentSize = 5;
@@ -11675,7 +11781,17 @@ void CMidiParse::BTMidiToMidi(byte* inputMID, int inputSize, CString outFileName
 						{
 							byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false);
 							byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false);
-							unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+
+							unsigned char byteData[4];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+											| ((unsigned long)byteData[1] << 16)
+											| ((unsigned long)byteData[2] << 8)
+											| (unsigned long)byteData[3];
 
 							int loopNumber = 0;
 							if (loopNumbers.size() > 0)
@@ -12351,7 +12467,14 @@ bool CMidiParse::AddLoopGEFormat(byte* inputMID, CString output, int inputSize, 
 
 						if (subType == 0x51) // tempo
 						{
-							int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+							unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
 							
 							int MICROSECONDS_PER_MINUTE = 60000000;
 							float beatsPerMinute = (float)MICROSECONDS_PER_MINUTE / (float)microsecondsSinceQuarterNote;
@@ -12360,7 +12483,17 @@ bool CMidiParse::AddLoopGEFormat(byte* inputMID, CString output, int inputSize, 
 						{
 							byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 							byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
-							unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+
+							unsigned char byteData[4];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+											| ((unsigned long)byteData[1] << 16)
+											| ((unsigned long)byteData[2] << 8)
+											| (unsigned long)byteData[3];
 							
 						}
 						else if (subType == 0x2E) // start loop
@@ -12584,7 +12717,14 @@ bool CMidiParse::AddLoopGEFormat(byte* inputMID, CString output, int inputSize, 
 
 						if (subType == 0x51) // tempo
 						{
-							int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+							unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
 
 							trackEvents[counterTrack][trackEventCount[counterTrack]].type = 0xFF;
 							trackEvents[counterTrack][trackEventCount[counterTrack]].contentSize = 4;
@@ -12605,8 +12745,17 @@ bool CMidiParse::AddLoopGEFormat(byte* inputMID, CString output, int inputSize, 
 						{
 							byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 							byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
-							unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
 							
+							unsigned char byteData[4];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+											| ((unsigned long)byteData[1] << 16)
+											| ((unsigned long)byteData[2] << 8)
+											| (unsigned long)byteData[3];
 						}
 						else if (subType == 0x2E) // start loop
 						{
@@ -15881,14 +16030,30 @@ void CMidiParse::GEMidiToDebugTextFile(byte* inputMID, int inputSize, CString te
 
 					if (subType == 0x51) // tempo
 					{
-						int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+						unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
 					}
 					else if (subType == 0x2D) // end loop
 					{
 						byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 						byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
-						unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+						
+						unsigned char byteData[4];
+						byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+										| ((unsigned long)byteData[1] << 16)
+										| ((unsigned long)byteData[2] << 8)
+										| (unsigned long)byteData[3];
 						
 						if ((loopCount == 0xFF) || (loopCount == 0x00))
 						{
@@ -16131,7 +16296,15 @@ void CMidiParse::GEMidiToDebugTextFile(byte* inputMID, int inputSize, CString te
 
 					if (subType == 0x51) // tempo
 					{
-						int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+						unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
+
 						int MICROSECONDS_PER_MINUTE = 60000000;
 						float beatsPerMinute = (float)MICROSECONDS_PER_MINUTE / (float)microsecondsSinceQuarterNote;
 
@@ -16145,7 +16318,17 @@ void CMidiParse::GEMidiToDebugTextFile(byte* inputMID, int inputSize, CString te
 						
 						byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 						byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
-						unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+						
+						unsigned char byteData[4];
+						byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+										| ((unsigned long)byteData[1] << 16)
+										| ((unsigned long)byteData[2] << 8)
+										| (unsigned long)byteData[3];
 
 						if (statusBit)
 							fprintf(outFile, "!%02X%02X%02X%08X Count %u LoopCount %u OffsetBeginning %u (%04X)", subType, loopCount, currentLoopCount, offsetToBeginningLoop, loopCount, currentLoopCount, offsetToBeginningLoop, (position - offsetToBeginningLoop));
@@ -16544,14 +16727,30 @@ void CMidiParse::DuckDodgersMidiToDebugTextFile(byte* inputMID, int inputSize, C
 
 					if (subType == 0x51) // tempo
 					{
-						int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+						unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
 					}
 					else if (subType == 0x2D) // end loop
 					{
 						byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 						byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
-						unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+						
+						unsigned char byteData[4];
+						byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+										| ((unsigned long)byteData[1] << 16)
+										| ((unsigned long)byteData[2] << 8)
+										| (unsigned long)byteData[3];
 						
 						if ((loopCount == 0xFF) || (loopCount == 0x00))
 						{
@@ -16795,7 +16994,15 @@ void CMidiParse::DuckDodgersMidiToDebugTextFile(byte* inputMID, int inputSize, C
 
 					if (subType == 0x51) // tempo
 					{
-						int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+						unsigned char byteData[3];
+						byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+										| ((int)byteData[1] << 8)
+										| (int)byteData[2];
+
 						int MICROSECONDS_PER_MINUTE = 60000000;
 						float beatsPerMinute = (float)MICROSECONDS_PER_MINUTE / (float)microsecondsSinceQuarterNote;
 
@@ -16809,7 +17016,17 @@ void CMidiParse::DuckDodgersMidiToDebugTextFile(byte* inputMID, int inputSize, C
 						
 						byte loopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
 						byte currentLoopCount = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
-						unsigned long offsetToBeginningLoop = ((((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false));
+					
+						unsigned char byteData[4];
+						byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+						byteData[3] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+						unsigned long offsetToBeginningLoop = ((unsigned long)byteData[0] << 24)
+										| ((unsigned long)byteData[1] << 16)
+										| ((unsigned long)byteData[2] << 8)
+										| (unsigned long)byteData[3];
 
 						if (statusBit)
 							fprintf(outFile, "!%02X%02X%02X%08X Count %u LoopCount %u OffsetBeginning %u (%04X)", subType, loopCount, currentLoopCount, offsetToBeginningLoop, loopCount, currentLoopCount, offsetToBeginningLoop, (position - offsetToBeginningLoop));
@@ -17216,7 +17433,15 @@ void CMidiParse::MidiToDebugTextFile(CString midiFile, CString textFileOut)
 						{
 							unsigned long length = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, false); 
 												
-							int microsecondsSinceQuarterNote = ((((ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true)) << 8) | ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true));
+							unsigned char byteData[3];
+							byteData[0] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[1] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+							byteData[2] = ReadMidiByte(inputMID, position, repeatPattern, altOffset, altLength, true);
+
+							int microsecondsSinceQuarterNote = ((int)byteData[0] << 16)
+											| ((int)byteData[1] << 8)
+											| (int)byteData[2];
+
 							int MICROSECONDS_PER_MINUTE = 60000000;
 							float beatsPerMinute = (float)MICROSECONDS_PER_MINUTE / (float)microsecondsSinceQuarterNote;
 
